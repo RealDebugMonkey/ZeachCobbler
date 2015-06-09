@@ -8,7 +8,7 @@
 // @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
 // @contributer  Agariomods.com again for maintaining the best extended repo out there.
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
-// @version      0.09.3
+// @version      0.09.4
 // @description  Agario powerups.
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -17,6 +17,7 @@
 //                     - Added possible fix for times we might somehow (?!) miss player spawning.
 //                   2 - Press 'A' to toggle acid mode
 //                   3 - Name still moved for bitdo skins even with visual assist turned off
+//                   4  - Changed repos (again)
 //              0.08.0 - Fixed bug in handling of agariomods.com skins
 //                     - Press 'C' to toggle display of Zeachy powers.
 //                     - New GM_xmlhttpRequest permission required to check that bit.do skins point to imgur.com
@@ -75,10 +76,9 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.09.3';
+var _version_ = '0.09.4';
 console.log("Running Zeach Cobbler v2 the reckoning!");
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js");
-
 
 
 (function(f, g) {
