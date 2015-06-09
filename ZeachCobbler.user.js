@@ -1,6 +1,8 @@
 // ==UserScript==
 // @name         Zeach Cobbler
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
+// @updateURL    https://rawgit.com/RealDebugMonkey/ZeachCobbler/master/ZeachCobbler.user.js
+// @downloadURL  https://rawgit.com/RealDebugMonkey/ZeachCobbler/master/ZeachCobbler.user.js
 // @contributer  The White Light -- You rock the maths.
 // @contributer  Angal - For the UI additions and server select code
 // @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
