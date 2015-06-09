@@ -8,7 +8,7 @@
 // @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
 // @contributer  Agariomods.com again for maintaining the best extended repo out there.
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
-// @version      0.09.5
+// @version      0.09.6
 // @description  Agario powerups.
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -20,6 +20,8 @@
 //                   4 - Changed repos (again)
 //                   5 - O/P keys didn't match documentation. Changed keys to match documentation.
 //                       O now enables/disables virus firing via mouse, P is for target fixation toggle
+//                   6 - Fixed issue where TTR displays when you have only 1 blob. (works around issue in official code
+//                       caused by ID not being removed from own IDs)
 //              0.08.0 - Fixed bug in handling of agariomods.com skins
 //                     - Press 'C' to toggle display of Zeachy powers.
 //                     - New GM_xmlhttpRequest permission required to check that bit.do skins point to imgur.com
@@ -78,10 +80,13 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.09.5';
-console.log("Running Zeach Cobbler v2 the reckoning!");
-$.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js");
+var _version_ = '0.09.6';
 
+//if (window.top != window.self)  //-- Don't run on frames or iframes
+//    return;
+
+console.log("Running Zeach Cobbler!");
+$.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js");
 
 (function(f, g) {
     var zoomFactor = 10;
@@ -116,7 +121,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
 
     // ======================   Utility code    ==================================================================
     function getSelectedBlob(){
-        if(!_.includes(myIDs, selectedBlobID)){
+        if(!_.contains(myIDs, selectedBlobID)){
             selectedBlobID = myPoints[0].id;
             console.log("Had to select new blob. Its id is " + selectedBlobID);
         }
@@ -314,7 +319,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                 pelletCount +=1;
             }
         });
-        //console.log("pelletCount: " + pelletCount);
         return pelletCount;
     }
 // ======================   UI stuff    ==================================================================
@@ -449,7 +453,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
             debugStrings.push("P - right click: " + (rightClickFires ? "Fires @ virus" : "Default"))
             debugStrings.push("V - visualize grazing: " + (visualizeGrazing ? "On" : "Off"))
             debugStrings.push("Z - zoom: " + zoomFactor.toString());
-            debugStrings.push("myIDs.length " + myIDs.length + " myPoints.length: " + myPoints.length);
+            //debugStrings.push("myIDs.length " + myIDs.length + " myPoints.length: " + myPoints.length);
         }
         var offsetValue = 20;
         var text = new agarTextFunction(textSize, (isNightMode ? '#F2FBFF' : '#111111'));
@@ -682,7 +686,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
     {
 
         if(9 === d.keyCode && isPlayerAlive()) {
-            var indexloc = _.indexOf(myIDs, selectedBlobID)
+            var myids_sorted = _.pluck(myPoints, "id").sort(); // sort ids because they could
+            var indexloc = _.indexOf(myids_sorted, selectedBlobID);
             d.preventDefault();
             if(-1 === indexloc){
                 selectedBlobID = myPoints[0].id;
@@ -690,7 +695,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                 return nodes[selectedBlobID];
             }
             indexloc += 1;
-            if(indexloc >= myIDs.length){
+            if(indexloc >= myids_sorted.length){
                 selectedBlobID = myPoints[0].id;
                 console.log("Reached array end. Moving to begining with id " + selectedBlobID);
                 return nodes[selectedBlobID];
@@ -770,13 +775,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
         }
     }
     function onBeforeNewPointPacket() {
-        if (0 == myIDs.length){
+        if (0 == _.size(myPoints)){
             timeSpawned = Date.now();
         }
     }
     function setCellName(cell, d) {
         if (showCheats) {
-            if (-1 != myIDs.indexOf(cell.id) && myIDs.length > 1) {
+            if (_.contains(myIDs, cell.id) && _.size(myPoints) > 1) {
                 var pct = (cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize);
                 d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
             } else if (!cell.isVirus && isPlayerAlive()) {
@@ -1085,7 +1090,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
         items = [];
         G = [];
         scoreboard = [];
-        v = w = null;
+        v = teamScoreBoard = null;
         H = 0;
         console.log("Connecting to " + a);
         ws = new WebSocket(a, Ga ? ["binary", "base64"] : []);
@@ -1123,7 +1128,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
         Z *= 1.5;
     }
 
-    function Sa(a$$0) {
+    function Sa(packet) {
         function b$$0() {
             var a = "";
             for (;;) {
@@ -1137,7 +1142,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
             return a;
         }
         var c = 0;
-        var d = new DataView(a$$0.data);
+        var d = new DataView(packet.data);
         if (240 == d.getUint8(c)) {
             c += 5;
         }
@@ -1175,14 +1180,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                 c += 4;
                 break;
             case 49:
-                if (null != w) {
+                if (null != teamScoreBoard) {
                     break;
                 }
-                a$$0 = d.getUint32(c, true);
+                packet = d.getUint32(c, true);
                 c += 4;
                 scoreboard = [];
                 var e = 0;
-                for (; e < a$$0; ++e) {
+                for (; e < packet; ++e) {
                     var q = d.getUint32(c, true);
                     c = c + 4;
                     scoreboard.push({
@@ -1193,12 +1198,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                 Ia();
                 break;
             case 50:
-                w = [];
-                a$$0 = d.getUint32(c, true);
+                teamScoreBoard = [];
+                packet = d.getUint32(c, true);
                 c += 4;
                 e = 0;
-                for (; e < a$$0; ++e) {
-                    w.push(d.getFloat32(c, true));
+                for (; e < packet; ++e) {
+                    teamScoreBoard.push(d.getFloat32(c, true));
                     c += 4;
                 }
                 Ia();
@@ -1575,13 +1580,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
 
     function Ia() {
         v = null;
-        if (null != w || 0 != scoreboard.length) {
-            if (null != w || ia) {
+        if (null != teamScoreBoard || 0 != scoreboard.length) {
+            if (null != teamScoreBoard || ia) {
                 v = document.createElement("canvas");
                 var a = v.getContext("2d");
                 var b = 60;
                 /*new*///b = null == w ? b + 24 * z.length : b + 180;
-                /*new*/b = null == w ? b + 24 * scoreboard.length : b + 180;
+                /*new*/b = null == teamScoreBoard ? b + 24 * scoreboard.length : b + 180;
                 var c = Math.min(200, 0.3 * p) / 200;
                 v.width = 200 * c;
                 v.height = b * c;
@@ -1595,7 +1600,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                 c = "Leaderboard";
                 a.font = "30px Ubuntu";
                 a.fillText(c, 100 - a.measureText(c).width / 2, 40);
-                if (null == w) {
+                if (null == teamScoreBoard) {
                     a.font = "20px Ubuntu";
                     b = 0;
                     for (; b < scoreboard.length; ++b) {
@@ -1616,8 +1621,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                     }
                 } else {
                     b = c = 0;
-                    for (; b < w.length; ++b) {
-                        angEnd = c + w[b] * Math.PI * 2;
+                    for (; b < teamScoreBoard.length; ++b) {
+                        angEnd = c + teamScoreBoard[b] * Math.PI * 2;
                         a.fillStyle = Za[b + 1];
                         a.beginPath();
                         a.moveTo(100, 140);
@@ -1704,7 +1709,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
             var O = t = ~~((ca + ea) / 2);
             var P = 1;
             var M = "";
-            var w = null;
+            var teamScoreBoard = null;
             var ja = false;
             var qa = false;
             var oa = 0;
@@ -2359,7 +2364,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                                 globalCtx.stroke();
                             }
                             globalCtx.fill();
-                            /*new*/globalCtx.globalAlpha = isSpecialSkin(this.name.toLowerCase()) || -1 != myIDs.indexOf(this.id)  ? 1 : 0.5;
+                            /*new*/globalCtx.globalAlpha = isSpecialSkin(this.name.toLowerCase()) || _.contains(myIDs, this.id)  ? 1 : 0.5;
                             if (!(null == d)) {
                                 if (!b) {
                                     globalCtx.save();
@@ -2406,7 +2411,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
 
                             /*new*/var massValue = (~~(this.size * this.size / 100)).toString();
                             /*new*/if(showCheats){
-                                /*new*/if(-1 != myIDs.indexOf(this.id)) {massValue += " (" + getBlobShotsAvailable(this).toString() + ")";}
+                                /*new*/if(_.contains(myIDs, this.id)) {massValue += " (" + getBlobShotsAvailable(this).toString() + ")";}
                                 /*new*/}
                             if (isShowMass) {
                                 if (b || 0 == myPoints.length && ((!this.isVirus || this.isAgitated) && 20 < this.size)) {
