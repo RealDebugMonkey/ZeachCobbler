@@ -8,7 +8,7 @@
 // @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
 // @contributer  Agariomods.com again for maintaining the best extended repo out there.
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
-// @version      0.09.4
+// @version      0.09.5
 // @description  Agario powerups.
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -17,7 +17,9 @@
 //                     - Added possible fix for times we might somehow (?!) miss player spawning.
 //                   2 - Press 'A' to toggle acid mode
 //                   3 - Name still moved for bitdo skins even with visual assist turned off
-//                   4  - Changed repos (again)
+//                   4 - Changed repos (again)
+//                   5 - O/P keys didn't match documentation. Changed keys to match documentation.
+//                       O now enables/disables virus firing via mouse, P is for target fixation toggle
 //              0.08.0 - Fixed bug in handling of agariomods.com skins
 //                     - Press 'C' to toggle display of Zeachy powers.
 //                     - New GM_xmlhttpRequest permission required to check that bit.do skins point to imgur.com
@@ -76,7 +78,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.09.4';
+var _version_ = '0.09.5';
 console.log("Running Zeach Cobbler v2 the reckoning!");
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js");
 
@@ -176,6 +178,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
         return pseudoBlob;
     }
     // ======================   Grazing code    ==================================================================
+
 
     function checkCollision(myBlob, targetBlob, potential){
         // Calculate distance to target
@@ -422,13 +425,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
         return color;
     }
 
-    function displayDebugText(d) {
+    function displayDebugText(d, agarTextFunction) {
         if(0 >= displayDebugInfo) {
             return;
         }
 
         // HACK: On update change this function name to correct function
-        var agarTextFunction = ha;
         var textSize = 15;
         var debugStrings = [];
         if(1 <= displayDebugInfo) {
@@ -447,7 +449,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
             debugStrings.push("P - right click: " + (rightClickFires ? "Fires @ virus" : "Default"))
             debugStrings.push("V - visualize grazing: " + (visualizeGrazing ? "On" : "Off"))
             debugStrings.push("Z - zoom: " + zoomFactor.toString());
-            debugStrings.push("TS: " + timeSpawned + " myPoints.length: " + myPoints.length);
+            debugStrings.push("myIDs.length " + myIDs.length + " myPoints.length: " + myPoints.length);
         }
         var offsetValue = 20;
         var text = new agarTextFunction(textSize, (isNightMode ? '#F2FBFF' : '#111111'));
@@ -724,11 +726,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
             suspendMouseUpdates = !suspendMouseUpdates;
         }
         else if('O'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            grazingTargetFixation = !grazingTargetFixation;
-        }
-        else if('P'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             rightClickFires = !rightClickFires;
             GM_setValue('rightClickFires', rightClickFires);
+        }
+        else if('P'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            grazingTargetFixation = !grazingTargetFixation;
         }
         else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             fireAtVirusNearestToBlob(getSelectedBlob(),items);
@@ -1552,7 +1554,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
         if (1 < x) {
             x = 1;
         }
-        /*new*/displayDebugText(globalCtx);
+        /*new*/displayDebugText(globalCtx,ha); // second param is same as above 'new ??(24,  "#FFFFFF");'
     }
 
     function Ya() {
@@ -2383,8 +2385,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
                             a = ~~this.y;
                             if ((ia || b) && (this.name && (this.nameCache && (null == d || -1 == $a.indexOf(c)))) /*new*/|| this.isVirus) {
                                 /*new*/if(this.isVirus && null == this.nameCache){
-                                /*new*/     this.setName(getVirusShotsNeededForSplit(this.nSize).toString());
-                                /*new*/}
+                                    /*new*/     this.setName(getVirusShotsNeededForSplit(this.nSize).toString());
+                                    /*new*/}
                                 d = this.nameCache;
                                 d.setValue(this.name);
                                 /*new*/setCellName(this, d);
@@ -2513,7 +2515,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.j
             }
         }
     }
-/*new*/})(unsafeWindow, jQuery);
+    /*new*/})(unsafeWindow, jQuery);
 
 
 unsafeWindow.angal_data = {
