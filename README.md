@@ -20,9 +20,7 @@ Custom Agario modifications
    * With fixation on you can press 'T' to retarget to the cluster of cells nearest to the mouse cursor.
    * You can press 'V' to toggle display of target analysis lines.
 2. Split Kill range indicator
-   * Inner ring displays base jump distance for all cells. Your split cell will land so its
-   * center is half-in/half-out of inner circle. Outer circle shows how far out beyond the
-   * center circle your cell will land.
+   * Inner ring displays base jump distance for all cells. Your split cell will land so its center is half-in/half-out of inner circle. Outer circle shows how far out beyond the center circle your cell will land.
 3. Viruses now display number of times it needs to be fed mass to make it split.
 4. Display blob danger/edibility via color
    * Red - it can split and eat you
