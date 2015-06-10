@@ -10,13 +10,20 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.10.0
+// @version      0.10.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
+// @match        https://agar.io
 // @changes     0.10.0 - Mikey's stats screen added
 //                     - Minimap added - idea and code from Gamerlio's bot
 //                     - Our own blobs are no longer considered threats in grazing mode
+//                   1 - updated agariomods.com skins
+//                     - minimap viruses now green
+//                     - recent server box moved so you can (hopefully) see top 3 players on server
+//                     - bug fixes to minimap
+//                     - added match tag for https://agar.io
+//                     - minimap now disappears when you press C
 //              0.09.0 - Fixed script break caused by recent changes
 //                   1 - Shots display next to mass restored
 //                     - Added possible fix for times we might somehow (?!) miss player spawning.
@@ -85,7 +92,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.10.0';
+var _version_ = '0.10.1';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -110,9 +117,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     var visualizeGrazing = GM_getValue('visualizeGrazing', true);
     var selectedBlobID = null;
     var isAcid = false;
-    var $ = unsafeWindow.jQuery;
-    var miniMapCtx=$('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
-        .appendTo($('body'))
+    var $x = unsafeWindow.jQuery;
+    var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
+        .appendTo(jQuery('body'))
         .get(0)
         .getContext("2d");
     GetGmValues();
@@ -126,7 +133,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         Same_Color = "#FFFF00",
         Small_Color  = "#00AA00",
         Tiny_Color = "#CC66FF",
-        My_Color ="#3371FF";
+        myColor ="#3371FF",
+        virusColor ="#666666";
 
     // ====================== Virtual Point System ==============================================================
 
@@ -433,9 +441,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             var size_this =  getMass(cell.size);
             var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
             if (cell.isVirus || myPoints.length === 0) {
-                color = "#666666"; // Viruses are always gray, and everything is gray when dead
+                color = virusColor; // Viruses are always gray, and everything is gray when dead
             } else if (~myPoints.indexOf(cell)) {
-                color = "#3371FF";
+                color = myColor;
             } else if (size_this > size_that * Huge) {
                 color = Huge_Color;
             } else if (size_this > size_that * Large) {
@@ -491,24 +499,21 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function drawMiniMap(ctx) {
         miniMapCtx.clearRect(0, 0, 175, 175);
 
-        miniMapCtx.strokeStyle = 'rgb(52,152,219)';
-        var otherblobs = _.values(getOtherBlobs()); console.log(typeof otherblobs);
-        for (var i = 0; i < otherblobs.length; i++) {
-            var otherOrganism = otherblobs[i];
+        _.forEach(_.values(getOtherBlobs()), function(blob){
+            miniMapCtx.strokeStyle = blob.isVirus ?  "#33FF33" : 'rgb(52,152,219)' ;
             miniMapCtx.beginPath();
-            miniMapCtx.arc(otherOrganism.nx / 64, otherOrganism.ny / 64, otherOrganism.size / 64, 0, 2 * Math.PI)
-            miniMapCtx.stroke()
-        }
+            miniMapCtx.arc(blob.nx / 64, blob.ny / 64, blob.size / 64, 0, 2 * Math.PI);
+            miniMapCtx.stroke();
+        });
 
-        if (isPlayerAlive()) {
-            for (var i = 0; i < myPoints.length; i++) {
-                var myBlob = myPoints[i];
-                miniMapCtx.strokeStyle = "#FFFFFF"
-                miniMapCtx.beginPath()
-                miniMapCtx.arc(myBlob.x / 64, myBlob.y / 64, myBlob.size / 64, 0, 2 * Math.PI)
-                miniMapCtx.stroke()
-            }
-        }
+
+
+        _.forEach(myPoints, function(myBlob){
+            miniMapCtx.strokeStyle = "#FFFFFF";
+            miniMapCtx.beginPath();
+            miniMapCtx.arc(myBlob.x / 64, myBlob.y / 64, myBlob.size / 64, 0, 2 * Math.PI);
+            miniMapCtx.stroke();
+        });
     }
     function drawLine(ctx, point1, point2, color){
         ctx.strokeStyle = color;
@@ -592,31 +597,15 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), items);
     }
 // ======================   Skins    ==================================================================
-    var agariomodsSkins = ("1up;8ball;LLhyy5H;agariomods.com;albania;android;anonymous;apple;atari;awesome;baka;bandaid;bane;baseball;basketball;" +
-    "batman;beats;bender;bert;bitcoin;blobfish;bobross;bobsaget;boo;boogie2988;borg;bp;breakfast;buckballs;burgundy;butters;byzantium;" +
-    "charmander;chechenya;chickfila;chocolate;chrome;cj;coca cola;cokacola;controless;converse;cornella;creeper;cyprus;czechrepublic;deadpool;" +
-    "deal with it;deathstar;derp;dickbutt;doge;doggie;dolan;domo;domokun;dong;donut;dreamcast;ebin;egg;egoraptor;egypt;epicface;expand;eye;" +
-    "facebook;fast forward;fastforward;fbi;fidel;finn;firefox;fishies;flash;florida;freeman;freemason;friesland;frogout;fuckfacebook;gaben;" +
-    "garfield;gaston;getinmybelly;getinthebox;gimper;github;giygas;gnomechild;gonzo;grayhat;halflife;halflife3;halo;handicapped;hap;hatty;" +
-    "hebrew;heisenburg;helix;hipsterwhale;hitler;honeycomb;hydro;iceland;ie;illuminati;imgur;imperial japan;imperialjapan;instagram;isaac;" +
-    "isis;isreal;itchyfeetleech;ivysaur;james bond;java;jew;jewnose;jimmies;kappa;kenny;kingdomoffrance;kingjoffrey;kirby;klingon;knightstemplar;" +
-    "knowyourmeme;kyle;ladle;lenny;lgbt;libertyy;liechtenstien;linux;love;luigi;macedonia;malta;mario;mars;maryland;masterball;mastercheif;" +
-    "mcdonalds;meatboy;meatwad;megamilk;mike tyson;mlg;moldova;mortalkombat;mr burns;mr.bean;mr.popo;n64;nasa;nazi;nick;nickelodeon;nipple;" +
-    "northbrabant;nosmoking;notch;nsa;obey;osu;ouch;pandaexpress;pedo;pedobear;peka;pepe;pepsi;pewdiepie;pi;pig;piggy;pika;pinkfloyd;pinkstylist;" +
-    "piratebay;pizza;playstation;poop;potato;quantum leap;rageface;rewind;rockstar;rolfharris;rss;satan;serbia;shell;shine;shrek;sinistar;sir;skull;" +
-    "skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;snafu;snapchat;soccer;soliare;solomid;somalia;space;spawn;spiderman;spongegar;spore;spy;" +
-    "squirtle;starbucks;starrynight;stitch;stupid;superman;taco;teamfortress;tintin;transformers;triforce;trollface;tubbymcfatfuck;turkey;twitch;" +
-    "twitter;ukip;uppercase;uruguay;utorrent;voyager;wakawaka;wewlad;white  light;windows;wwf;wykop;yinyang;ylilauta;yourmom;youtube;zoella;zoidberg;" +
-    "kitty;electrokitty").split(";");
-
+    /* AgarioMod.com skins have been moved to the very end of the file */
     var extendedSkins = {
         "billy mays" : "http://i.imgur.com/HavxFJu.jpg",
         "stannis": "http://i.imgur.com/JyZr0CI.jpg",
-        "shrek is love" : "http://i.imgur.com/ZErUBRq.jpg",
-        "shrek is life" : "http://i.imgur.com/ZErUBRq.jpg",
-        "white light" : "http://i.imgur.com/cAlKdho.jpg",
+        "shrek is love" : "http://i.imgur.com/QDhkr4C.jpg",
+        "shrek is life" : "http://i.imgur.com/QDhkr4C.jpg",
         "blueeyes" : "http://i.imgur.com/wxCfUws.jpg",
         "ygritte"  : "http://i.imgur.com/lDIFCT1.png",
+        "lord kience" : "http://i.imgur.com/b2UXk15.png",
     }
 
     var skinsSpecial = {
@@ -627,7 +616,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         "controless" : "https://i.imgur.com/uD5SW8X.jpg",
         "sqochit" : "http://i.imgur.com/AnowvFI.jpg",
         "drunken" : "http://i.imgur.com/JeKNRss.png",
-        "lord kience" : "http://i.imgur.com/b2UXk15.png",
     };
 
     var bitdoAlreadyChecked = []
@@ -757,11 +745,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             showVisualCues = !showVisualCues;
             if(!showVisualCues) {
                 zoomFactor = 10;
-                $("#mini-map").hide();
+                jQuery("#mini-map").hide();
             }
             else
             {
-                $("#mini-map").show();
+                jQuery("#mini-map").show();
             }
         }
         else if('D'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
@@ -877,13 +865,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             }
             S = a.clientX;
             T = a.clientY;
-            la();
+            reset();
             K();
         };
         A.onmousemove = function(a) {
             S = a.clientX;
             T = a.clientY;
-            la();
+            reset();
         };
         A.onmouseup = function(a) {};
         if (/firefox/i.test(navigator.userAgent)) {
@@ -943,7 +931,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         if (f.requestAnimationFrame) {
             f.requestAnimationFrame(Ca);
         } else {
-            setInterval(ma, 1E3 / 60);
+            setInterval(draw, 1E3 / 60);
         }
         setInterval(K, 40);
         if (u) {
@@ -970,7 +958,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
 
-    function Qa() {
+    function processData() {
         if (0.35 > h$$0) {
             L = null;
         } else {
@@ -1007,7 +995,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
 
-    function la() {
+    function reset() {
         mouseX2 = (S - p / 2) / h$$0 + s;
         mouseY2 = (T - r / 2) / h$$0 + t;
     }
@@ -1221,7 +1209,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 c += 2;
                 if (!qa) {
                     qa = true;
-                    $ = oa;
+                    xyz = oa;
                     aa = pa;
                 }
                 break;
@@ -1451,7 +1439,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 
     function Ca() {
-        ma();
+        draw();
         f.requestAnimationFrame(Ca);
     }
 
@@ -1460,7 +1448,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         r = f.innerHeight;
         ka.width = A.width = p;
         ka.height = A.height = r;
-        ma();
+        draw();
     }
 
     function Ma() {
@@ -1469,7 +1457,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return a *= C;
     }
 
-    function Va() {
+    function calculateZoom() {
         if (0 != myPoints.length) {
             var a = 0;
             var b = 0;
@@ -1483,14 +1471,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
 
-    function ma() {
+    function draw() {
         var a$$0;
         var b$$0;
-        var c = +new Date;
+        var tick = +new Date;
         ++Wa;
         I = +new Date;
         if (0 < myPoints.length) {
-            Va();
+            calculateZoom();
             var d = a$$0 = b$$0 = 0;
             for (; d < myPoints.length; d++) {
                 myPoints[d].updatePos();
@@ -1507,8 +1495,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             t = (29 * t + O) / 30;
             h$$0 = (9 * h$$0 + P * Ma()) / 10;
         }
-        Qa();
-        la();
+        processData();
+        reset();
         if (!ta) {
             globalCtx.clearRect(0, 0, p, r);
         }
@@ -1560,7 +1548,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         /*new*/drawRescaledItems(globalCtx);
 
         if (qa) {
-            $ = (3 * $ + oa) / 4;
+            xyz = (3 * xyz + oa) / 4;
             aa = (3 * aa + pa) / 4;
             globalCtx.save();
             globalCtx.strokeStyle = "#FFAAAA";
@@ -1572,7 +1560,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             d = 0;
             for (; d < myPoints.length; d++) {
                 globalCtx.moveTo(myPoints[d].x, myPoints[d].y);
-                globalCtx.lineTo($, aa);
+                globalCtx.lineTo(xyz, aa);
             }
             globalCtx.stroke();
             globalCtx.restore();
@@ -1601,11 +1589,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             /*new*//*mikey*/(myPoints&&myPoints[0]&&OnUpdateMass(Xa()));
         }
         Ya();
-        c = +new Date - c;
-        if (c > 1E3 / 60) {
+        tick = +new Date - tick;
+        if (tick > 1E3 / 60) {
             x -= 0.01;
         } else {
-            if (c < 1E3 / 65) {
+            if (tick < 1E3 / 65) {
                 x += 0.01;
             }
         }
@@ -1771,7 +1759,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             var qa = false;
             var oa = 0;
             var pa = 0;
-            var $ = 0;
+            var xyz = 0;
             var aa = 0;
             var Q = 0;
             var Za = ["#333333", "#FF3333", "#33FF33", "#3333FF"];
@@ -2654,14 +2642,14 @@ unsafeWindow.op_onLoad = function() {
          + '</div>'
          + '</div>'
 
-        + '<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
-        + '<div style="height: 1px; width: 100%; margin: 100px auto;">'
-        + '<div style="height: 500px; width: 250px; float:right; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+        //+ '<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
+        //+ '<div style="height: 1px; width: 100%; margin: 100px auto;">'
+        + '<div style="height: 500px; width: 250px; position: fixed; top:15%; right: 50px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
         + 'Last servers: <br /> '
         + '<ol id="angal_serverList"></ol>'
         + '</div>'
-        + '</div>'
-        + '</div>'
+        //+ '</div>'
+        //+ '</div>'
     );
     jQuery("#angal_server_copy").click(function() {
         GM_setClipboard(unsafeWindow.angal_data.server.name, "text");
@@ -3111,3 +3099,4 @@ unsafeWindow.OnDraw = function(context)
 /*new*/$('#nick').val(GM_getValue("nick", ""));
 
 
+var agariomodsSkins = ("1up;8ball;agariomods.com;albania;android;anonymous;apple;atari;awesome;baka;bandaid;bane;baseball;basketball;batman;beats;bender;bert;bitcoin;blobfish;bobross;bobsaget;boo;boogie2988;borg;bp;breakfast;buckballs;burgundy;butters;byzantium;charmander;chechenya;chickfila;chocolate;chrome;cj;coca cola;cokacola;controless;converse;cornella;creeper;cyprus;czechrepublic;deadpool;deal with it;deathstar;derp;dickbutt;doge;doggie;dolan;domo;domokun;dong;donut;dreamcast;drunken;ebin;egg;egoraptor;egypt;electrokitty;epicface;expand;eye;facebook;fast forward;fastforward;fbi;fidel;finn;firefox;fishies;flash;florida;freeman;freemason;friesland;frogout;fuckfacebook;gaben;garfield;gaston;generikb;getinmybelly;getinthebox;gimper;github;giygas;gnomechild;gonzo;grayhat;halflife;halflife3;halo;handicapped;hap;hatty;hebrew;heisenburg;helix;hipsterwhale;hitler;honeycomb;hydro;iceland;ie;illuminati;imgur;imperial japan;imperialjapan;instagram;isaac;isis;isreal;itchyfeetleech;ivysaur;james bond;java;jew;jewnose;jimmies;kappa;kenny;kingdomoffrance;kingjoffrey;kirby;kitty;klingon;knightstemplar;knowyourmeme;kyle;ladle;lenny;lgbt;libertyy;liechtenstien;linux;love;luigi;macedonia;malta;mario;mars;maryland;masterball;mastercheif;mcdonalds;meatboy;meatwad;megamilk;mike tyson;mlg;moldova;mortalkombat;mr burns;mr.bean;mr.popo;n64;nasa;nazi;nick;nickelodeon;nipple;northbrabant;nosmoking;notch;nsa;obey;osu;ouch;pandaexpress;pedo;pedobear;peka;pepe;pepsi;pewdiepie;pi;pig;piggy;pika;pinkfloyd;pinkstylist;piratebay;pizza;playstation;poop;potato;quantum leap;rageface;rewind;rockstar;rolfharris;rss;satan;serbia;shell;shine;shrek;sinistar;sir;skull;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;snafu;snapchat;soccer;soliare;solomid;somalia;space;spawn;spiderman;spongegar;spore;spy;squirtle;stalinjr;starbucks;starrynight;stitch;stupid;summit1g;superman;taco;teamfortress;tintin;transformer;transformers;triforce;trollface;tubbymcfatfuck;turkey;twitch;twitter;ukip;uppercase;uruguay;utorrent;voyager;wakawaka;wewlad;white  light;windows;wwf;wykop;yinyang;ylilauta;yourmom;youtube;zoella;zoidberg").split(";");
