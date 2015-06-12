@@ -10,7 +10,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.10.1
+// @version      0.10.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -24,6 +24,7 @@
 //                     - bug fixes to minimap
 //                     - added match tag for https://agar.io
 //                     - minimap now disappears when you press C
+//                   2 - moved last servers window again
 //              0.09.0 - Fixed script break caused by recent changes
 //                   1 - Shots display next to mass restored
 //                     - Added possible fix for times we might somehow (?!) miss player spawning.
@@ -92,7 +93,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.10.1';
+var _version_ = '0.10.2';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -2635,16 +2636,16 @@ unsafeWindow.op_onLoad = function() {
     );
     jQuery("#overlays").append(
         '<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
-         + '<div style="height: 1px; width: 950px; margin: 100px auto;">'
-         + '<div style="height: 50px; width: 200px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-         + 'Agar.io client by <br /><b>angal</b> and <b>DiaLight</b>'
-         + '</div>'
-         + '</div>'
-         + '</div>'
+        //+ '<div style="height: 1px; width: 950px; margin: 100px auto;">'
+        //+ '<div style="height: 50px; width: 200px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+        //+ 'Agar.io client by <br /><b>angal</b> and <b>DiaLight</b>'
+        //+ '</div>'
+        //+ '</div>'
+        //+ '</div>'
 
-        //+ '<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
-        //+ '<div style="height: 1px; width: 100%; margin: 100px auto;">'
-        + '<div style="height: 500px; width: 250px; position: fixed; top:15%; right: 50px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+            //+ '<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
+            //+ '<div style="height: 1px; width: 100%; margin: 100px auto;">'
+        + '<div style="height: 500px; width: 250px; position: fixed; top:25%; bottom:80%; right: 10px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
         + 'Last servers: <br /> '
         + '<ol id="angal_serverList"></ol>'
         + '</div>'
