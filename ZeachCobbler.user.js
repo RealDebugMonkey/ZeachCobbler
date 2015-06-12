@@ -10,7 +10,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.10.2
+// @version      0.10.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -25,6 +25,7 @@
 //                     - added match tag for https://agar.io
 //                     - minimap now disappears when you press C
 //                   2 - moved last servers window again
+//                   3 - more window movement
 //              0.09.0 - Fixed script break caused by recent changes
 //                   1 - Shots display next to mass restored
 //                     - Added possible fix for times we might somehow (?!) miss player spawning.
@@ -93,7 +94,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.10.2';
+var _version_ = '0.10.3';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -2635,7 +2636,7 @@ unsafeWindow.op_onLoad = function() {
         + '</div>'
     );
     jQuery("#overlays").append(
-        '<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
+        //'<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
         //+ '<div style="height: 1px; width: 950px; margin: 100px auto;">'
         //+ '<div style="height: 50px; width: 200px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
         //+ 'Agar.io client by <br /><b>angal</b> and <b>DiaLight</b>'
@@ -2645,7 +2646,7 @@ unsafeWindow.op_onLoad = function() {
 
             //+ '<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
             //+ '<div style="height: 1px; width: 100%; margin: 100px auto;">'
-        + '<div style="height: 500px; width: 250px; position: fixed; top:25%; bottom:80%; right: 10px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+        '<div style="height: 641px; width: 225px; position: absolute; top: 50%;transform: translate(0px, -50%);left: 1225px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
         + 'Last servers: <br /> '
         + '<ol id="angal_serverList"></ol>'
         + '</div>'
