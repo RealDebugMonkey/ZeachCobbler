@@ -10,13 +10,14 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.11.1
+// @version      0.11.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.11.0 - Fix for v538 fix
 //                   1 - grazer fixed, time alive and ttr fixed
+//                   2 - more fixes for stuff I missed
 //              0.10.0 - Mikey's stats screen added
 //                     - Minimap added - idea and code from Gamerlio's bot
 //                     - Our own blobs are no longer considered threats in grazing mode
@@ -96,7 +97,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.11.1';
+var _version_ = '0.11.2';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -495,7 +496,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         var text = new agarTextFunction(textSize, (isNightMode ? '#F2FBFF' : '#111111'));
 
         for (var i = 0; i < debugStrings.length; i++) {
-            /*todo*/text.u(debugStrings[i]); // setValue
+            /*todo*/text.setValue(debugStrings[i]); // setValue
             var textRender = text.render();
             d.drawImage(textRender, 20, offsetValue);
             offsetValue += textRender.height;
@@ -568,8 +569,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function fireAtVirusNearestToBlob(blob, blobArray)
     {
-        // HACK: On update change this function name to correct function
-        var fireFunction = B;
+        /*remap*/// HACK: On update change this function name to correct function
+        var fireFunction = C;
         var msDelayBetweenShots = 75;
         nearestVirus = findNearestVirus(blob, blobArray);
 
@@ -807,7 +808,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             zoomFactor = (zoomFactor == 10 ? 11 : 10);
         }
         else if('8'.charCodeAt(0) === d.keyCode && isPlayerAlive()) { // SELF DESTRUCT
-            B(20);
+            C(20);
         }
     }
     function onAfterUpdatePacket() {
@@ -827,10 +828,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         if (showVisualCues) {
             if (_.contains(myIDs, cell.id) && _.size(myPoints) > 1) {
                 var pct = (cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize);
-                d.u(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
+                d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
             } else if (!cell.isVirus && isPlayerAlive()) {
                 var pct = ~~((cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize));
-                d.u(cell.name + " " + pct.toString() + "%");
+                d.setValue(cell.name + " " + pct.toString() + "%");
             }
         }
     }
@@ -838,13 +839,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         d.setScale(c * 1.25);
         if (showVisualCues) {
             if (cell.isVirus) {
-                cell.nameCache.u(getVirusShotsNeededForSplit(cell.nSize));
+                cell.nameCache.setValue(getVirusShotsNeededForSplit(cell.nSize));
                 var nameSizeMultiplier = 4;
                 d.setScale(c * 4);
             }
         }
         if (cell.isVirus && !showVisualCues) {
-            cell.nameCache.u(" ");
+            cell.nameCache.setValue(" ");
         }
     }
 // ======================   Start main    ==================================================================
@@ -1151,7 +1152,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function Ha(a) {
         if(ws) {
-            /*new*/f.angal_data.server.set(a);
+            /*new*/h$$0.angal_data.server.set(a);
             ws.onopen = null;
             ws.onmessage = null;
             ws.onclose = null;
@@ -1187,7 +1188,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             console.log("socket error");
         };
     }
-    /*new*//*remap*/f.angal_connectDirect = Ha;
+    /*new*//*remap*/h$$0.angal_connectDirect = Ha;
 
     function N(a) {
         return new DataView(new ArrayBuffer(a));
@@ -1342,7 +1343,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     k.o = k.size;                                //f.oSize = f.size;
                     k.nx = l.x;                                   //f.nx = q.x;
                     k.ny = l.y;                                   //f.ny = q.y;
-                    k.n = k.size;                                //f.nSize = f.size;
+                    k.nSize = k.size;                                //f.nSize = f.size;
                     k.L = G;                                     //f.updateTime = I;
                 }
             }
@@ -1407,16 +1408,16 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 n.ka = l;
                 n.la = k;
             }
-            n.d = p;
+            n.isVirus = p;
             n.j = r;
             n.nx = l;
             n.ny = k;
-            n.n = h;
+            n.nSize = h;
             n.ja = c;
             n.L = G;
             n.W = f;
             if(q) {
-                n.Z(q);
+                n.setName(q);
             }
             if(-1 != myIDs.indexOf(d)) {
                 if(-1 == myPoints.indexOf(n)) {
@@ -1612,8 +1613,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             if(null == ia) {
                 ia = new ja(24, "#FFFFFF");
             }
-            ia.u("Score: " + ~~(I / 100));
-            /*new*/ /*remap*/ ia.u("Score: " + ~~(I / 100) + extras);
+            ia.setValue("Score: " + ~~(I / 100));
+            /*new*/ /*remap*/ ia.setValue("Score: " + ~~(I / 100) + extras);
             c = ia.render();
             a$$0 = c.width;
             globalCtx.globalAlpha = 0.2;
@@ -1678,7 +1679,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         var a = 0;
         var b = 0;
         for(; b < myPoints.length; b++) {
-            a += myPoints[b].n * myPoints[b].n;
+            a += myPoints[b].nSize * myPoints[b].nSize;
         }
         return a;
     }
@@ -1754,7 +1755,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         this.a = [];
         this.l = [];
         this.R();
-        this.Z(l);
+        this.setName(l);
         /*new*/this.splitTime = Date.now();
     }
 
@@ -2221,7 +2222,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             a: null,
             l: null,
             name: null,
-            k: null,
+            nameCache: null,
             J: null,
             x: 0,
             y: 0,
@@ -2231,13 +2232,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             o: 0,
             nx: 0,
             ny: 0,
-            n: 0,
+            nSize: 0,
             W: 0,
             L: 0,
             ja: 0,
             ba: 0,
-            A: false,
-            d: false,
+            destroyed: false,
+            isVirus: false,
             j: false,
             M: true,
             S: function () {
@@ -2259,20 +2260,20 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 if(-1 != a) {
                     myIDs.splice(a, 1);
                 }
-                this.A = true;
+                this.destroyed = true;
                 H.push(this);
             },
             h: function () {
                 return Math.max(~~(0.3 * this.size), 24);
             },
-            Z: function (a) {
+            setName: function (a) {
                 if(this.name = a) {
-                    if(null == this.k) {
-                        this.k = new ja(this.h(), "#FFFFFF", true, "#000000");
+                    if(null == this.nameCache) {
+                        this.nameCache = new ja(this.h(), "#FFFFFF", true, "#000000");
                     } else {
-                        this.k.H(this.h());
+                        this.nameCache.H(this.h());
                     }
-                    this.k.u(this.name);
+                    this.nameCache.setValue(this.name);
                 }
             },
             R: function () {
@@ -2310,11 +2311,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 if(20 > this.size) {
                     a = 0;
                 }
-                if(this.d) {
+                if(this.isVirus) {
                     a = 30;
                 }
                 var b = this.size;
-                if(!this.d) {
+                if(!this.isVirus) {
                     b *= g;
                 }
                 b *= y;
@@ -2343,7 +2344,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     b[d] = (e + l + 8 * b[d]) / 10;
                 }
                 var k = this;
-                var h = this.d ? 0 : (this.id / 1E3 + G / 1E4) % (2 * Math.PI);
+                var h = this.isVirus ? 0 : (this.id / 1E3 + G / 1E4) % (2 * Math.PI);
                 d = 0;
                 for(; d < c; ++d) {
                     var f = a$$0[d].e;
@@ -2380,7 +2381,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     a$$0[d].e = (e + l + 8 * f) / 10;
                     e = 2 * Math.PI / c;
                     l = this.a[d].e;
-                    if(this.d) {
+                    if(this.isVirus) {
                         if(0 == d % 2) {
                             l += 5;
                         }
@@ -2395,7 +2396,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 a = 0 > a ? 0 : 1 < a ? 1 : a;
                 var b = 0 > a ? 0 : 1 < a ? 1 : a;
                 this.h();
-                if(this.A && 1 <= b) {
+                if(this.destroyed && 1 <= b) {
                     var c = H.indexOf(this);
                     if(-1 != c) {
                         H.splice(c, 1);
@@ -2403,7 +2404,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 }
                 this.x = a * (this.nx - this.p) + this.p;
                 this.y = a * (this.ny - this.q) + this.q;
-                this.size = b * (this.n - this.o) + this.o;
+                this.size = b * (this.nSize - this.o) + this.o;
                 return b;
             },
             I: function () {
@@ -2411,7 +2412,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             },
             T: function () {
                 if(this.I()) {
-                    var a = !this.d && (!this.j && 0.4 > g);
+                    var a = !this.isVirus && (!this.j && 0.4 > g);
                     if(5 > this.C()) {
                         a = true;
                     }
@@ -2425,12 +2426,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     globalCtx.save();
                     this.ba = G;
                     b = this.K();
-                    if(this.A) {
+                    if(this.destroyed) {
                         globalCtx.globalAlpha *= 1 - b;
                     }
                     globalCtx.lineWidth = 10;
                     globalCtx.lineCap = "round";
-                    globalCtx.lineJoin = this.d ? "miter" : "round";
+                    globalCtx.lineJoin = this.isVirus ? "miter" : "round";
                     if(xa) {
                         globalCtx.fillStyle = "#FFFFFF";
                         globalCtx.strokeStyle = "#AAAAAA";
@@ -2499,24 +2500,27 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     }
                     b = -1 != myPoints.indexOf(this);
                     a = ~~this.y;
-                    if((ka || b) && (this.name && (this.k && (null == d || -1 == gb.indexOf(c)))) || this.isVirus) {
+                    if((ka || b) && (this.name && (this.nameCache && (null == d || -1 == gb.indexOf(c)))) || this.isVirus) {
                         /*new*/if(this.isVirus && null == this.nameCache){
                             /*new*/     this.setName(getVirusShotsNeededForSplit(this.nSize).toString());
                             /*new*/}
-                        d = this.k;
-                        d.u(this.name);
+                        d = this.nameCache;
+                        d.setValue(this.name);
                         /*new*/setCellName(this, d);
                         d.H(this.h());
                         c = Math.ceil(10 * g) / 10;
                         d.setScale(c);
+
+                        if(d.toString() == 20){console.log("found it!")}
+
                         /*new*/setVirusInfo(this, d, c);
                         d = d.render();
                         var f = ~~(d.width / c);
                         var l = ~~(d.height / c);
                         /*new*/if(shouldRelocateName.call(this))
-                        /*new*/    { globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a + ~~(g ), f, g); a += d.height / 2 / c + 8; }
+                        /*new*/    { globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a + ~~(l ), f, l); a += d.height / 2 / c + 8; }
                         /*new*/else
-                        globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a - ~~(l / 2), f, l);
+                            globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a - ~~(l / 2), f, l);
                         a += d.height / 2 / c + 4;
                     }
                     /*new*/var massValue = (~~(this.size * this.size / 100)).toString();
@@ -2524,14 +2528,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         /*new*/if(_.contains(myIDs, this.id)) {massValue += " (" + getBlobShotsAvailable(this).toString() + ")";}
                         /*new*/}
                     if(isShowMass) {
-                        if(b || 0 == myPoints.length && ((!this.d || this.j) && 20 < this.size)) {
+                        if(b || 0 == myPoints.length && ((!this.isVirus || this.j) && 20 < this.size)) {
                             if(null == this.J) {
                                 this.J = new ja(this.h() / 2, "#FFFFFF", true, "#000000");
                             }
                             b = this.J;
                             b.H(this.h() / 2);
-                            b.u(~~(this.size * this.size / 100));
-                            /*new*/b.u(massValue);
+                            b.setValue(~~(this.size * this.size / 100));
+                            /*new*/b.setValue(massValue);
 
                             c = Math.ceil(10 * g) / 10;
                             b.setScale(c);
@@ -2541,9 +2545,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                             f = ~~(d.width / c);
                             l = ~~(d.height / c);
                             /*new*/if(shouldRelocateName.call(this))
-                            /*new*/    globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a + ~~(g), f, g);
+                            /*new*/    globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a + ~~(l), f, l);
                             /*new*/else
-                            globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a - ~~(l / 2), f, l);
+                                globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a - ~~(l / 2), f, l);
                         }
                     }
                     globalCtx.restore();
@@ -2551,7 +2555,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             }
         };
         ja.prototype = {
-            w: "",
+            _value: "",
             N: "#000000",
             P: false,
             s: "#000000",
@@ -2578,9 +2582,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     this.g = true;
                 }
             },
-            u: function (a) {
-                if(a != this.w) {
-                    this.w = a;
+            setValue: function (a) {
+                if(a != this._value) {
+                    this._value = a;
                     this.g = true;
                 }
             },
@@ -2593,7 +2597,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     this.g = false;
                     var a = this.m;
                     var b = this.O;
-                    var c = this.w;
+                    var c = this._value;
                     var d = this.v;
                     var e = this.r;
                     var l = e + "px Ubuntu";
@@ -2609,6 +2613,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     b.strokeStyle = this.s;
                     b.fillStyle = this.N;
                     if(this.P) {
+                        if("20" == c.toString()) {x.y.z;}
                         b.strokeText(c, 3, e - k / 2);
                     }
                     b.fillText(c, 3, e - k / 2);
