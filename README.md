@@ -1,5 +1,13 @@
 # ZeachCobbler
-Custom Agario modifications
+Custom Agario modifications. Currently only works in Chrome via Tampermonkey.
+
+## Install instructions:
+1) Install TamperMonkey addon for Chrome 
+* https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
+2) Visit the raw version of the script 
+* https://github.com/RealDebugMonkey/ZeachCobbler/raw/master/ZeachCobbler.user.js
+3) Click 'Install' on the script install confirmation page
+
 ##Key Reference
 * TAB - Switch selected blob
 * 8 - Self destruct (spectacular when you're really big)
