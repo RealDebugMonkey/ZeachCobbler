@@ -10,12 +10,13 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.11.0
+// @version      0.11.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.11.0 - Fix for v538 fix
+//                   1 - grazer fixed, time alive and ttr fixed
 //              0.10.0 - Mikey's stats screen added
 //                     - Minimap added - idea and code from Gamerlio's bot
 //                     - Our own blobs are no longer considered threats in grazing mode
@@ -95,7 +96,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.11.0';
+var _version_ = '0.11.1';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -1242,6 +1243,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         switch(a.getUint8(c++)) {
             case 16:
                 $a(a, c);
+                /*new*/onAfterUpdatePacket();
                 break;
             case 17:
                 P = a.getFloat32(c, true);
@@ -1267,6 +1269,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 }
                 break;
             case 32:
+                /*new*/onBeforeNewPointPacket();
                 myIDs.push(a.getUint32(c, true));
                 c += 4;
                 break;
@@ -1332,15 +1335,15 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             b += 8;
             if(l) {
                 if(k) {
-                    /*new*//*mikey*//*remap*/OnCellEaten(l,k);
-                    k.S();
-                    k.p = k.x;
-                    k.q = k.y;
-                    k.o = k.size;
-                    k.D = l.x;
-                    k.F = l.y;
-                    k.n = k.size;
-                    k.L = G;
+                    /*new*//*mikey*//*remap*/OnCellEaten(l,k);   ///*new*//*mikey*/OnCellEaten(q,f);
+                    k.S();                                       //f.destroy();
+                    k.p = k.x;                                   //f.ox = f.x;
+                    k.q = k.y;                                   //f.oy = f.y;
+                    k.o = k.size;                                //f.oSize = f.size;
+                    k.nx = l.x;                                   //f.nx = q.x;
+                    k.ny = l.y;                                   //f.ny = q.y;
+                    k.n = k.size;                                //f.nSize = f.size;
+                    k.L = G;                                     //f.updateTime = I;
                 }
             }
         }
@@ -1406,8 +1409,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             }
             n.d = p;
             n.j = r;
-            n.D = l;
-            n.F = k;
+            n.nx = l;
+            n.ny = k;
             n.n = h;
             n.ja = c;
             n.L = G;
@@ -2226,8 +2229,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             p: 0,
             q: 0,
             o: 0,
-            D: 0,
-            F: 0,
+            nx: 0,
+            ny: 0,
             n: 0,
             W: 0,
             L: 0,
@@ -2398,8 +2401,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         H.splice(c, 1);
                     }
                 }
-                this.x = a * (this.D - this.p) + this.p;
-                this.y = a * (this.F - this.q) + this.q;
+                this.x = a * (this.nx - this.p) + this.p;
+                this.y = a * (this.ny - this.q) + this.q;
                 this.size = b * (this.n - this.o) + this.o;
                 return b;
             },
