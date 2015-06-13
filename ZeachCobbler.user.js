@@ -2,7 +2,7 @@
 // @name         Zeach Cobbler
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
 // @updateURL    https://rawgit.com/RealDebugMonkey/ZeachCobbler/master/ZeachCobbler.user.js
-// @downloadURL  https://rawgit.com/RealDebugMonkey/ZeachCobbler/master/ZeachCobbler.user.js
+// @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  The White Light -- You rock the maths.
 // @contributer  Angal - For the UI additions and server select code
 // @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
@@ -10,7 +10,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.11.2
+// @version      0.11.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -18,6 +18,7 @@
 // @changes     0.11.0 - Fix for v538 fix
 //                   1 - grazer fixed, time alive and ttr fixed
 //                   2 - more fixes for stuff I missed
+//                   3 - onDestroy bugfix
 //              0.10.0 - Mikey's stats screen added
 //                     - Minimap added - idea and code from Gamerlio's bot
 //                     - Our own blobs are no longer considered threats in grazing mode
@@ -97,7 +98,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.11.2';
+var _version_ = '0.11.3';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -2613,7 +2614,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     b.strokeStyle = this.s;
                     b.fillStyle = this.N;
                     if(this.P) {
-                        if("20" == c.toString()) {x.y.z;}
                         b.strokeText(c, 3, e - k / 2);
                     }
                     b.fillText(c, 3, e - k / 2);
