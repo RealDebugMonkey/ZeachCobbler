@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Zeach Cobbler
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
-// @updateURL    https://rawgit.com/RealDebugMonkey/ZeachCobbler/master/ZeachCobbler.user.js
+// @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  The White Light -- You rock the maths.
 // @contributer  Angal - For the UI additions and server select code
@@ -10,7 +10,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.11.3
+// @version      0.11.4
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -19,6 +19,7 @@
 //                   1 - grazer fixed, time alive and ttr fixed
 //                   2 - more fixes for stuff I missed
 //                   3 - onDestroy bugfix
+//                   4 - update with mikeyk730's latest changes
 //              0.10.0 - Mikey's stats screen added
 //                     - Minimap added - idea and code from Gamerlio's bot
 //                     - Our own blobs are no longer considered threats in grazing mode
@@ -98,12 +99,11 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.11.3';
+var _version_ = '0.11.4';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
 
-var QUAD;
 console.log("Running Zeach Cobbler!");
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js");
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js");
@@ -857,7 +857,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         setInterval(za, 18E4);
         B = ma = document.getElementById("canvas");
         globalCtx = B.getContext("2d");
-        scoreboard.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        /*new*/ scoreboard.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         B.onmousedown = function (a) {
             /*new*/if(isPlayerAlive() && rightClickFires){fireAtVirusNearestToCursor();}
             /*new*/ return;
@@ -1693,7 +1693,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 var a = w.getContext("2d");
                 var b = 60;
                 b = null == teamScoreBoard ? b + 24 * scoreboard.length : b + 180;
-                /*new*/b = null == teamScoreBoard ? b + 24 * scoreboard.length : b + 180;
                 var c = Math.min(200, 0.3 * p) / 200;
                 w.width = 200 * c;
                 w.height = b * c;
@@ -2888,6 +2887,7 @@ function secondsToHms(d)
 
 var chart = null;
 var chart_data = [];
+var num_cells_data = [];
 var chart_counter = 0;
 var stat_canvas = null;
 
@@ -2929,6 +2929,7 @@ function ResetChart()
 {
     chart = null;
     chart_data.length = 0;
+    num_cells_data.length = 0;
     chart_counter = 0;
     jQuery('#chart-container').empty();
 }
@@ -2938,6 +2939,11 @@ function UpdateChartData(mass)
     chart_counter++;
     if (chart_counter%chart_update_interval > 0)
         return false;
+
+    num_cells_data.push({
+        x: chart_counter,
+        y: my_cells.length
+     });
 
     chart_data.push({
         x: chart_counter,
@@ -2949,7 +2955,7 @@ function UpdateChartData(mass)
 function CreateChart(e, color, interactive)
 {
     return new CanvasJS.Chart(e,{
-        interactivityEnabled: interactive,
+        interactivityEnabled: false,
         title: null,
         axisX:{
             valueFormatString: " ",
@@ -3148,6 +3154,9 @@ function DrawStats(game_over)
     if (stats.time_of_death !== null){
         jQuery('#chartArea').width(700).height(250);
         stat_chart = CreateChart('chartArea', my_color, true);
+        var scale = Math.max.apply(Math,chart_data.map(function(o){return o.y;}))/16;
+        var scaled_data = num_cells_data.map(function(a){return {x:a.x, y:a.y*scale};});
+        stat_chart.options.data.push({type: "line", dataPoints: scaled_data, toolTipContent:" "});
         stat_chart.render();
     }
     else {
