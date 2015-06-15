@@ -1,6 +1,8 @@
 # ZeachCobbler
 Custom Agario modifications. Currently only works in Chrome via Tampermonkey.
 
+**Note: For Chrome Only. Does not work with Firefox+Greasemonkey.**
+
 ## Install instructions:
 1) Install TamperMonkey addon for Chrome 
 * https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
