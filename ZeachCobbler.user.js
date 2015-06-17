@@ -11,7 +11,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.12.0
+// @version      0.12.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -107,7 +107,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.12.0';
+var _version_ = '0.12.1';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -626,7 +626,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         "tubbymcfatfuck" : "http://tinyurl.com/TubbyMcFatFuck",
         "texas  doge" : "http://i.imgur.com/MVsLldL.jpg",
         "doge  helper" : "http://i.imgur.com/FzZebpk.jpg",
-        "controless" : "https://i.imgur.com/uD5SW8X.jpg",
+        "controless " : "https://i.imgur.com/uD5SW8X.jpg",
         "sqochit" : "http://i.imgur.com/AnowvFI.jpg",
         "drunken" : "http://i.imgur.com/JeKNRss.png",
     };
@@ -2282,6 +2282,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 return Math.max(~~(0.3 * this.size), 24);
             },
             setName: function (a) {
+                if(0 == a.length && getMass(this.size)> 10){a = " ";}
                 if(this.name = a) {
                     if(null == this.nameCache) {
                         this.nameCache = new ja(this.h(), "#FFFFFF", true, "#000000");
@@ -2490,7 +2491,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         globalCtx.stroke();
                     }
                     globalCtx.fill();
-                    /*new*/globalCtx.globalAlpha = isSpecialSkin(this.name.toLowerCase()) || _.contains(myIDs, this.id)  ? 1 : 0.5;
+                    /*new*/globalCtx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
 
                     if(!(null == d)) {
                         if(!b) {
