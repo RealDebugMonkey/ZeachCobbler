@@ -7,19 +7,27 @@
 // @contributer  Angal - For the UI additions and server select code
 // @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
 // @contributer  Agariomods.com again for maintaining the best extended repo out there.
+// @codefrom     http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.11.4
+// @version      0.12.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.11.0 - Fix for v538 fix
+// @changes     0.12.0 - Added music and sound effects.
+//                     - Sound effects from agariomods.com
+//                     - Music from http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
+//                     - Fix: scroll wheel function
+//                     - Fixed blank cell not displaying % diff issue
+//                     - Fixed key bindings triggering while changing name
+//              0.11.0 - Fix for v538 fix
 //                   1 - grazer fixed, time alive and ttr fixed
 //                   2 - more fixes for stuff I missed
 //                   3 - onDestroy bugfix
 //                   4 - update with mikeyk730's latest changes
+//                   5 - skins should now display in experimental
 //              0.10.0 - Mikey's stats screen added
 //                     - Minimap added - idea and code from Gamerlio's bot
 //                     - Our own blobs are no longer considered threats in grazing mode
@@ -99,7 +107,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.11.4';
+var _version_ = '0.12.0';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -143,7 +151,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         myColor ="#3371FF",
         virusColor ="#666666";
 
-    // ====================== Virtual Point System ==============================================================
 
     // ======================   Utility code    ==================================================================
     function getSelectedBlob(){
@@ -200,13 +207,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
     // Hack: Mouse variables must have these names
     function getMouseCoordsAsPseudoBlob(){
-        var pseudoBlob = {
+        return {
             x: mouseX2,
             y: mouseY2,
             nx: mouseX2,
             ny: mouseY2,
         };
-        return pseudoBlob;
     }
     // ======================   Grazing code    ==================================================================
 
@@ -268,7 +274,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function getThreats(blobArray, myMass) {
         // start by omitting all my IDs
         // then look for viruses smaller than us and blobs substantially bigger than us
-        var threatArray = _.filter(getOtherBlobs(), function(possibleThreat){
+        return _.filter(getOtherBlobs(), function(possibleThreat){
             var possibleThreatMass = getMass(possibleThreat.size);
 
             if(possibleThreat.isVirus) {
@@ -278,7 +284,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             // other blobs are only a threat if they cross the 'Large' threshhold
             return possibleThreatMass > myMass * Large;
         });
-        return threatArray;
     }
 
     function doGrazing(ws)
@@ -664,10 +669,15 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return _.startsWith(targetName, "`");
     }
 
-    function customSkins(userName, defaultSkins, imgCache, Ba, K) {
+    function customSkins(cell, defaultSkins, imgCache, showSkins, gameMode) {
         var retval = null;
+        var userName = cell.name;
         var userNameLowerCase = userName.toLowerCase();
-        if(!this.isAgitated && Ba && "" == K){
+        if(":teams" ==  gameMode)
+        {
+            retval = null;
+        }
+        else if(!this.isAgitated && showSkins ){
             if(-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
                 isBitDoSkin(userName) || isAgarioModsSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
@@ -725,6 +735,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
     function customKeyDownEvents(d)
     {
+        if(jQuery("#overlays").is(':visible')){
+            return;
+        }
 
         if(9 === d.keyCode && isPlayerAlive()) {
             var myids_sorted = _.pluck(myPoints, "id").sort(); // sort ids because they could
@@ -827,11 +840,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
     function setCellName(cell, d) {
         if (showVisualCues) {
+            var pct;
             if (_.contains(myIDs, cell.id) && _.size(myPoints) > 1) {
-                var pct = (cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize);
+                pct = (cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize);
                 d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
             } else if (!cell.isVirus && isPlayerAlive()) {
-                var pct = ~~((cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize));
+                pct = ~~((cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize));
                 d.setValue(cell.name + " " + pct.toString() + "%");
             }
         }
@@ -857,7 +871,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         setInterval(za, 18E4);
         B = ma = document.getElementById("canvas");
         globalCtx = B.getContext("2d");
-        /*new*/ scoreboard.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        /*new*/ B.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         B.onmousedown = function (a) {
             /*new*/if(isPlayerAlive() && rightClickFires){fireAtVirusNearestToCursor();}
             /*new*/ return;
@@ -1119,7 +1133,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 
     function pa() {
-        console.log("Find " + v + M);
+        console.log("Find " + v + gameMode);
         f.ajax($ + "//m.agar.io/", {
             error: function () {
                 setTimeout(pa, 1E3);
@@ -1137,7 +1151,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             method: "POST",
             cache: false,
             crossDomain: true,
-            data: v + M || "?"
+            data: v + gameMode || "?"
         });
     }
 
@@ -1320,7 +1334,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     s = P;
                     t = Q;
                     g = R;
-                };
+                }
         }
     }
 
@@ -1338,6 +1352,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             if(l) {
                 if(k) {
                     /*new*//*mikey*//*remap*/OnCellEaten(l,k);   ///*new*//*mikey*/OnCellEaten(q,f);
+
                     k.S();                                       //f.destroy();
                     k.p = k.x;                                   //f.ox = f.x;
                     k.q = k.y;                                   //f.oy = f.y;
@@ -1623,7 +1638,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             globalCtx.fillRect(10, q - 10 - 24 - 10, a$$0 + 10, 34);
             globalCtx.globalAlpha = 1;
             globalCtx.drawImage(c, 15, q - 10 - 24 - 5);
-            /*new*//*mikey*//*remap*/(myPoints&&myPoints[0]&&OnUpdateMass(db()));
+            /*new*//*mikey*//*remap*/(myPoints&&myPoints[0]&&OnUpdateMass(db())); //DONTFORGETABOUTME
         }
         eb();
         b$$0 = Date.now() - b$$0;
@@ -1811,7 +1826,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     var P = s = ~~((da + fa) / 2);
     var Q = t = ~~((ea + ga) / 2);
     var R = 1;
-    var M = "";
+    var gameMode = "";
     var teamScoreBoard = null;
     var la = false;
     var sa = false;
@@ -1861,8 +1876,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             Ga();
         };
         h$$0.setGameMode = function (a) {
-            if(a != M) {
-                M = a;
+            if(a != gameMode) {
+                gameMode = a;
                 W();
             }
         };
@@ -2456,7 +2471,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     }
                     globalCtx.closePath();
                     c = this.name.toLowerCase();
-                    //if(!this.j && (Oa && ":teams" != M)) {
+                    //if(!this.j && (Oa && ":teams" != gameMode)) {
                     //    if(-1 != ya.indexOf(c)) {
                     //        if(!J.hasOwnProperty(c)) {
                     //            J[c] = new Image;
@@ -2469,7 +2484,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     //} else {
                     //    b = null;
                     //}
-                    /*new*//*remap*/var b = customSkins(this.name, ya, J, showSkins, M);
+                    /*new*//*remap*/var b = customSkins(this, ya, J, showSkins, gameMode);
                     b = (d = b) ? -1 != hb.indexOf(c) : false;
                     if(!a) {
                         globalCtx.stroke();
@@ -2987,7 +3002,7 @@ function UpdateChart(mass, color)
         chart.render();
 
     jQuery('.canvasjs-chart-credit').hide();
-};
+}
 
 function ResetStats()
 {
@@ -3013,10 +3028,12 @@ function OnGainMass(me, other)
     if (other.isVirus){
         stats.viruses.num++;
         stats.viruses.mass += mass; //TODO: shouldn't add if  game mode is teams
+        sfx_event("virushit");
     }
     else if (Math.floor(mass) <= 400 && !other.name){
         stats.pellets.num++;
         stats.pellets.mass += mass;
+        sfx_event("pellet");
     }
     // heuristic to determine if mass is 'w', not perfect
     else if (!other.name && mass <= 1444 && (mass >= 1369 || (other.x == other.ox && other.y == other.oy))){
@@ -3025,6 +3042,7 @@ function OnGainMass(me, other)
             stats.w.num++;
             stats.w.mass += mass;
         }
+        sfx_event("eat");
     }
     else {
         //console.log('cell', mass, other.name, other);
@@ -3035,6 +3053,7 @@ function OnGainMass(me, other)
             stats.gains[key] = {num: 0, mass: 0};
         stats.gains[key].num++;
         stats.gains[key].mass += mass;
+        sfx_event("eat");
     }
 }
 
@@ -3043,9 +3062,10 @@ function OnLoseMass(me, other)
     var mass = me.size * me.size;
     var key = other.name + ':' + other.color;
     if (stats.losses[key] == undefined)
-        stats.losses[key] = {num: 0, mass: 0};;
+        stats.losses[key] = {num: 0, mass: 0};
     stats.losses[key].num++;
     stats.losses[key].mass += mass;
+    sfx_event("eat");
 }
 
 function DrawPie(pellet, w, cells, viruses)
@@ -3115,6 +3135,8 @@ function DrawStats(game_over)
 
     if (game_over){
         stats.time_of_death = Date.now();
+        sfx_play(1);
+        StopBGM();
     }
     var time = stats.time_of_death ? stats.time_of_death : Date.now();
     var seconds = (time - stats.birthday)/1000;
@@ -3244,6 +3266,8 @@ unsafeWindow.OnGameStart = function(cells)
     ResetChart();
     ResetStats();
     RenderStats(true);
+    StartBGM();
+    sfx_play(0);
 }
 
 unsafeWindow.OnShowOverlay = function(game_in_progress)
@@ -3280,6 +3304,96 @@ unsafeWindow.OnDraw = function(context)
 {
     display_stats && stat_canvas && context.drawImage(stat_canvas, 10, 10);
 }
+// ====================== Music & SFX System ==============================================================
+//sfx play on event (only one of each sfx can play - for sfx that won't overlap with itself)
+var ssfxlist = [
+    'spawn',
+    'gameover'
+];
+var ssfxs = [];
+for (i=0;i<ssfxlist.length;i++) {
+    var newsfx = new Audio("http://skins.agariomods.com/botb/sfx/" + ssfxlist[i] + ".mp3");
+    newsfx.loop = false;
+    ssfxs.push(newsfx);
+}
+function sfx_play(id) {
+    if (document.getElementById("sfx").value==0) return;
+    var event = ssfxs[id];
+    event.volume = document.getElementById("sfx").value;
+    event.play();
+}
+
+//sfx insertion on event (multiple of same sfx can be played simultaneously)
+var sfxlist = [
+    'pellet',
+    'split',
+    'eat',
+    'bounce',
+    'merge',
+    'virusfeed',
+    'virusshoot',
+    'virushit'
+];
+
+var sfxs = {};
+for (i=0;i<sfxlist.length;i++) {
+    var newsfx = new Audio("//skins.agariomods.com/botb/sfx/" + sfxlist[i] + ".mp3");
+    newsfx.loop = false;
+    newsfx.onended = function() {
+        $(this).remove();
+    }
+    sfxs[sfxlist[i]] = newsfx;
+}
+function sfx_event(id) {
+    if (document.getElementById("sfx").value==0) return;
+    var event = jQuery.clone(sfxs[id]);
+    event.volume = document.getElementById("sfx").value;
+    event.play();
+}
+
+StartBGM = function () {
+    if (document.getElementById("bgm").value==0) return;
+    if (bgmusic.src == ""){
+        bgmusic.src = _.sample(tracks, 1);
+        bgmusic.load()
+    }
+    bgmusic.volume = document.getElementById("bgm").value;
+    bgmusic.play();
+}
+
+StopBGM = function () {
+    if (document.getElementById("bgm").value==0) return;
+    bgmusic.pause()
+    bgmusic.src = _.sample(tracks, 1);
+    bgmusic.load()
+}
+
+volBGM = function (vol) {
+    bgmusic.volume = document.getElementById("bgm").value;
+}
+
+var tracks = ['http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Waltz.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Frozen%20Star.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Groove%20Grove.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Dreamy%20Flashback.mp3'];
+/*sfx*/
+var nodeAudio = document.createElement("audio");
+nodeAudio.id = 'audiotemplate';
+nodeAudio.preload = "auto";
+jQuery(playBtn).parent().get(0).appendChild(nodeAudio);
+var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
+checkbox_div.append('<label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
+checkbox_div.append('<label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
+var bgmusic = $('#audiotemplate').clone()[0];
+bgmusic.src = tracks[Math.floor(Math.random() * tracks.length)];
+bgmusic.load();
+bgmusic.loop = false;
+bgmusic.onended = function() {
+    var track = tracks[Math.floor(Math.random() * tracks.length)];
+    bgmusic.src = "//skins.agariomods.com/botb/" + track;
+    bgmusic.play();
+}
+
 
 
 // ===============================================================================================================
@@ -3287,6 +3401,7 @@ $("label:contains(' Dark Theme') input").prop('checked', true);
 setDarkTheme(true);
 $("label:contains(' Show mass') input").prop('checked', true);
 setShowMass(true);
+
 $('#nick').val(GM_getValue("nick", ""));
 // default helloDialog has a margin of 10 px. take that away to make it line up with our other dialogs.
 $("#helloDialog").css("marginTop", "0px");
