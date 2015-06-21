@@ -1144,7 +1144,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 if("45.79.222.79:443" == a[0]) {
                     pa();
                 } else {
-                    Ha("ws://" + a[0]);
+                    Ha("ws://" + a[0], a[1]);
                     /*new*/ serverIP = a[0];
                 }
             },
@@ -1166,7 +1166,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
 
-    function Ha(a) {
+    function Ha(a, hash) {
         if(ws) {
             /*new*/h$$0.angal_data.server.set(a);
             ws.onopen = null;
@@ -1197,7 +1197,32 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         console.log("Connecting to " + a);
         ws = new WebSocket(a);
         ws.binaryType = "arraybuffer";
-        ws.onopen = Wa;
+        ws.onopen = function() {
+            var a;
+            aa = 500;
+            f("#connecting")
+                .hide();
+            console.log("socket open");
+
+            a = N(5);
+            a.setUint8(0, 254);
+            a.setUint32(1, 4, true);
+            O(a);
+
+            a = N(5);
+            a.setUint8(0, 255);
+            a.setUint32(1, 673720361, true);
+            O(a);
+
+            a = N(1 + hash.length);
+            a.setUint8(0, 80);
+            for (var c = 0; c < hash.length; ++c) {
+              a.setUint8(c + 1, hash.charCodeAt(c));
+            }
+            O(a);
+
+            Ia();
+        }
         ws.onmessage = Xa;
         ws.onclose = Ya;
         ws.onerror = function () {
@@ -1212,22 +1237,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function O(a) {
         ws.send(a.buffer);
-    }
-    function Wa() {
-        var a;
-        aa = 500;
-        f("#connecting")
-            .hide();
-        console.log("socket open");
-        a = N(5);
-        a.setUint8(0, 254);
-        a.setUint32(1, 4, true);
-        O(a);
-        a = N(5);
-        a.setUint8(0, 255);
-        a.setUint32(1, 673720361, true);
-        O(a);
-        Ia();
     }
 
     function Ya() {
