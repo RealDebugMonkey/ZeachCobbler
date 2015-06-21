@@ -5,13 +5,14 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  The White Light -- You rock the maths.
 // @contributer  Angal - For the UI additions and server select code
+// @contributer  Gjum - Bug fixes
 // @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
 // @contributer  Agariomods.com again for maintaining the best extended repo out there.
 // @codefrom     http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.12.3
+// @version      0.12.4
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -22,6 +23,7 @@
 //                     - Fix: scroll wheel function
 //                     - Fixed blank cell not displaying % diff issue
 //                     - Fixed key bindings triggering while changing name
+//                   4 - bug fix courtesy of Gjum
 //              0.11.0 - Fix for v538 fix
 //                   1 - grazer fixed, time alive and ttr fixed
 //                   2 - more fixes for stuff I missed
@@ -107,8 +109,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.12.3';
-alert("Sorry. Zeach broke my mod. Will update as soon as I have time. Until then, disable the mod to play.");
+var _version_ = '0.12.4';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
