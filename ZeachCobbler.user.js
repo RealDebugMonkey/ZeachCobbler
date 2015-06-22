@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.12.4
+// @version      0.12.5
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -24,6 +24,7 @@
 //                     - Fixed blank cell not displaying % diff issue
 //                     - Fixed key bindings triggering while changing name
 //                   4 - bug fix courtesy of Gjum
+//                   5 - updated handshake for v548       
 //              0.11.0 - Fix for v538 fix
 //                   1 - grazer fixed, time alive and ttr fixed
 //                   2 - more fixes for stuff I missed
@@ -109,7 +110,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.12.4';
+var _version_ = '0.12.5';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -1212,7 +1213,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
             a = N(5);
             a.setUint8(0, 255);
-            a.setUint32(1, 673720361, true);
+            a.setUint32(1, 154669859, true);
             O(a);
 
             a = N(1 + hash.length);
