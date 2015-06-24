@@ -12,19 +12,20 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.12.5
+// @version      0.13.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.12.0 - Added music and sound effects.
+// @changes     0.13.0 - Fixed break caused by recent code changes
+//              0.12.0 - Added music and sound effects.
 //                     - Sound effects from agariomods.com
 //                     - Music from http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
 //                     - Fix: scroll wheel function
 //                     - Fixed blank cell not displaying % diff issue
 //                     - Fixed key bindings triggering while changing name
 //                   4 - bug fix courtesy of Gjum
-//                   5 - updated handshake for v548       
+//                   5 - updated handshake for v548
 //              0.11.0 - Fix for v538 fix
 //                   1 - grazer fixed, time alive and ttr fixed
 //                   2 - more fixes for stuff I missed
@@ -110,7 +111,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.12.5';
+var _version_ = '0.13.0';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -119,7 +120,7 @@ console.log("Running Zeach Cobbler!");
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js");
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js");
 
-(function (h$$0, f) {
+(function (g, m) {
     var zoomFactor = 10;
     var highScore = 0;
     var timeSpawned = null;
@@ -187,8 +188,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return x*x/100
     }
     function lineDistance( point1, point2 ){
-        var xs = point2.nx - point1.nx;
-        var ys = point2.ny - point1.ny;
+        var xs = point2.D - point1.D;
+        var ys = point2.F - point1.F;
 
         return Math.sqrt( xs * xs + ys * ys );
     }
@@ -203,7 +204,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     }
     function getBlobShotsAvailable(blob) {
-        return ~~(Math.max(0, (getMass(blob.nSize)-20)/15));
+        return ~~(Math.max(0, (getMass(blob.n)-20)/15));
     }
     function distanceFromCellZero(blob) {
         return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) : 11180;
@@ -213,8 +214,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return {
             x: mouseX2,
             y: mouseY2,
-            nx: mouseX2,
-            ny: mouseY2,
+            D: mouseX2,
+            F: mouseY2,
         };
     }
     // ======================   Grazing code    ==================================================================
@@ -224,20 +225,20 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         // Calculate distance to target
         var dtt = lineDistance(myBlob, targetBlob);
         // Slope and normal slope
-        var sl = (targetBlob.ny-myBlob.ny)/(targetBlob.nx-myBlob.nx);
+        var sl = (targetBlob.F-myBlob.F)/(targetBlob.D-myBlob.D);
         var ns = -1/sl;
         // y-int of ptt
-        var yint1 = myBlob.ny - myBlob.nx*sl;
+        var yint1 = myBlob.F - myBlob.D*sl;
         if(!lineDistance(myBlob, potential) < dtt){
             // get second y-int
-            var yint2 = potential.ny - potential.nx * ns;
+            var yint2 = potential.F - potential.D * ns;
             var interx = (yint2-yint1)/(sl-ns);
             var intery = sl*interx + yint1;
-            var pseudoblob = {"nx": interx, "ny": intery};
-            if (((targetBlob.nx < myBlob.nx && targetBlob.nx < interx && interx < myBlob.nx) ||
-                (targetBlob.nx > myBlob.nx && targetBlob.nx > interx && interx > myBlob.nx)) &&
-                ((targetBlob.ny < myBlob.ny && targetBlob.ny < intery && intery < myBlob.ny) ||
-                (targetBlob.ny > myBlob.ny && targetBlob.ny > intery && intery > myBlob.ny))){
+            var pseudoblob = {"D": interx, "F": intery};
+            if (((targetBlob.D < myBlob.D && targetBlob.D < interx && interx < myBlob.D) ||
+                (targetBlob.D > myBlob.D && targetBlob.D > interx && interx > myBlob.D)) &&
+                ((targetBlob.F < myBlob.F && targetBlob.F < intery && intery < myBlob.F) ||
+                (targetBlob.F > myBlob.F && targetBlob.F > intery && intery > myBlob.F))){
                 if(lineDistance(potential, pseudoblob) < potential.size+100){
                     return true;
                 }
@@ -251,7 +252,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         // check target against each enemy to make sure no collision is possible
         threats.forEach(function (threat){
             if(isSafe) {
-                if(threat.isVirus) {
+                if(threat.d) {
                     //todo once we are big enough, our center might still be far enough
                     // away that it doesn't cross virus but we still pop
                     if(checkCollision(myBlob, targetBlob, threat) )  {
@@ -280,7 +281,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return _.filter(getOtherBlobs(), function(possibleThreat){
             var possibleThreatMass = getMass(possibleThreat.size);
 
-            if(possibleThreat.isVirus) {
+            if(possibleThreat.d) {
                 // Viruses are only a threat if we are bigger than them
                 return myMass >= possibleThreatMass;
             }
@@ -326,7 +327,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         blobArray.forEach(function (element, index, array){
             var distance = lineDistance(cell, element);
             element.isSafeTarget = null;
-            if( getMass(element.size) <= (getMass(cell.size) * 0.4) && !element.isVirus){
+            if( getMass(element.size) <= (getMass(cell.size) * 0.4) && !element.d){
                 if(isSafeTarget(cell, element, blobArray, threats)){
                     edibles.push({"distance":distance, "id":element.id});
                     element.isSafeTarget = true;
@@ -347,7 +348,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             return -1;
         }
         var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
-        //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].density);
+        console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].density);
         return nodes[target[0].id];
     }
 
@@ -356,14 +357,16 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         var pelletCount = 0;
         blobArray2.forEach(function (element2){
             var distance2 = lineDistance(cell2, element2);
+
             var cond1 = getMass(element2.size) <= (getMass(getSelectedBlob().size) * 0.4);
             var cond2 = distance2 < MaxDistance2;
-            var cond3 = !element2.isVirus;
-            //console.log(cond1 + " " + cond2 + " " + cond3);
+            var cond3 = !element2.d;
+            console.log(cond1 + " " + distance2 + " " + cell2.isSafeTarget);
             if( cond1 && cond2 && cond3 && cell2.isSafeTarget ){
                 pelletCount +=1;
             }
         });
+
         return pelletCount;
     }
 // ======================   UI stuff    ==================================================================
@@ -392,7 +395,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         var color = this.color;
         if (showVisualCues) {
             color = setCellColors(thisCell, myPoints);
-            if (thisCell.isVirus) {
+            if (thisCell.d) {
                 if (!nodes.hasOwnProperty(nearestVirusID))
                     nearestVirusID = thisCell.id;
                 else if (distanceFromCellZero(thisCell) < distanceFromCellZero(nodes[nearestVirusID]))
@@ -455,7 +458,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         if (myPoints.length > 0 && !isTeamMode()) {
             var size_this =  getMass(cell.size);
             var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
-            if (cell.isVirus || myPoints.length === 0) {
+            if (cell.d || myPoints.length === 0) {
                 color = virusColor; // Viruses are always gray, and everything is gray when dead
             } else if (~myPoints.indexOf(cell)) {
                 color = myColor;
@@ -505,8 +508,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         var text = new agarTextFunction(textSize, (isNightMode ? '#F2FBFF' : '#111111'));
 
         for (var i = 0; i < debugStrings.length; i++) {
-            /*todo*/text.setValue(debugStrings[i]); // setValue
-            var textRender = text.render();
+            /*remap*/text.u(debugStrings[i]); // setValue
+            var textRender = text.G();
             d.drawImage(textRender, 20, offsetValue);
             offsetValue += textRender.height;
         }
@@ -516,9 +519,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         miniMapCtx.clearRect(0, 0, 175, 175);
 
         _.forEach(_.values(getOtherBlobs()), function(blob){
-            miniMapCtx.strokeStyle = blob.isVirus ?  "#33FF33" : 'rgb(52,152,219)' ;
+            miniMapCtx.strokeStyle = blob.d ?  "#33FF33" : 'rgb(52,152,219)' ;
             miniMapCtx.beginPath();
-            miniMapCtx.arc(blob.nx / 64, blob.ny / 64, blob.size / 64, 0, 2 * Math.PI);
+            miniMapCtx.arc(blob.D / 64, blob.F / 64, blob.size / 64, 0, 2 * Math.PI);
             miniMapCtx.stroke();
         });
 
@@ -845,95 +848,94 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         if (showVisualCues) {
             var pct;
             if (_.contains(myIDs, cell.id) && _.size(myPoints) > 1) {
-                pct = (cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize);
-                d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
-            } else if (!cell.isVirus && isPlayerAlive()) {
-                pct = ~~((cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize));
-                d.setValue(cell.name + " " + pct.toString() + "%");
+                pct = (cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n);
+                d.u(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
+            } else if (!cell.d && isPlayerAlive()) {
+                pct = ~~((cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n));
+                d.u(cell.name + " " + pct.toString() + "%");
             }
         }
     }
     function setVirusInfo(cell, d, c) {
         d.setScale(c * 1.25);
         if (showVisualCues) {
-            if (cell.isVirus) {
-                cell.nameCache.setValue(getVirusShotsNeededForSplit(cell.nSize));
+            if (cell.d) {
+                cell.k.u(getVirusShotsNeededForSplit(cell.n));
                 var nameSizeMultiplier = 4;
                 d.setScale(c * 4);
             }
         }
-        if (cell.isVirus && !showVisualCues) {
-            cell.nameCache.setValue(" ");
+        if (cell.d && !showVisualCues) {
+            cell.k.u(" ");
         }
     }
 // ======================   Start main    ==================================================================
-
-    function Sa() {
-        la = true;
-        za();
-        setInterval(za, 18E4);
-        B = ma = document.getElementById("canvas");
-        globalCtx = B.getContext("2d");
-        /*new*/ B.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
-        B.onmousedown = function (a) {
+    function Wa() {
+        pa = true;
+        Ca();
+        setInterval(Ca, 18E4);
+        C = qa = document.getElementById("canvas");
+        globalCtx = C.getContext("2d");
+        /*new*//*remap*/ C.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        C.onmousedown = function (a) {
             /*new*/if(isPlayerAlive() && rightClickFires){fireAtVirusNearestToCursor();}
             /*new*/ return;
             /*new*/ //event.preventDefault(); // FUTURE: Electronoob mousedrag fix. is this needed?
-            if(Aa) {
-                var b = a.clientX - (5 + p / 5 / 2);
-                var c = a.clientY - (5 + p / 5 / 2);
-                if(Math.sqrt(b * b + c * c) <= p / 5 / 2) {
-                    K();
-                    C(17);
+            if(Da) {
+                var b = a.clientX - (5 + q / 5 / 2);
+                var c = a.clientY - (5 + q / 5 / 2);
+                if(Math.sqrt(b * b + c * c) <= q / 5 / 2) {
+                    N();
+                    D(17);
                     return;
                 }
             }
-            mouseX = a.clientX;
-            mouseY = a.clientY;
-            na();
-            K();
+            V = a.clientX;
+            W = a.clientY;
+            ra();
+            N();
         };
-        B.onmousemove = function (a) {
-            mouseX = a.clientX;
-            mouseY = a.clientY;
-            na();
+        C.onmousemove = function (a) {
+            V = a.clientX;
+            W = a.clientY;
+            ra();
         };
-        B.onmouseup = function () {};
+        C.onmouseup = function () {};
         if(/firefox/i.test(navigator.userAgent)) {
-            document.addEventListener("DOMMouseScroll", Ba, false);
+            document.addEventListener("DOMMouseScroll", Ea, false);
         } else {
-            document.body.onmousewheel = Ba;
+            document.body.onmousewheel = Ea;
         }
         var a = false;
         var b = false;
         var c = false;
-        h$$0.onkeydown = function (d) {
+        g.onkeydown = function (d) {
             if(!(32 != d.keyCode)) {
                 if(!a) {
-                    K();
-                    C(17);
+                    N();
+                    D(17);
                     a = true;
                 }
             }
             if(!(81 != d.keyCode)) {
                 if(!b) {
-                    C(18);
+                    D(18);
                     b = true;
                 }
             }
             if(!(87 != d.keyCode)) {
                 if(!c) {
-                    K();
-                    C(21);
+                    N();
+                    D(21);
                     c = true;
                 }
             }
             if(27 == d.keyCode) {
-                Ca(true);
+                Fa(true);
             }
             /*new*/customKeyDownEvents(d);
         };
-        h$$0.onkeyup = function (d) {
+        g.onkeyup = function (d) {
             if(32 == d.keyCode) {
                 a = false;
             }
@@ -942,53 +944,53 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             }
             if(81 == d.keyCode) {
                 if(b) {
-                    C(19);
+                    D(19);
                     b = false;
                 }
             }
         };
-        h$$0.onblur = function () {
-            C(19);
+        g.onblur = function () {
+            D(19);
             c = b = a = false;
         };
-        h$$0.onresize = Da;
-        Da();
-        if(h$$0.requestAnimationFrame) {
-            h$$0.requestAnimationFrame(Ea);
+        g.onresize = Ga;
+        if(g.requestAnimationFrame) {
+            g.requestAnimationFrame(Ha);
         } else {
-            setInterval(oa, 1E3 / 60);
+            setInterval(sa, 1E3 / 60);
         }
-        setInterval(K, 40);
-        if(v) {
-            f("#region")
-                .val(v);
+        setInterval(N, 40);
+        if(w) {
+            m("#region")
+                .val(w);
         }
-        Fa();
-        V(f("#region")
+        Ia();
+        X(m("#region")
             .val());
         if(null == ws) {
-            if(v) {
-                W();
+            if(w) {
+                Y();
             }
         }
-        f("#overlays")
+        m("#overlays")
             .show();
         /*new*/op_onLoad();
+        Ga();
     }
 
-    function Ba(a) {
-        D *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
-        if(1 > D) {
-            D = 1;
+    function Ea(a) {
+        E *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
+        if(1 > E) {
+            E = 1;
         }
-        if(D > 4 / g) {
-            D = 4 / g;
+        if(E > 4 / k) {
+            E = 4 / k;
         }
     }
 
-    function Ta() {
-        if(0.4 > g) {
-            L = null;
+    function Xa() {
+        if(0.4 > k) {
+            O = null;
         } else {
             var a = Number.POSITIVE_INFINITY;
             var b = Number.POSITIVE_INFINITY;
@@ -997,20 +999,20 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             var e = 0;
             var l = 0;
             for(; l < items.length; l++) {
-                var k = items[l];
-                if(!!k.I()) {
-                    if(!k.M) {
-                        if(!(20 >= k.size * g)) {
-                            e = Math.max(k.size, e);
-                            a = Math.min(k.x, a);
-                            b = Math.min(k.y, b);
-                            c = Math.max(k.x, c);
-                            d = Math.max(k.y, d);
+                var h = items[l];
+                if(!!h.I()) {
+                    if(!h.M) {
+                        if(!(20 >= h.size * k)) {
+                            e = Math.max(h.size, e);
+                            a = Math.min(h.x, a);
+                            b = Math.min(h.y, b);
+                            c = Math.max(h.x, c);
+                            d = Math.max(h.y, d);
                         }
                     }
                 }
             }
-            L = Ua.ca({
+            O = Ya.ca({
                 X: a - (e + 100),
                 Y: b - (e + 100),
                 fa: c + (e + 100),
@@ -1020,16 +1022,16 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             });
             l = 0;
             for(; l < items.length; l++) {
-                if(k = items[l], k.I() && !(20 >= k.size * g)) {
+                if(h = items[l], h.I() && !(20 >= h.size * k)) {
                     a = 0;
-                    for(; a < k.a.length; ++a) {
-                        b = k.a[a].x;
-                        c = k.a[a].y;
-                        if(!(b < s - p / 2 / g)) {
-                            if(!(c < t - q / 2 / g)) {
-                                if(!(b > s + p / 2 / g)) {
-                                    if(!(c > t + q / 2 / g)) {
-                                        L.i(k.a[a]);
+                    for(; a < h.a.length; ++a) {
+                        b = h.a[a].x;
+                        c = h.a[a].y;
+                        if(!(b < t - q / 2 / k)) {
+                            if(!(c < u - r / 2 / k)) {
+                                if(!(b > t + q / 2 / k)) {
+                                    if(!(c > u + r / 2 / k)) {
+                                        O.i(h.a[a]);
                                     }
                                 }
                             }
@@ -1040,25 +1042,25 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
 
-    function na() {
-        mouseX2 = (mouseX - p / 2) / g + s;
-        mouseY2 = (mouseY - q / 2) / g + t;
+    function ra() {
+        Z = (V - q / 2) / k + t;
+        $ = (W - r / 2) / k + u;
     }
 
-    function za() {
-        if(null == Z) {
-            Z = {};
-            f("#region")
+    function Ca() {
+        if(null == aa) {
+            aa = {};
+            m("#region")
                 .children()
                 .each(function () {
-                    var a = f(this);
+                    var a = m(this);
                     var b = a.val();
                     if(b) {
-                        Z[b] = a.text();
+                        aa[b] = a.text();
                     }
                 });
         }
-        f.get($ + "//m.agar.io/info", function (a) {
+        m.get(ba + "//m.agar.io/info", function (a) {
             var b = {};
             var c;
             for(c in a.regions) {
@@ -1067,191 +1069,197 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 b[d] += a.regions[c].numPlayers;
             }
             for(c in b) {
-                f('#region option[value="' + c + '"]')
-                    .text(Z[c] + " (" + b[c] + " players)");
+                m('#region option[value="' + c + '"]')
+                    .text(aa[c] + " (" + b[c] + " players)");
             }
         }, "json");
     }
 
-    function Ga() {
-        f("#adsBottom")
+    function Ja() {
+        m("#adsBottom")
             .hide();
-        f("#overlays")
+        m("#overlays")
             .hide();
-        Fa();
+        Ia();
     }
 
-    function V(a) {
+    function X(a) {
         if(a) {
-            if(a != v) {
-                if(f("#region")
+            if(a != w) {
+                if(m("#region")
                         .val() != a) {
-                    f("#region")
+                    m("#region")
                         .val(a);
                 }
-                v = h$$0.localStorage.location = a;
-                f(".region-message")
+                w = g.localStorage.location = a;
+                m(".region-message")
                     .hide();
-                f(".region-message." + a)
+                m(".region-message." + a)
                     .show();
-                f(".btn-needs-server")
+                m(".btn-needs-server")
                     .prop("disabled", false);
-                if(la) {
-                    W();
+                if(pa) {
+                    Y();
                 }
             }
         }
     }
 
-    function Ca(a) {
-        E = null;
-        f("#overlays")
+    function Fa(a) {
+        F = null;
+        Za();
+        m("#overlays")
             .fadeIn(a ? 200 : 3E3);
         /*new*//*mikey*/OnShowOverlay(a);
         if(!a) {
-            f("#adsBottom")
+            m("#adsBottom")
                 .fadeIn(3E3);
         }
     }
 
-    function Fa() {
-        if(f("#region")
+    function Ia() {
+        if(m("#region")
                 .val()) {
-            h$$0.localStorage.location = f("#region")
+            g.localStorage.location = m("#region")
                 .val();
         } else {
-            if(h$$0.localStorage.location) {
-                f("#region")
-                    .val(h$$0.localStorage.location);
+            if(g.localStorage.location) {
+                m("#region")
+                    .val(g.localStorage.location);
             }
         }
-        if(f("#region")
+        if(m("#region")
                 .val()) {
-            f("#locationKnown")
-                .append(f("#region"));
+            m("#locationKnown")
+                .append(m("#region"));
         } else {
-            f("#locationUnknown")
-                .append(f("#region"));
+            m("#locationUnknown")
+                .append(m("#region"));
         }
     }
 
-    function pa() {
-        console.log("Find " + v + gameMode);
-        f.ajax($ + "//m.agar.io/", {
+    function Za() {
+        if(!!ca) {
+            if(!(75 <= P)) {
+                ca = false;
+                setTimeout(function () {
+                    ca = true;
+                }, 6E4 * da);
+                g.googletag.pubads()
+                    .refresh([g.mainAd]);
+            }
+        }
+    }
+
+    function Ka() {
+        console.log("Find " + w + gameMode);
+        m.ajax(ba + "//m.agar.io/", {
             error: function () {
-                setTimeout(pa, 1E3);
+                setTimeout(Ka, 1E3);
             },
             success: function (a) {
                 a = a.split("\n");
-                if("45.79.222.79:443" == a[0]) {
-                    pa();
-                } else {
-                    Ha("ws://" + a[0], a[1]);
-                    /*new*/ serverIP = a[0];
+                if(a[2]) {
+                    alert(a[2]);
                 }
+                La("ws://" + a[0], a[1]);
+                /*new*/ serverIP = a[0];
             },
             dataType: "text",
             method: "POST",
             cache: false,
             crossDomain: true,
-            data: v + gameMode || "?"
+            data: (w + gameMode || "?") + "\n154669603"
         });
     }
 
-    function W() {
-        if(la) {
-            if(v) {
-                f("#connecting")
+    function Y() {
+        if(pa) {
+            if(w) {
+                m("#connecting")
                     .show();
-                pa();
+                Ka();
             }
         }
     }
 
-    function Ha(a, hash) {
+    function La(a$$0, b) {
         if(ws) {
-            /*new*/h$$0.angal_data.server.set(a);
+            /*new*//*remap*/g.angal_data.server.set(b);
             ws.onopen = null;
             ws.onmessage = null;
             ws.onclose = null;
             try {
                 ws.close();
-            } catch(b) {}
+            } catch(c$$0) {}
             ws = null;
         }
-        var c = h$$0.location.search.slice(1);
-        if(/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/.test(c)) {
-            a = "ws://" + c;
-        }
-        if(Va) {
-            a = a.split(":");
-            a = a[0] + "s://ip-" + a[1].replace(/\./g, "-")
-                    .replace(/\//g, "") + ".tech.agar.io:" + (+a[2] + 2E3);
+        if($a) {
+            var d = a$$0.split(":");
+            a$$0 = d[0] + "s://ip-" + d[1].replace(/\./g, "-")
+                    .replace(/\//g, "") + ".tech.agar.io:" + (+d[2] + 2E3);
         }
         myIDs = [];
         myPoints = [];
         nodes = {};
         items = [];
-        H = [];
-        scoreboard = [];
-        w = teamScoreBoard = null;
-        I = 0;
-        console.log("Connecting to " + a);
-        ws = new WebSocket(a);
+        I = [];
+        B = [];
+        x = y = null;
+        J = 0;
+        ta = false;
+        console.log("Connecting to " + a$$0);
+        ws = new WebSocket(a$$0);
         ws.binaryType = "arraybuffer";
-        ws.onopen = function() {
+        ws.onopen = function () {
             var a;
-            aa = 500;
-            f("#connecting")
-                .hide();
             console.log("socket open");
-
-            a = N(5);
+            a = K(5);
             a.setUint8(0, 254);
             a.setUint32(1, 4, true);
-            O(a);
-
-            a = N(5);
+            L(a);
+            a = K(5);
             a.setUint8(0, 255);
-            a.setUint32(1, 154669859, true);
-            O(a);
-
-            a = N(1 + hash.length);
+            a.setUint32(1, 154669603, true);
+            L(a);
+            a = K(1 + b.length);
             a.setUint8(0, 80);
-            for (var c = 0; c < hash.length; ++c) {
-              a.setUint8(c + 1, hash.charCodeAt(c));
+            var c = 0;
+            for(; c < b.length; ++c) {
+                a.setUint8(c + 1, b.charCodeAt(c));
             }
-            O(a);
-
-            Ia();
-        }
-        ws.onmessage = Xa;
-        ws.onclose = Ya;
+            L(a);
+            Ma();
+        };
+        ws.onmessage = ab;
+        ws.onclose = bb;
         ws.onerror = function () {
             console.log("socket error");
         };
     }
-    /*new*//*remap*/h$$0.angal_connectDirect = Ha;
-
-    function N(a) {
+    /*new*//*remap*/g.angal_connectDirect = La;
+    function K(a) {
         return new DataView(new ArrayBuffer(a));
     }
 
-    function O(a) {
+    function L(a) {
         ws.send(a.buffer);
     }
 
-    function Ya() {
+    function bb() {
+        if(ta) {
+            ea = 500;
+        }
         console.log("socket close");
-        setTimeout(W, aa);
-        aa *= 1.5;
+        setTimeout(Y, ea);
+        ea *= 2;
     }
 
-    function Xa(a) {
-        Za(new DataView(a.data));
+    function ab(a) {
+        cb(new DataView(a.data));
     }
 
-    function Za(a) {
+    function cb(a) {
         function b$$0() {
             var b = "";
             for(;;) {
@@ -1270,15 +1278,15 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         switch(a.getUint8(c++)) {
             case 16:
-                $a(a, c);
+                db(a, c);
                 /*new*/onAfterUpdatePacket();
                 break;
             case 17:
-                P = a.getFloat32(c, true);
-                c += 4;
-                Q = a.getFloat32(c, true);
-                c += 4;
                 R = a.getFloat32(c, true);
+                c += 4;
+                S = a.getFloat32(c, true);
+                c += 4;
+                T = a.getFloat32(c, true);
                 c += 4;
                 break;
             case 20:
@@ -1286,14 +1294,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 myIDs = [];
                 break;
             case 21:
-                qa = a.getInt16(c, true);
+                ua = a.getInt16(c, true);
                 c += 2;
-                ra = a.getInt16(c, true);
+                va = a.getInt16(c, true);
                 c += 2;
-                if(!sa) {
-                    sa = true;
-                    ba = qa;
-                    ca = ra;
+                if(!wa) {
+                    wa = true;
+                    fa = ua;
+                    ga = va;
                 }
                 break;
             case 32:
@@ -1302,77 +1310,79 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 c += 4;
                 break;
             case 49:
-                if(null != teamScoreBoard) {
+                if(null != y) {
                     break;
                 }
                 var d$$0 = a.getUint32(c, true);
                 c = c + 4;
-                scoreboard = [];
+                B = [];
                 var e = 0;
                 for(; e < d$$0; ++e) {
                     var l = a.getUint32(c, true);
                     c = c + 4;
-                    scoreboard.push({
+                    B.push({
                         id: l,
                         name: b$$0()
                     });
                 }
-                Ja();
+                Na();
                 break;
             case 50:
-                teamScoreBoard = [];
+                y = [];
                 d$$0 = a.getUint32(c, true);
                 c += 4;
                 e = 0;
                 for(; e < d$$0; ++e) {
-                    teamScoreBoard.push(a.getFloat32(c, true));
+                    y.push(a.getFloat32(c, true));
                     c += 4;
                 }
-                Ja();
+                Na();
                 break;
             case 64:
-                da = a.getFloat64(c, true);
+                ha = a.getFloat64(c, true);
                 c += 8;
-                ea = a.getFloat64(c, true);
+                ia = a.getFloat64(c, true);
                 c += 8;
-                fa = a.getFloat64(c, true);
+                ja = a.getFloat64(c, true);
                 c += 8;
-                ga = a.getFloat64(c, true);
+                ka = a.getFloat64(c, true);
                 c += 8;
-                P = (fa + da) / 2;
-                Q = (ga + ea) / 2;
-                R = 1;
+                R = (ja + ha) / 2;
+                S = (ka + ia) / 2;
+                T = 1;
                 if(0 == myPoints.length) {
-                    s = P;
-                    t = Q;
-                    g = R;
-                }
+                    t = R;
+                    u = S;
+                    k = T;
+                };
         }
     }
 
-    function $a(a, b) {
-        G = +new Date;
+    function db(a, b) {
+        H = +new Date;
+        ta = true;
+        m("#connecting")
+            .hide();
         var c = Math.random();
-        ta = false;
+        xa = false;
         var d = a.getUint16(b, true);
         b += 2;
         var e = 0;
         for(; e < d; ++e) {
             var l = nodes[a.getUint32(b, true)];
-            var k = nodes[a.getUint32(b + 4, true)];
+            var h = nodes[a.getUint32(b + 4, true)];
             b += 8;
             if(l) {
-                if(k) {
-                    /*new*//*mikey*//*remap*/OnCellEaten(l,k);   ///*new*//*mikey*/OnCellEaten(q,f);
-
-                    k.S();                                       //f.destroy();
-                    k.p = k.x;                                   //f.ox = f.x;
-                    k.q = k.y;                                   //f.oy = f.y;
-                    k.o = k.size;                                //f.oSize = f.size;
-                    k.nx = l.x;                                   //f.nx = q.x;
-                    k.ny = l.y;                                   //f.ny = q.y;
-                    k.nSize = k.size;                                //f.nSize = f.size;
-                    k.L = G;                                     //f.updateTime = I;
+                if(h) {
+                    /*new*//*mikey*//*remap*/OnCellEaten(l,h);
+                    h.S();
+                    h.p = h.x;
+                    h.q = h.y;
+                    h.o = h.size;
+                    h.D = l.x;
+                    h.F = l.y;
+                    h.n = h.size;
+                    h.L = H;
                 }
             }
         }
@@ -1384,45 +1394,45 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 break;
             }
             ++e;
-            var h;
+            var f;
             l = a.getInt16(b, true);
-            b += 2;
-            k = a.getInt16(b, true);
             b += 2;
             h = a.getInt16(b, true);
             b += 2;
+            f = a.getInt16(b, true);
+            b += 2;
             var g = a.getUint8(b++);
-            var f = a.getUint8(b++);
-            var p = a.getUint8(b++);
-            g = (g << 16 | f << 8 | p)
+            var k = a.getUint8(b++);
+            var q = a.getUint8(b++);
+            g = (g << 16 | k << 8 | q)
                 .toString(16);
             for(; 6 > g.length;) {
                 g = "0" + g;
             }
             g = "#" + g;
-            f = a.getUint8(b++);
-            p = !!(f & 1);
-            var r = !!(f & 16);
-            if(f & 2) {
+            k = a.getUint8(b++);
+            q = !!(k & 1);
+            var s = !!(k & 16);
+            if(k & 2) {
                 b += 4;
             }
-            if(f & 4) {
+            if(k & 4) {
                 b += 8;
             }
-            if(f & 8) {
+            if(k & 8) {
                 b += 16;
             }
-            var q;
+            var r;
             var n = "";
             for(;;) {
-                q = a.getUint16(b, true);
+                r = a.getUint16(b, true);
                 b += 2;
-                if(0 == q) {
+                if(0 == r) {
                     break;
                 }
-                n += String.fromCharCode(q);
+                n += String.fromCharCode(r);
             }
-            q = n;
+            r = n;
             n = null;
             if(nodes.hasOwnProperty(d)) {
                 n = nodes[d];
@@ -1432,20 +1442,22 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 n.o = n.size;
                 n.color = g;
             } else {
-                n = new Ka(d, l, k, h, g, q);
+                n = new Oa(d, l, h, f, g, r);
+                items.push(n);
+                nodes[d] = n;
                 n.ka = l;
-                n.la = k;
+                n.la = h;
             }
-            n.isVirus = p;
-            n.j = r;
-            n.nx = l;
-            n.ny = k;
-            n.nSize = h;
+            n.d = q;
+            n.j = s;
+            n.D = l;
+            n.F = h;
+            n.n = f;
             n.ja = c;
-            n.L = G;
-            n.W = f;
-            if(q) {
-                n.setName(q);
+            n.L = H;
+            n.W = k;
+            if(r) {
+                n.Z(r);
             }
             if(-1 != myIDs.indexOf(d)) {
                 if(-1 == myPoints.indexOf(n)) {
@@ -1454,8 +1466,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     myPoints.push(n);
                     if(1 == myPoints.length) {
                         /*new*//*mikey*/OnGameStart(myPoints);
-                        s = n.x;
-                        t = n.y;
+                        t = n.x;
+                        u = n.y;
                     }
                 }
             }
@@ -1471,98 +1483,107 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 n.S();
             }
         }
-        if(ta) {
+        if(xa) {
             if(0 == myPoints.length) {
-                Ca(false);
+                Fa(false);
             }
         }
     }
 
-    function K() {
+    function N() {
         /*new*/if(isGrazing){ doGrazing(ws); return; }
         /*new*/if(suspendMouseUpdates){return;}
         var a;
-        if(ua()) {
-            a = mouseX - p / 2;
-            var b = mouseY - q / 2;
+        if(ya()) {
+            a = V - q / 2;
+            var b = W - r / 2;
             if(!(64 > a * a + b * b)) {
-                if(!(0.01 > Math.abs(La - mouseX2) && 0.01 > Math.abs(Ma - mouseY2))) {
-                    La = mouseX2;
-                    Ma = mouseY2;
-                    a = N(21);
+                if(!(0.01 > Math.abs(Pa - Z) && 0.01 > Math.abs(Qa - $))) {
+                    Pa = Z;
+                    Qa = $;
+                    a = K(21);
                     a.setUint8(0, 16);
-                    a.setFloat64(1, mouseX2, true);
-                    a.setFloat64(9, mouseY2, true);
+                    a.setFloat64(1, Z, true);
+                    a.setFloat64(9, $, true);
                     a.setUint32(17, 0, true);
-                    O(a);
+                    L(a);
                 }
             }
         }
     }
 
-    function Ia() {
-        if(ua() && null != E) {
-            var a = N(1 + 2 * E.length);
+    function Ma() {
+        if(ya() && null != F) {
+            var a = K(1 + 2 * F.length);
             a.setUint8(0, 0);
             var b = 0;
-            for(; b < E.length; ++b) {
-                a.setUint16(1 + 2 * b, E.charCodeAt(b), true);
+            for(; b < F.length; ++b) {
+                a.setUint16(1 + 2 * b, F.charCodeAt(b), true);
             }
-            O(a);
+            L(a);
         }
     }
 
-    function ua() {
+    function ya() {
         return null != ws && ws.readyState == ws.OPEN;
     }
 
-    function C(a) {
-        if(ua()) {
-            var b = N(1);
+    function D(a) {
+        if(ya()) {
+            var b = K(1);
             b.setUint8(0, a);
-            O(b);
+            L(b);
         }
     }
 
-    function Ea() {
-        oa();
-        h$$0.requestAnimationFrame(Ea);
+    function Ha() {
+        sa();
+        g.requestAnimationFrame(Ha);
     }
 
-    function Da() {
-        p = h$$0.innerWidth;
-        q = h$$0.innerHeight;
-        ma.width = B.width = p;
-        ma.height = B.height = q;
-        oa();
+    function Ga() {
+        q = g.innerWidth;
+        r = g.innerHeight;
+        qa.width = C.width = q;
+        qa.height = C.height = r;
+        var a = m("#helloDialog");
+        a.css("transform", "none");
+        var b = a.height();
+        var c = g.innerHeight;
+        if(b > c / 1.1) {
+            a.css("transform", "translate(-50%, -50%) scale(" + c / b / 1.1 + ")");
+        } else {
+            a.css("transform", "translate(-50%, -50%)");
+        }
+        sa();
     }
 
-    function Na() {
+    function Ra() {
         var a;
-        a = 1 * Math.max(q / 1080, p / 1920);
-        return a *= D;
+        a = 1 * Math.max(r / 1080, q / 1920);
+        return a *= E;
     }
 
-    function ab() {
+    function eb() {
         if(0 != myPoints.length) {
             var a = 0;
             var b = 0;
             for(; b < myPoints.length; b++) {
                 a += myPoints[b].size;
             }
-            a = Math.pow(Math.min(64 / a, 1), 0.4) * Na();
-            g = (9 * g + a) / 10;
-            /*new*//*remap*/g = (9 * g + a) / zoomFactor;
+            a = Math.pow(Math.min(64 / a, 1), 0.4) * Ra();
+            k = (9 * k + a) / 10;
+            /*new*//*remap*/k = (9 * k + a) / zoomFactor;
         }
     }
 
-    function oa() {
+    function sa() {
         var a$$0;
         var b$$0 = Date.now();
-        ++bb;
-        G = b$$0;
+        ++fb;
+        H = b$$0;
         if(0 < myPoints.length) {
-            ab();
+            eb();
             var c = a$$0 = 0;
             var d = 0;
             for(; d < myPoints.length; d++) {
@@ -1570,49 +1591,48 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 a$$0 += myPoints[d].x / myPoints.length;
                 c += myPoints[d].y / myPoints.length;
             }
-            P = a$$0;
-            Q = c;
-            R = g;
-            s = (s + a$$0) / 2;
-            t = (t + c) / 2;
+            R = a$$0;
+            S = c;
+            T = k;
+            t = (t + a$$0) / 2;
+            u = (u + c) / 2;
         } else {
-            s = (29 * s + P) / 30;
-            t = (29 * t + Q) / 30;
-            g = (9 * g + R * Na()) / 10;
+            t = (29 * t + R) / 30;
+            u = (29 * u + S) / 30;
+            k = (9 * k + T * Ra()) / 10;
         }
-        Ta();
-        na();
-        if(!va) {
-            globalCtx.clearRect(0, 0, p, q);
+        Xa();
+        ra();
+        if(!za) {
+            globalCtx.clearRect(0, 0, q, r);
         }
-        if(va) {
+        if(za) {
             globalCtx.fillStyle = isNightMode ? "#111111" : "#F2FBFF";
             globalCtx.globalAlpha = 0.05;
-            globalCtx.fillRect(0, 0, p, q);
+            globalCtx.fillRect(0, 0, q, r);
             globalCtx.globalAlpha = 1;
         } else {
-            cb();
+            gb();
         }
         items.sort(function (a, b) {
             return a.size == b.size ? a.id - b.id : a.size - b.size;
         });
         globalCtx.save();
-        globalCtx.translate(p / 2, q / 2);
-        globalCtx.scale(g, g);
-        globalCtx.translate(-s, -t);
+        globalCtx.translate(q / 2, r / 2);
+        globalCtx.scale(k, k);
+        globalCtx.translate(-t, -u);
         d = 0;
-        for(; d < H.length; d++) {
-            H[d].T();
+        for(; d < I.length; d++) {
+            I[d].T(globalCtx);
         }
         d = 0;
         for(; d < items.length; d++) {
-            items[d].T();
+            items[d].T(globalCtx);
         }
         /*new*/drawRescaledItems(globalCtx);
-
-        if(sa) {
-            ba = (3 * ba + qa) / 4;
-            ca = (3 * ca + ra) / 4;
+        if(wa) {
+            fa = (3 * fa + ua) / 4;
+            ga = (3 * ga + va) / 4;
             globalCtx.save();
             globalCtx.strokeStyle = "#FFAAAA";
             globalCtx.lineWidth = 10;
@@ -1623,70 +1643,70 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             d = 0;
             for(; d < myPoints.length; d++) {
                 globalCtx.moveTo(myPoints[d].x, myPoints[d].y);
-                globalCtx.lineTo(ba, ca);
+                globalCtx.lineTo(fa, ga);
             }
             globalCtx.stroke();
             globalCtx.restore();
         }
         globalCtx.restore();
-        if(w) {
-            if(w.width) {
-                globalCtx.drawImage(w, p - w.width - 10, 10);
+        if(x) {
+            if(x.width) {
+                globalCtx.drawImage(x, q - x.width - 10, 10);
             }
         }
         /*new*//*mikey*/OnDraw(globalCtx);
-        I = Math.max(I, db());
-        /*new*//*remap*/ var extras = " " + getScoreBoardExtrasString(I);
-        if(0 != I) {
-            if(null == ia) {
-                ia = new ja(24, "#FFFFFF");
+        J = Math.max(J, hb());
+        /*new*//*remap*/ var extras = " " + getScoreBoardExtrasString(J);
+        if(0 != J) {
+            if(null == ma) {
+                ma = new na(24, "#FFFFFF");
             }
-            ia.setValue("Score: " + ~~(I / 100));
-            /*new*/ /*remap*/ ia.setValue("Score: " + ~~(I / 100) + extras);
-            c = ia.render();
+            ma.u("Score: " + ~~(J / 100));
+            /*new*/ /*remap*/ ma.u("Score: " + ~~(J / 100) + extras);
+            c = ma.G();
             a$$0 = c.width;
             globalCtx.globalAlpha = 0.2;
             globalCtx.fillStyle = "#000000";
-            globalCtx.fillRect(10, q - 10 - 24 - 10, a$$0 + 10, 34);
+            globalCtx.fillRect(10, r - 10 - 24 - 10, a$$0 + 10, 34);
             globalCtx.globalAlpha = 1;
-            globalCtx.drawImage(c, 15, q - 10 - 24 - 5);
-            /*new*//*mikey*//*remap*/(myPoints&&myPoints[0]&&OnUpdateMass(db())); //DONTFORGETABOUTME
+            globalCtx.drawImage(c, 15, r - 10 - 24 - 5);
+            /*new*//*mikey*//*remap*/(myPoints&&myPoints[0]&&OnUpdateMass(hb()));
         }
-        eb();
+        ib();
         b$$0 = Date.now() - b$$0;
         if(b$$0 > 1E3 / 60) {
-            y -= 0.01;
+            z -= 0.01;
         } else {
             if(b$$0 < 1E3 / 65) {
-                y += 0.01;
+                z += 0.01;
             }
         }
-        if(0.4 > y) {
-            y = 0.4;
+        if(0.4 > z) {
+            z = 0.4;
         }
-        if(1 < y) {
-            y = 1;
+        if(1 < z) {
+            z = 1;
         }
-        /*new*//*remap*/displayDebugText(globalCtx,ja); // second param is same as above 'new ??(24,  "#FFFFFF");'
+        /*new*//*remap*/displayDebugText(globalCtx,na); // second param is same as above 'new ??(24,  "#FFFFFF");'
     }
 
-    function cb() {
+    function gb() {
         globalCtx.fillStyle = isNightMode ? "#111111" : "#F2FBFF";
-        globalCtx.fillRect(0, 0, p, q);
+        globalCtx.fillRect(0, 0, q, r);
         globalCtx.save();
         globalCtx.strokeStyle = isNightMode ? "#AAAAAA" : "#000000";
         globalCtx.globalAlpha = 0.2;
-        globalCtx.scale(g, g);
-        var a = p / g;
-        var b = q / g;
-        var c = -0.5 + (-s + a / 2) % 50;
+        globalCtx.scale(k, k);
+        var a = q / k;
+        var b = r / k;
+        var c = -0.5 + (-t + a / 2) % 50;
         for(; c < a; c += 50) {
             globalCtx.beginPath();
             globalCtx.moveTo(c, 0);
             globalCtx.lineTo(c, b);
             globalCtx.stroke();
         }
-        c = -0.5 + (-t + b / 2) % 50;
+        c = -0.5 + (-u + b / 2) % 50;
         for(; c < b; c += 50) {
             globalCtx.beginPath();
             globalCtx.moveTo(0, c);
@@ -1696,33 +1716,33 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         globalCtx.restore();
     }
 
-    function eb() {
-        if(Aa && wa.width) {
-            var a = p / 5;
-            globalCtx.drawImage(wa, 5, 5, a, a);
+    function ib() {
+        if(Da && Aa.width) {
+            var a = q / 5;
+            globalCtx.drawImage(Aa, 5, 5, a, a);
         }
     }
 
-    function db() {
+    function hb() {
         var a = 0;
         var b = 0;
         for(; b < myPoints.length; b++) {
-            a += myPoints[b].nSize * myPoints[b].nSize;
+            a += myPoints[b].n * myPoints[b].n;
         }
         return a;
     }
 
-    function Ja() {
-        w = null;
-        if(null != teamScoreBoard || 0 != scoreboard.length) {
-            if(null != teamScoreBoard || ka) {
-                w = document.createElement("canvas");
-                var a = w.getContext("2d");
+    function Na() {
+        x = null;
+        if(null != y || 0 != B.length) {
+            if(null != y || oa) {
+                x = document.createElement("canvas");
+                var a = x.getContext("2d");
                 var b = 60;
-                b = null == teamScoreBoard ? b + 24 * scoreboard.length : b + 180;
-                var c = Math.min(200, 0.3 * p) / 200;
-                w.width = 200 * c;
-                w.height = b * c;
+                b = null == y ? b + 24 * B.length : b + 180;
+                var c = Math.min(200, 0.3 * q) / 200;
+                x.width = 200 * c;
+                x.height = b * c;
                 a.scale(c, c);
                 a.globalAlpha = 0.4;
                 a.fillStyle = "#000000";
@@ -1734,15 +1754,15 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 a.font = "30px Ubuntu";
                 a.fillText(c, 100 - a.measureText(c)
                         .width / 2, 40);
-                if(null == teamScoreBoard) {
+                if(null == y) {
                     a.font = "20px Ubuntu";
                     b = 0;
-                    for(; b < scoreboard.length; ++b) {
-                        c = scoreboard[b].name || "An unnamed cell";
-                        if(!ka) {
+                    for(; b < B.length; ++b) {
+                        c = B[b].name || "An unnamed cell";
+                        if(!oa) {
                             c = "An unnamed cell";
                         }
-                        if(-1 != myIDs.indexOf(scoreboard[b].id)) {
+                        if(-1 != myIDs.indexOf(B[b].id)) {
                             if(myPoints[0].name) {
                                 c = myPoints[0].name;
                             }
@@ -1757,9 +1777,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     }
                 } else {
                     b = c = 0;
-                    for(; b < teamScoreBoard.length; ++b) {
-                        var d = c + teamScoreBoard[b] * Math.PI * 2;
-                        a.fillStyle = fb[b + 1];
+                    for(; b < y.length; ++b) {
+                        var d = c + y[b] * Math.PI * 2;
+                        a.fillStyle = jb[b + 1];
                         a.beginPath();
                         a.moveTo(100, 140);
                         a.arc(100, 140, 80, c, d, false);
@@ -1771,9 +1791,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
 
-    function Ka(a, b, c, d, e, l) {
-        items.push(this);
-        nodes[a] = this;
+    function Oa(a, b, c, d, e, l) {
         this.id = a;
         this.p = this.x = b;
         this.q = this.y = c;
@@ -1782,11 +1800,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         this.a = [];
         this.l = [];
         this.R();
-        this.setName(l);
+        this.Z(l);
         /*new*/this.splitTime = Date.now();
     }
 
-    function ja(a, b, c, d) {
+    function na(a, b, c, d) {
         if(a) {
             this.r = a;
         }
@@ -1798,985 +1816,1001 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             this.s = d;
         }
     }
-    var $ = h$$0.location.protocol;
-    var Va = "https:" == $;
-    var ma;                                             //var canvas2;
-    var globalCtx;                                      //var globalCtx;
-    var B;                                              //var canvas;
-    var p;                                              //var width;
-    var q;                                              //var height;
-    var L = null;                                       //var context = null;
-    var ws = null;                                       //var ws = null;
-    var s = 0;                                          //var px = 0;
-    var t = 0;                                          //var py = 0;
-    var myIDs = [];                                         //var myIDs = [];
-    var myPoints = [];                                         //var myPoints = [];
-    var nodes = {};                                         //var nodes = {};
-    var items = [];                                         //var items = [];
-    var H = [];                                         //var sprites = [];
-    var scoreboard = [];                                //var scoreboard = [];
-    var mouseX = 0;                                          //var mouseX = 0;
-    var mouseY = 0;                                          //var mouseY = 0;
-    var mouseX2 = -1;                                         //var mouseX2 = -1;
-    var mouseY2 = -1;                                         //var mouseY2 = -1;
-    var bb = 0;                                         //var Ba = 0;
-    var G = 0;                                          //var timestamp = 0;
-    var E = null;                                       //var result = null;
-    var da = 0;                                         //var left = 0;
-    var ea = 0;                                         //var bottom = 0;
-    var fa = 1E4;                                       //var right = 1E4;
-    var ga = 1E4;                                       //var top = 1E4;
-    var g = 1;                                          //var ratio = 1;
-    var v = null;                                       //var dest = null;
-    var showSkins = true;                                      //var showSkins = true;
-    var ka = true;                                      //var nickName = true;
-    var xa = false;                                     //var isColors = false;
-    var ta = false;                                     //var isSpectating = false
-    var I = 0;
-    var isNightMode = false;                                     //var isNightMode = false;
-    var isShowMass = false;                             //var isShowMass = true;
-    var P = s = ~~((da + fa) / 2);
-    var Q = t = ~~((ea + ga) / 2);
-    var R = 1;
-    var gameMode = "";
-    var teamScoreBoard = null;
-    var la = false;
-    var sa = false;
-    var qa = 0;
-    var ra = 0;
-    var ba = 0;
-    var ca = 0;
-    var Qa = 0;
-    var fb = ["#333333", "#FF3333", "#33FF33", "#3333FF"];
-    var va = false;
-    var D = 1;
-    var Aa = "ontouchstart" in h$$0 && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    var wa = new Image;
-    wa.src = "img/split.png";
-    var Ra = document.createElement("canvas");
-    if("undefined" == typeof console || ("undefined" == typeof DataView || ("undefined" == typeof WebSocket || (null == Ra || (null == Ra.getContext || null == h$$0.localStorage))))) {
-        alert("You browser does not support this game, we recommend you to use Firefox to play this");
+    var ba = g.location.protocol;
+    var $a = "https:" == ba;
+    if(g.location.ancestorOrigins && (g.location.ancestorOrigins.length && "https://apps.facebook.com" != g.location.ancestorOrigins[0])) {
+        g.top.location = "http://agar.io/";
     } else {
-        var Z = null;
-        h$$0.setNick = function (a) {
-            Ga();
-            E = a;
-            Ia();
-            I = 0;
-            /*new*/GM_setValue("nick", a);
-            /*new*/console.log("Storing '" + a + "' as nick");
-        };
-        h$$0.setRegion = V;
-        h$$0.setSkins = function (a) {
-            showSkins = a;
-        };
-        h$$0.setNames = function (a) {
-            ka = a;
-        };
-        h$$0.setDarkTheme = function (a) {
-            isNightMode = a;
-        };
-        h$$0.setColors = function (a) {
-            xa = a;
-        };
-        h$$0.setShowMass = function (a) {
-            isShowMass = a;
-        };
-        h$$0.spectate = function () {
-            E = null;
-            C(1);
-            Ga();
-        };
-        h$$0.setGameMode = function (a) {
-            if(a != gameMode) {
-                gameMode = a;
-                W();
+        var qa;
+        /*new*//*rename*/var globalCtx;
+        var C;
+        var q;
+        var r;
+        var O = null;
+        /*new*//*rename*/var ws = null;
+        var t = 0;
+        var u = 0;
+        /*new*//*rename*/var myIDs = [];
+        /*new*//*rename*/var myPoints = [];
+        /*new*//*rename*/var nodes = {};
+        /*new*//*rename*/var items = [];
+        var I = [];
+        var B = [];
+        var V = 0;
+        var W = 0;
+        var Z = -1;
+        var $ = -1;
+        var fb = 0;
+        var H = 0;
+        var F = null;
+        var ha = 0;
+        var ia = 0;
+        var ja = 1E4;
+        var ka = 1E4;
+        var k = 1;
+        var w = null;
+        /*new*//*rename*/var showSkins = true;
+        var oa = true;
+        var Ba = false;
+        var xa = false;
+        var J = 0;
+        /*new*//*rename*/var isNightMode = false;
+        /*new*//*rename*/var isShowMass = false;
+        var R = t = ~~((ha + ja) / 2);
+        var S = u = ~~((ia + ka) / 2);
+        var T = 1;
+        /*new*//*rename*/var gameMode = "";
+        var y = null;
+        var pa = false;
+        var wa = false;
+        var ua = 0;
+        var va = 0;
+        var fa = 0;
+        var ga = 0;
+        var P = 0;
+        var jb = ["#333333", "#FF3333", "#33FF33", "#3333FF"];
+        var za = false;
+        var ta = false;
+        var E = 1;
+        var Da = "ontouchstart" in g && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        var Aa = new Image;
+        Aa.src = "img/split.png";
+        var Ua = document.createElement("canvas");
+        if("undefined" == typeof console || ("undefined" == typeof DataView || ("undefined" == typeof WebSocket || (null == Ua || (null == Ua.getContext || null == g.localStorage))))) {
+            alert("You browser does not support this game, we recommend you to use Firefox to play this");
+        } else {
+            var aa = null;
+            g.setNick = function (a) {
+                Ja();
+                F = a;
+                Ma();
+                J = 0;
+                /*new*/GM_setValue("nick", a);
+                /*new*/console.log("Storing '" + a + "' as nick");
+            };
+            g.setRegion = X;
+            g.setSkins = function (a) {
+                showSkins = a;
+            };
+            g.setNames = function (a) {
+                oa = a;
+            };
+            g.setDarkTheme = function (a) {
+                isNightMode = a;
+            };
+            g.setColors = function (a) {
+                Ba = a;
+            };
+            g.setShowMass = function (a) {
+                isShowMass = a;
+            };
+            g.spectate = function () {
+                F = null;
+                D(1);
+                Ja();
+            };
+            g.setGameMode = function (a) {
+                if(a != gameMode) {
+                    gameMode = a;
+                    Y();
+                }
+            };
+            g.setAcid = function (a) {
+                za = a;
+            };
+            if(null != g.localStorage) {
+                if(null == g.localStorage.AB9) {
+                    g.localStorage.AB9 = 0 + ~~(100 * Math.random());
+                }
+                P = +g.localStorage.AB9;
+                g.ABGroup = P;
             }
-        };
-        h$$0.setAcid = function (a) {
-            va = a;
-        };
-        if(null != h$$0.localStorage) {
-            if(null == h$$0.localStorage.AB8) {
-                h$$0.localStorage.AB8 = 0 + ~~(100 * Math.random());
-            }
-            Qa = +h$$0.localStorage.AB8;
-            h$$0.ABGroup = Qa;
-        }
-        f.get($ + "//gc.agar.io", function (a) {
-            var b = a.split(" ");
-            a = b[0];
-            b = b[1] || "";
-            if(-1 == "DE IL PL HU BR AT UA".split(" ")
-                    .indexOf(a)) {
-                ya.push("nazi");
-            }
-            if(-1 == ["UA"].indexOf(a)) {
-                ya.push("ussr");
-            }
-            if(S.hasOwnProperty(a)) {
-                if("string" == typeof S[a]) {
-                    if(!v) {
-                        V(S[a]);
-                    }
-                } else {
-                    if(S[a].hasOwnProperty(b)) {
-                        if(!v) {
-                            V(S[a][b]);
+            m.get(ba + "//gc.agar.io", function (a) {
+                var b = a.split(" ");
+                a = b[0];
+                b = b[1] || "";
+                if(-1 == ["UA"].indexOf(a)) {
+                    Va.push("ussr");
+                }
+                if(U.hasOwnProperty(a)) {
+                    if("string" == typeof U[a]) {
+                        if(!w) {
+                            X(U[a]);
+                        }
+                    } else {
+                        if(U[a].hasOwnProperty(b)) {
+                            if(!w) {
+                                X(U[a][b]);
+                            }
                         }
                     }
                 }
+            }, "text");
+            var ca = false;
+            var da = 0;
+            if(25 > P) {
+                da = 10;
+            } else {
+                if(50 > P) {
+                    da = 5;
+                }
             }
-        }, "text");
-        setTimeout(function () {}, 3E5);
-        var S = {
-            AF: "JP-Tokyo",
-            AX: "EU-London",
-            AL: "EU-London",
-            DZ: "EU-London",
-            AS: "SG-Singapore",
-            AD: "EU-London",
-            AO: "EU-London",
-            AI: "US-Atlanta",
-            AG: "US-Atlanta",
-            AR: "BR-Brazil",
-            AM: "JP-Tokyo",
-            AW: "US-Atlanta",
-            AU: "SG-Singapore",
-            AT: "EU-London",
-            AZ: "JP-Tokyo",
-            BS: "US-Atlanta",
-            BH: "JP-Tokyo",
-            BD: "JP-Tokyo",
-            BB: "US-Atlanta",
-            BY: "EU-London",
-            BE: "EU-London",
-            BZ: "US-Atlanta",
-            BJ: "EU-London",
-            BM: "US-Atlanta",
-            BT: "JP-Tokyo",
-            BO: "BR-Brazil",
-            BQ: "US-Atlanta",
-            BA: "EU-London",
-            BW: "EU-London",
-            BR: "BR-Brazil",
-            IO: "JP-Tokyo",
-            VG: "US-Atlanta",
-            BN: "JP-Tokyo",
-            BG: "EU-London",
-            BF: "EU-London",
-            BI: "EU-London",
-            KH: "JP-Tokyo",
-            CM: "EU-London",
-            CA: "US-Atlanta",
-            CV: "EU-London",
-            KY: "US-Atlanta",
-            CF: "EU-London",
-            TD: "EU-London",
-            CL: "BR-Brazil",
-            CN: "CN-China",
-            CX: "JP-Tokyo",
-            CC: "JP-Tokyo",
-            CO: "BR-Brazil",
-            KM: "EU-London",
-            CD: "EU-London",
-            CG: "EU-London",
-            CK: "SG-Singapore",
-            CR: "US-Atlanta",
-            CI: "EU-London",
-            HR: "EU-London",
-            CU: "US-Atlanta",
-            CW: "US-Atlanta",
-            CY: "JP-Tokyo",
-            CZ: "EU-London",
-            DK: "EU-London",
-            DJ: "EU-London",
-            DM: "US-Atlanta",
-            DO: "US-Atlanta",
-            EC: "BR-Brazil",
-            EG: "EU-London",
-            SV: "US-Atlanta",
-            GQ: "EU-London",
-            ER: "EU-London",
-            EE: "EU-London",
-            ET: "EU-London",
-            FO: "EU-London",
-            FK: "BR-Brazil",
-            FJ: "SG-Singapore",
-            FI: "EU-London",
-            FR: "EU-London",
-            GF: "BR-Brazil",
-            PF: "SG-Singapore",
-            GA: "EU-London",
-            GM: "EU-London",
-            GE: "JP-Tokyo",
-            DE: "EU-London",
-            GH: "EU-London",
-            GI: "EU-London",
-            GR: "EU-London",
-            GL: "US-Atlanta",
-            GD: "US-Atlanta",
-            GP: "US-Atlanta",
-            GU: "SG-Singapore",
-            GT: "US-Atlanta",
-            GG: "EU-London",
-            GN: "EU-London",
-            GW: "EU-London",
-            GY: "BR-Brazil",
-            HT: "US-Atlanta",
-            VA: "EU-London",
-            HN: "US-Atlanta",
-            HK: "JP-Tokyo",
-            HU: "EU-London",
-            IS: "EU-London",
-            IN: "JP-Tokyo",
-            ID: "JP-Tokyo",
-            IR: "JP-Tokyo",
-            IQ: "JP-Tokyo",
-            IE: "EU-London",
-            IM: "EU-London",
-            IL: "JP-Tokyo",
-            IT: "EU-London",
-            JM: "US-Atlanta",
-            JP: "JP-Tokyo",
-            JE: "EU-London",
-            JO: "JP-Tokyo",
-            KZ: "JP-Tokyo",
-            KE: "EU-London",
-            KI: "SG-Singapore",
-            KP: "JP-Tokyo",
-            KR: "JP-Tokyo",
-            KW: "JP-Tokyo",
-            KG: "JP-Tokyo",
-            LA: "JP-Tokyo",
-            LV: "EU-London",
-            LB: "JP-Tokyo",
-            LS: "EU-London",
-            LR: "EU-London",
-            LY: "EU-London",
-            LI: "EU-London",
-            LT: "EU-London",
-            LU: "EU-London",
-            MO: "JP-Tokyo",
-            MK: "EU-London",
-            MG: "EU-London",
-            MW: "EU-London",
-            MY: "JP-Tokyo",
-            MV: "JP-Tokyo",
-            ML: "EU-London",
-            MT: "EU-London",
-            MH: "SG-Singapore",
-            MQ: "US-Atlanta",
-            MR: "EU-London",
-            MU: "EU-London",
-            YT: "EU-London",
-            MX: "US-Atlanta",
-            FM: "SG-Singapore",
-            MD: "EU-London",
-            MC: "EU-London",
-            MN: "JP-Tokyo",
-            ME: "EU-London",
-            MS: "US-Atlanta",
-            MA: "EU-London",
-            MZ: "EU-London",
-            MM: "JP-Tokyo",
-            NA: "EU-London",
-            NR: "SG-Singapore",
-            NP: "JP-Tokyo",
-            NL: "EU-London",
-            NC: "SG-Singapore",
-            NZ: "SG-Singapore",
-            NI: "US-Atlanta",
-            NE: "EU-London",
-            NG: "EU-London",
-            NU: "SG-Singapore",
-            NF: "SG-Singapore",
-            MP: "SG-Singapore",
-            NO: "EU-London",
-            OM: "JP-Tokyo",
-            PK: "JP-Tokyo",
-            PW: "SG-Singapore",
-            PS: "JP-Tokyo",
-            PA: "US-Atlanta",
-            PG: "SG-Singapore",
-            PY: "BR-Brazil",
-            PE: "BR-Brazil",
-            PH: "JP-Tokyo",
-            PN: "SG-Singapore",
-            PL: "EU-London",
-            PT: "EU-London",
-            PR: "US-Atlanta",
-            QA: "JP-Tokyo",
-            RE: "EU-London",
-            RO: "EU-London",
-            RU: "RU-Russia",
-            RW: "EU-London",
-            BL: "US-Atlanta",
-            SH: "EU-London",
-            KN: "US-Atlanta",
-            LC: "US-Atlanta",
-            MF: "US-Atlanta",
-            PM: "US-Atlanta",
-            VC: "US-Atlanta",
-            WS: "SG-Singapore",
-            SM: "EU-London",
-            ST: "EU-London",
-            SA: "EU-London",
-            SN: "EU-London",
-            RS: "EU-London",
-            SC: "EU-London",
-            SL: "EU-London",
-            SG: "JP-Tokyo",
-            SX: "US-Atlanta",
-            SK: "EU-London",
-            SI: "EU-London",
-            SB: "SG-Singapore",
-            SO: "EU-London",
-            ZA: "EU-London",
-            SS: "EU-London",
-            ES: "EU-London",
-            LK: "JP-Tokyo",
-            SD: "EU-London",
-            SR: "BR-Brazil",
-            SJ: "EU-London",
-            SZ: "EU-London",
-            SE: "EU-London",
-            CH: "EU-London",
-            SY: "EU-London",
-            TW: "JP-Tokyo",
-            TJ: "JP-Tokyo",
-            TZ: "EU-London",
-            TH: "JP-Tokyo",
-            TL: "JP-Tokyo",
-            TG: "EU-London",
-            TK: "SG-Singapore",
-            TO: "SG-Singapore",
-            TT: "US-Atlanta",
-            TN: "EU-London",
-            TR: "TK-Turkey",
-            TM: "JP-Tokyo",
-            TC: "US-Atlanta",
-            TV: "SG-Singapore",
-            UG: "EU-London",
-            UA: "EU-London",
-            AE: "EU-London",
-            GB: "EU-London",
-            US: {
-                AL: "US-Atlanta",
-                AK: "US-Fremont",
-                AZ: "US-Fremont",
-                AR: "US-Atlanta",
-                CA: "US-Fremont",
-                CO: "US-Fremont",
-                CT: "US-Atlanta",
-                DE: "US-Atlanta",
-                FL: "US-Atlanta",
-                GA: "US-Atlanta",
-                HI: "US-Fremont",
-                ID: "US-Fremont",
-                IL: "US-Atlanta",
-                IN: "US-Atlanta",
-                IA: "US-Atlanta",
-                KS: "US-Atlanta",
+            setTimeout(function () {
+                ca = true;
+            }, Math.max(6E4 * da, 1E4));
+            var U = {
+                AF: "JP-Tokyo",
+                AX: "EU-London",
+                AL: "EU-London",
+                DZ: "EU-London",
+                AS: "SG-Singapore",
+                AD: "EU-London",
+                AO: "EU-London",
+                AI: "US-Atlanta",
+                AG: "US-Atlanta",
+                AR: "BR-Brazil",
+                AM: "JP-Tokyo",
+                AW: "US-Atlanta",
+                AU: "SG-Singapore",
+                AT: "EU-London",
+                AZ: "JP-Tokyo",
+                BS: "US-Atlanta",
+                BH: "JP-Tokyo",
+                BD: "JP-Tokyo",
+                BB: "US-Atlanta",
+                BY: "EU-London",
+                BE: "EU-London",
+                BZ: "US-Atlanta",
+                BJ: "EU-London",
+                BM: "US-Atlanta",
+                BT: "JP-Tokyo",
+                BO: "BR-Brazil",
+                BQ: "US-Atlanta",
+                BA: "EU-London",
+                BW: "EU-London",
+                BR: "BR-Brazil",
+                IO: "JP-Tokyo",
+                VG: "US-Atlanta",
+                BN: "JP-Tokyo",
+                BG: "EU-London",
+                BF: "EU-London",
+                BI: "EU-London",
+                KH: "JP-Tokyo",
+                CM: "EU-London",
+                CA: "US-Atlanta",
+                CV: "EU-London",
                 KY: "US-Atlanta",
-                LA: "US-Atlanta",
-                ME: "US-Atlanta",
-                MD: "US-Atlanta",
-                MA: "US-Atlanta",
-                MI: "US-Atlanta",
-                MN: "US-Fremont",
+                CF: "EU-London",
+                TD: "EU-London",
+                CL: "BR-Brazil",
+                CN: "CN-China",
+                CX: "JP-Tokyo",
+                CC: "JP-Tokyo",
+                CO: "BR-Brazil",
+                KM: "EU-London",
+                CD: "EU-London",
+                CG: "EU-London",
+                CK: "SG-Singapore",
+                CR: "US-Atlanta",
+                CI: "EU-London",
+                HR: "EU-London",
+                CU: "US-Atlanta",
+                CW: "US-Atlanta",
+                CY: "JP-Tokyo",
+                CZ: "EU-London",
+                DK: "EU-London",
+                DJ: "EU-London",
+                DM: "US-Atlanta",
+                DO: "US-Atlanta",
+                EC: "BR-Brazil",
+                EG: "EU-London",
+                SV: "US-Atlanta",
+                GQ: "EU-London",
+                ER: "EU-London",
+                EE: "EU-London",
+                ET: "EU-London",
+                FO: "EU-London",
+                FK: "BR-Brazil",
+                FJ: "SG-Singapore",
+                FI: "EU-London",
+                FR: "EU-London",
+                GF: "BR-Brazil",
+                PF: "SG-Singapore",
+                GA: "EU-London",
+                GM: "EU-London",
+                GE: "JP-Tokyo",
+                DE: "EU-London",
+                GH: "EU-London",
+                GI: "EU-London",
+                GR: "EU-London",
+                GL: "US-Atlanta",
+                GD: "US-Atlanta",
+                GP: "US-Atlanta",
+                GU: "SG-Singapore",
+                GT: "US-Atlanta",
+                GG: "EU-London",
+                GN: "EU-London",
+                GW: "EU-London",
+                GY: "BR-Brazil",
+                HT: "US-Atlanta",
+                VA: "EU-London",
+                HN: "US-Atlanta",
+                HK: "JP-Tokyo",
+                HU: "EU-London",
+                IS: "EU-London",
+                IN: "JP-Tokyo",
+                ID: "JP-Tokyo",
+                IR: "JP-Tokyo",
+                IQ: "JP-Tokyo",
+                IE: "EU-London",
+                IM: "EU-London",
+                IL: "JP-Tokyo",
+                IT: "EU-London",
+                JM: "US-Atlanta",
+                JP: "JP-Tokyo",
+                JE: "EU-London",
+                JO: "JP-Tokyo",
+                KZ: "JP-Tokyo",
+                KE: "EU-London",
+                KI: "SG-Singapore",
+                KP: "JP-Tokyo",
+                KR: "JP-Tokyo",
+                KW: "JP-Tokyo",
+                KG: "JP-Tokyo",
+                LA: "JP-Tokyo",
+                LV: "EU-London",
+                LB: "JP-Tokyo",
+                LS: "EU-London",
+                LR: "EU-London",
+                LY: "EU-London",
+                LI: "EU-London",
+                LT: "EU-London",
+                LU: "EU-London",
+                MO: "JP-Tokyo",
+                MK: "EU-London",
+                MG: "EU-London",
+                MW: "EU-London",
+                MY: "JP-Tokyo",
+                MV: "JP-Tokyo",
+                ML: "EU-London",
+                MT: "EU-London",
+                MH: "SG-Singapore",
+                MQ: "US-Atlanta",
+                MR: "EU-London",
+                MU: "EU-London",
+                YT: "EU-London",
+                MX: "US-Atlanta",
+                FM: "SG-Singapore",
+                MD: "EU-London",
+                MC: "EU-London",
+                MN: "JP-Tokyo",
+                ME: "EU-London",
                 MS: "US-Atlanta",
-                MO: "US-Atlanta",
-                MT: "US-Fremont",
-                NE: "US-Fremont",
-                NV: "US-Fremont",
-                NH: "US-Atlanta",
-                NJ: "US-Atlanta",
-                NM: "US-Fremont",
-                NY: "US-Atlanta",
-                NC: "US-Atlanta",
-                ND: "US-Fremont",
-                OH: "US-Atlanta",
-                OK: "US-Atlanta",
-                OR: "US-Fremont",
+                MA: "EU-London",
+                MZ: "EU-London",
+                MM: "JP-Tokyo",
+                NA: "EU-London",
+                NR: "SG-Singapore",
+                NP: "JP-Tokyo",
+                NL: "EU-London",
+                NC: "SG-Singapore",
+                NZ: "SG-Singapore",
+                NI: "US-Atlanta",
+                NE: "EU-London",
+                NG: "EU-London",
+                NU: "SG-Singapore",
+                NF: "SG-Singapore",
+                MP: "SG-Singapore",
+                NO: "EU-London",
+                OM: "JP-Tokyo",
+                PK: "JP-Tokyo",
+                PW: "SG-Singapore",
+                PS: "JP-Tokyo",
                 PA: "US-Atlanta",
-                RI: "US-Atlanta",
-                SC: "US-Atlanta",
-                SD: "US-Fremont",
-                TN: "US-Atlanta",
-                TX: "US-Atlanta",
-                UT: "US-Fremont",
-                VT: "US-Atlanta",
-                VA: "US-Atlanta",
-                WA: "US-Fremont",
-                WV: "US-Atlanta",
-                WI: "US-Atlanta",
-                WY: "US-Fremont",
-                DC: "US-Atlanta",
-                AS: "US-Atlanta",
-                GU: "US-Atlanta",
-                MP: "US-Atlanta",
+                PG: "SG-Singapore",
+                PY: "BR-Brazil",
+                PE: "BR-Brazil",
+                PH: "JP-Tokyo",
+                PN: "SG-Singapore",
+                PL: "EU-London",
+                PT: "EU-London",
                 PR: "US-Atlanta",
-                UM: "US-Atlanta",
-                VI: "US-Atlanta"
-            },
-            UM: "SG-Singapore",
-            VI: "US-Atlanta",
-            UY: "BR-Brazil",
-            UZ: "JP-Tokyo",
-            VU: "SG-Singapore",
-            VE: "BR-Brazil",
-            VN: "JP-Tokyo",
-            WF: "SG-Singapore",
-            EH: "EU-London",
-            YE: "JP-Tokyo",
-            ZM: "EU-London",
-            ZW: "EU-London"
-        };
-        h$$0.connect = Ha;
-        var aa = 500;
-        var La = -1;
-        var Ma = -1;
-        var w = null;
-        var y = 1;
-        var ia = null;
-        var J = {};
-        var ya = "poland;usa;china;russia;canada;australia;spain;brazil;germany;ukraine;france;sweden;hitler;north korea;south korea;japan;united kingdom;earth;greece;latvia;lithuania;estonia;finland;norway;cia;maldivas;austria;nigeria;reddit;yaranaika;confederate;9gag;indiana;4chan;italy;bulgaria;tumblr;2ch.hk;hong kong;portugal;jamaica;german empire;mexico;sanik;switzerland;croatia;chile;indonesia;bangladesh;thailand;iran;iraq;peru;moon;botswana;bosnia;netherlands;european union;taiwan;pakistan;hungary;satanist;qing dynasty;matriarchy;patriarchy;feminism;ireland;texas;facepunch;prodota;cambodia;steam;piccolo;ea;india;kc;denmark;quebec;ayy lmao;sealand;bait;tsarist russia;origin;vinesauce;stalin;belgium;luxembourg;stussy;prussia;8ch;argentina;scotland;sir;romania;belarus;wojak;doge;nasa;byzantium;imperial japan;french kingdom;somalia;turkey;mars;pokerface;8;irs;receita federal;facebook".split(";");
-        var gb = ["8", "nasa"];
-        var hb = ["m'blob"];
-        Ka.prototype = {
-            id: 0,
-            a: null,
-            l: null,
-            name: null,
-            nameCache: null,
-            J: null,
-            x: 0,
-            y: 0,
-            size: 0,
-            p: 0,
-            q: 0,
-            o: 0,
-            nx: 0,
-            ny: 0,
-            nSize: 0,
-            W: 0,
-            L: 0,
-            ja: 0,
-            ba: 0,
-            destroyed: false,
-            isVirus: false,
-            j: false,
-            M: true,
-            S: function () {
-                var a;
-                a = 0;
-                for(; a < items.length; a++) {
-                    if(items[a] == this) {
-                        items.splice(a, 1);
-                        break;
-                    }
-                }
-                delete nodes[this.id];
-                a = myPoints.indexOf(this);
-                if(-1 != a) {
-                    ta = true;
-                    myPoints.splice(a, 1);
-                }
-                a = myIDs.indexOf(this.id);
-                if(-1 != a) {
-                    myIDs.splice(a, 1);
-                }
-                this.destroyed = true;
-                H.push(this);
-            },
-            h: function () {
-                return Math.max(~~(0.3 * this.size), 24);
-            },
-            setName: function (a) {
-                if(0 == a.length && getMass(this.size)> 10){a = " ";}
-                if(this.name = a) {
-                    if(null == this.nameCache) {
-                        this.nameCache = new ja(this.h(), "#FFFFFF", true, "#000000");
-                    } else {
-                        this.nameCache.H(this.h());
-                    }
-                    this.nameCache.setValue(this.name);
-                }
-            },
-            R: function () {
-                var a = this.C();
-                for(; this.a.length > a;) {
-                    var b = ~~(Math.random() * this.a.length);
-                    this.a.splice(b, 1);
-                    this.l.splice(b, 1);
-                }
-                if(0 == this.a.length) {
-                    if(0 < a) {
-                        this.a.push({
-                            Q: this,
-                            e: this.size,
-                            x: this.x,
-                            y: this.y
-                        });
-                        this.l.push(Math.random() - 0.5);
-                    }
-                }
-                for(; this.a.length < a;) {
-                    b = ~~(Math.random() * this.a.length);
-                    var c = this.a[b];
-                    this.a.splice(b, 0, {
-                        Q: this,
-                        e: c.e,
-                        x: c.x,
-                        y: c.y
-                    });
-                    this.l.splice(b, 0, this.l[b]);
-                }
-            },
-            C: function () {
-                var a = 10;
-                if(20 > this.size) {
+                QA: "JP-Tokyo",
+                RE: "EU-London",
+                RO: "EU-London",
+                RU: "RU-Russia",
+                RW: "EU-London",
+                BL: "US-Atlanta",
+                SH: "EU-London",
+                KN: "US-Atlanta",
+                LC: "US-Atlanta",
+                MF: "US-Atlanta",
+                PM: "US-Atlanta",
+                VC: "US-Atlanta",
+                WS: "SG-Singapore",
+                SM: "EU-London",
+                ST: "EU-London",
+                SA: "EU-London",
+                SN: "EU-London",
+                RS: "EU-London",
+                SC: "EU-London",
+                SL: "EU-London",
+                SG: "JP-Tokyo",
+                SX: "US-Atlanta",
+                SK: "EU-London",
+                SI: "EU-London",
+                SB: "SG-Singapore",
+                SO: "EU-London",
+                ZA: "EU-London",
+                SS: "EU-London",
+                ES: "EU-London",
+                LK: "JP-Tokyo",
+                SD: "EU-London",
+                SR: "BR-Brazil",
+                SJ: "EU-London",
+                SZ: "EU-London",
+                SE: "EU-London",
+                CH: "EU-London",
+                SY: "EU-London",
+                TW: "JP-Tokyo",
+                TJ: "JP-Tokyo",
+                TZ: "EU-London",
+                TH: "JP-Tokyo",
+                TL: "JP-Tokyo",
+                TG: "EU-London",
+                TK: "SG-Singapore",
+                TO: "SG-Singapore",
+                TT: "US-Atlanta",
+                TN: "EU-London",
+                TR: "TK-Turkey",
+                TM: "JP-Tokyo",
+                TC: "US-Atlanta",
+                TV: "SG-Singapore",
+                UG: "EU-London",
+                UA: "EU-London",
+                AE: "EU-London",
+                GB: "EU-London",
+                US: {
+                    AL: "US-Atlanta",
+                    AK: "US-Fremont",
+                    AZ: "US-Fremont",
+                    AR: "US-Atlanta",
+                    CA: "US-Fremont",
+                    CO: "US-Fremont",
+                    CT: "US-Atlanta",
+                    DE: "US-Atlanta",
+                    FL: "US-Atlanta",
+                    GA: "US-Atlanta",
+                    HI: "US-Fremont",
+                    ID: "US-Fremont",
+                    IL: "US-Atlanta",
+                    IN: "US-Atlanta",
+                    IA: "US-Atlanta",
+                    KS: "US-Atlanta",
+                    KY: "US-Atlanta",
+                    LA: "US-Atlanta",
+                    ME: "US-Atlanta",
+                    MD: "US-Atlanta",
+                    MA: "US-Atlanta",
+                    MI: "US-Atlanta",
+                    MN: "US-Fremont",
+                    MS: "US-Atlanta",
+                    MO: "US-Atlanta",
+                    MT: "US-Fremont",
+                    NE: "US-Fremont",
+                    NV: "US-Fremont",
+                    NH: "US-Atlanta",
+                    NJ: "US-Atlanta",
+                    NM: "US-Fremont",
+                    NY: "US-Atlanta",
+                    NC: "US-Atlanta",
+                    ND: "US-Fremont",
+                    OH: "US-Atlanta",
+                    OK: "US-Atlanta",
+                    OR: "US-Fremont",
+                    PA: "US-Atlanta",
+                    RI: "US-Atlanta",
+                    SC: "US-Atlanta",
+                    SD: "US-Fremont",
+                    TN: "US-Atlanta",
+                    TX: "US-Atlanta",
+                    UT: "US-Fremont",
+                    VT: "US-Atlanta",
+                    VA: "US-Atlanta",
+                    WA: "US-Fremont",
+                    WV: "US-Atlanta",
+                    WI: "US-Atlanta",
+                    WY: "US-Fremont",
+                    DC: "US-Atlanta",
+                    AS: "US-Atlanta",
+                    GU: "US-Atlanta",
+                    MP: "US-Atlanta",
+                    PR: "US-Atlanta",
+                    UM: "US-Atlanta",
+                    VI: "US-Atlanta"
+                },
+                UM: "SG-Singapore",
+                VI: "US-Atlanta",
+                UY: "BR-Brazil",
+                UZ: "JP-Tokyo",
+                VU: "SG-Singapore",
+                VE: "BR-Brazil",
+                VN: "JP-Tokyo",
+                WF: "SG-Singapore",
+                EH: "EU-London",
+                YE: "JP-Tokyo",
+                ZM: "EU-London",
+                ZW: "EU-London"
+            };
+            g.connect = La;
+            var ea = 500;
+            var Pa = -1;
+            var Qa = -1;
+            var x = null;
+            var z = 1;
+            var ma = null;
+            var M = {};
+            var Va = "poland;usa;china;russia;canada;australia;spain;brazil;germany;ukraine;france;sweden;chaplin;north korea;south korea;japan;united kingdom;earth;greece;latvia;lithuania;estonia;finland;norway;cia;maldivas;austria;nigeria;reddit;yaranaika;confederate;9gag;indiana;4chan;italy;bulgaria;tumblr;2ch.hk;hong kong;portugal;jamaica;german empire;mexico;sanik;switzerland;croatia;chile;indonesia;bangladesh;thailand;iran;iraq;peru;moon;botswana;bosnia;netherlands;european union;taiwan;pakistan;hungary;satanist;qing dynasty;matriarchy;patriarchy;feminism;ireland;texas;facepunch;prodota;cambodia;steam;piccolo;ea;india;kc;denmark;quebec;ayy lmao;sealand;bait;tsarist russia;origin;vinesauce;stalin;belgium;luxembourg;stussy;prussia;8ch;argentina;scotland;sir;romania;belarus;wojak;doge;nasa;byzantium;imperial japan;french kingdom;somalia;turkey;mars;pokerface;8;irs;receita federal;facebook".split(";");
+            var kb = ["8", "nasa"];
+            var lb = ["m'blob"];
+            Oa.prototype = {
+                id: 0,
+                a: null,
+                l: null,
+                name: null,
+                /*new*//*rename*/k: null,
+                J: null,
+                x: 0,
+                y: 0,
+                size: 0,
+                p: 0,
+                q: 0,
+                o: 0,
+                /*new*//*rename*/D: 0,
+                /*new*//*rename*/F: 0,
+                /*new*//*rename*/n: 0,
+                W: 0,
+                L: 0,
+                ja: 0,
+                ba: 0,
+                /*new*//*rename*/A: false,
+                /*new*//*rename*/d: false,
+                j: false,
+                M: true,
+                S: function () {
+                    var a;
                     a = 0;
-                }
-                if(this.isVirus) {
-                    a = 30;
-                }
-                var b = this.size;
-                if(!this.isVirus) {
-                    b *= g;
-                }
-                b *= y;
-                if(this.W & 32) {
-                    b *= 0.25;
-                }
-                return ~~Math.max(b, a);
-            },
-            ha: function () {
-                this.R();
-                var a$$0 = this.a;
-                var b = this.l;
-                var c = a$$0.length;
-                var d = 0;
-                for(; d < c; ++d) {
-                    var e = b[(d - 1 + c) % c];
-                    var l = b[(d + 1) % c];
-                    b[d] += (Math.random() - 0.5) * (this.j ? 3 : 1);
-                    b[d] *= 0.7;
-                    if(10 < b[d]) {
-                        b[d] = 10;
+                    for(; a < items.length; a++) {
+                        if(items[a] == this) {
+                            items.splice(a, 1);
+                            break;
+                        }
                     }
-                    if(-10 > b[d]) {
-                        b[d] = -10;
+                    delete nodes[this.id];
+                    a = myPoints.indexOf(this);
+                    if(-1 != a) {
+                        xa = true;
+                        myPoints.splice(a, 1);
                     }
-                    b[d] = (e + l + 8 * b[d]) / 10;
-                }
-                var k = this;
-                var h = this.isVirus ? 0 : (this.id / 1E3 + G / 1E4) % (2 * Math.PI);
-                d = 0;
-                for(; d < c; ++d) {
-                    var f = a$$0[d].e;
-                    e = a$$0[(d - 1 + c) % c].e;
-                    l = a$$0[(d + 1) % c].e;
-                    if(15 < this.size && (null != L && 20 < this.size * g)) {
-                        var m = false;
-                        var p = a$$0[d].x;
-                        var q = a$$0[d].y;
-                        L.ia(p - 5, q - 5, 10, 10, function (a) {
-                            if(a.Q != k) {
-                                if(25 > (p - a.x) * (p - a.x) + (q - a.y) * (q - a.y)) {
+                    a = myIDs.indexOf(this.id);
+                    if(-1 != a) {
+                        myIDs.splice(a, 1);
+                    }
+                    this.A = true;
+                    I.push(this);
+                },
+                h: function () {
+                    return Math.max(~~(0.3 * this.size), 24);
+                },
+                Z: function (a) {
+                    if(this.name = a) {
+                        if(null == this.k) {
+                            this.k = new na(this.h(), "#FFFFFF", true, "#000000");
+                        } else {
+                            this.k.H(this.h());
+                        }
+                        this.k.u(this.name);
+                    }
+                },
+                R: function () {
+                    var a = this.C();
+                    for(; this.a.length > a;) {
+                        var b = ~~(Math.random() * this.a.length);
+                        this.a.splice(b, 1);
+                        this.l.splice(b, 1);
+                    }
+                    if(0 == this.a.length) {
+                        if(0 < a) {
+                            this.a.push({
+                                Q: this,
+                                e: this.size,
+                                x: this.x,
+                                y: this.y
+                            });
+                            this.l.push(Math.random() - 0.5);
+                        }
+                    }
+                    for(; this.a.length < a;) {
+                        b = ~~(Math.random() * this.a.length);
+                        var c = this.a[b];
+                        this.a.splice(b, 0, {
+                            Q: this,
+                            e: c.e,
+                            x: c.x,
+                            y: c.y
+                        });
+                        this.l.splice(b, 0, this.l[b]);
+                    }
+                },
+                C: function () {
+                    if(0 == this.id) {
+                        return 16;
+                    }
+                    var a = 10;
+                    if(20 > this.size) {
+                        a = 0;
+                    }
+                    if(this.d) {
+                        a = 30;
+                    }
+                    var b = this.size;
+                    if(!this.d) {
+                        b *= k;
+                    }
+                    b *= z;
+                    if(this.W & 32) {
+                        b *= 0.25;
+                    }
+                    return ~~Math.max(b, a);
+                },
+                ha: function () {
+                    this.R();
+                    var a$$0 = this.a;
+                    var b = this.l;
+                    var c = a$$0.length;
+                    var d = 0;
+                    for(; d < c; ++d) {
+                        var e = b[(d - 1 + c) % c];
+                        var l = b[(d + 1) % c];
+                        b[d] += (Math.random() - 0.5) * (this.j ? 3 : 1);
+                        b[d] *= 0.7;
+                        if(10 < b[d]) {
+                            b[d] = 10;
+                        }
+                        if(-10 > b[d]) {
+                            b[d] = -10;
+                        }
+                        b[d] = (e + l + 8 * b[d]) / 10;
+                    }
+                    var h = this;
+                    var g = this.d ? 0 : (this.id / 1E3 + H / 1E4) % (2 * Math.PI);
+                    d = 0;
+                    for(; d < c; ++d) {
+                        var f = a$$0[d].e;
+                        e = a$$0[(d - 1 + c) % c].e;
+                        l = a$$0[(d + 1) % c].e;
+                        if(15 < this.size && (null != O && (20 < this.size * k && 0 != this.id))) {
+                            var m = false;
+                            var p = a$$0[d].x;
+                            var q = a$$0[d].y;
+                            O.ia(p - 5, q - 5, 10, 10, function (a) {
+                                if(a.Q != h) {
+                                    if(25 > (p - a.x) * (p - a.x) + (q - a.y) * (q - a.y)) {
+                                        m = true;
+                                    }
+                                }
+                            });
+                            if(!m) {
+                                if(a$$0[d].x < ha || (a$$0[d].y < ia || (a$$0[d].x > ja || a$$0[d].y > ka))) {
                                     m = true;
                                 }
                             }
-                        });
-                        if(!m) {
-                            if(a$$0[d].x < da || (a$$0[d].y < ea || (a$$0[d].x > fa || a$$0[d].y > ga))) {
-                                m = true;
+                            if(m) {
+                                if(0 < b[d]) {
+                                    b[d] = 0;
+                                }
+                                b[d] -= 1;
                             }
                         }
-                        if(m) {
-                            if(0 < b[d]) {
-                                b[d] = 0;
-                            }
-                            b[d] -= 1;
+                        f += b[d];
+                        if(0 > f) {
+                            f = 0;
                         }
-                    }
-                    f += b[d];
-                    if(0 > f) {
-                        f = 0;
-                    }
-                    f = this.j ? (19 * f + this.size) / 20 : (12 * f + this.size) / 13;
-                    a$$0[d].e = (e + l + 8 * f) / 10;
-                    e = 2 * Math.PI / c;
-                    l = this.a[d].e;
-                    if(this.isVirus) {
-                        if(0 == d % 2) {
-                            l += 5;
-                        }
-                    }
-                    a$$0[d].x = this.x + Math.cos(e * d + h) * l;
-                    a$$0[d].y = this.y + Math.sin(e * d + h) * l;
-                }
-            },
-            K: function () {
-                var a;
-                a = (G - this.L) / 120;
-                a = 0 > a ? 0 : 1 < a ? 1 : a;
-                var b = 0 > a ? 0 : 1 < a ? 1 : a;
-                this.h();
-                if(this.destroyed && 1 <= b) {
-                    var c = H.indexOf(this);
-                    if(-1 != c) {
-                        H.splice(c, 1);
-                    }
-                }
-                this.x = a * (this.nx - this.p) + this.p;
-                this.y = a * (this.ny - this.q) + this.q;
-                this.size = b * (this.nSize - this.o) + this.o;
-                return b;
-            },
-            I: function () {
-                return this.x + this.size + 40 < s - p / 2 / g || (this.y + this.size + 40 < t - q / 2 / g || (this.x - this.size - 40 > s + p / 2 / g || this.y - this.size - 40 > t + q / 2 / g)) ? false : true;
-            },
-            T: function () {
-                if(this.I()) {
-                    var a = !this.isVirus && (!this.j && 0.4 > g);
-                    if(5 > this.C()) {
-                        a = true;
-                    }
-                    if(this.M && !a) {
-                        var b = 0;
-                        for(; b < this.a.length; b++) {
-                            this.a[b].e = this.size;
-                        }
-                    }
-                    this.M = a;
-                    globalCtx.save();
-                    this.ba = G;
-                    b = this.K();
-                    if(this.destroyed) {
-                        globalCtx.globalAlpha *= 1 - b;
-                    }
-                    globalCtx.lineWidth = 10;
-                    globalCtx.lineCap = "round";
-                    globalCtx.lineJoin = this.isVirus ? "miter" : "round";
-                    if(xa) {
-                        globalCtx.fillStyle = "#FFFFFF";
-                        globalCtx.strokeStyle = "#AAAAAA";
-                    } else {
-                        globalCtx.fillStyle = this.color;
-                        globalCtx.strokeStyle = this.color;
-                    }
-                    /*new*//*remap*/ drawCellInfos(xa, globalCtx, this);
-                    if(a) {
-                        globalCtx.beginPath();
-                        globalCtx.arc(this.x, this.y, this.size, 0, 2 * Math.PI, false);
-                    } else {
-                        this.ha();
-                        globalCtx.beginPath();
-                        var c = this.C();
-                        globalCtx.moveTo(this.a[0].x, this.a[0].y);
-                        b = 1;
-                        for(; b <= c; ++b) {
-                            var d = b % c;
-                            globalCtx.lineTo(this.a[d].x, this.a[d].y);
-                        }
-                    }
-                    globalCtx.closePath();
-                    c = this.name.toLowerCase();
-                    //if(!this.j && (Oa && ":teams" != gameMode)) {
-                    //    if(-1 != ya.indexOf(c)) {
-                    //        if(!J.hasOwnProperty(c)) {
-                    //            J[c] = new Image;
-                    //            J[c].src = "skins/" + c + ".png";
-                    //        }
-                    //        b = 0 != J[c].width && J[c].complete ? J[c] : null;
-                    //    } else {
-                    //        b = null;
-                    //    }
-                    //} else {
-                    //    b = null;
-                    //}
-                    /*new*//*remap*/var b = customSkins(this, ya, J, showSkins, gameMode);
-                    b = (d = b) ? -1 != hb.indexOf(c) : false;
-                    if(!a) {
-                        globalCtx.stroke();
-                    }
-                    globalCtx.fill();
-                    /*new*/globalCtx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
-
-                    if(!(null == d)) {
-                        if(!b) {
-                            globalCtx.save();
-                            globalCtx.clip();
-                            globalCtx.drawImage(d, this.x - this.size, this.y - this.size, 2 * this.size, 2 * this.size);
-                            globalCtx.restore();
-                        }
-                    }
-                    if(xa || 15 < this.size) {
-                        if(!a) {
-                            globalCtx.strokeStyle = "#000000";
-                            globalCtx.globalAlpha *= 0.1;
-                            globalCtx.stroke();
-                        }
-                    }
-                    globalCtx.globalAlpha = 1;
-                    if(null != d) {
-                        if(b) {
-                            globalCtx.drawImage(d, this.x - 2 * this.size, this.y - 2 * this.size, 4 * this.size, 4 * this.size);
-                        }
-                    }
-                    b = -1 != myPoints.indexOf(this);
-                    a = ~~this.y;
-                    if((ka || b) && (this.name && (this.nameCache && (null == d || -1 == gb.indexOf(c)))) || this.isVirus) {
-                        /*new*/if(this.isVirus && null == this.nameCache){
-                            /*new*/     this.setName(getVirusShotsNeededForSplit(this.nSize).toString());
-                            /*new*/}
-                        d = this.nameCache;
-                        d.setValue(this.name);
-                        /*new*/setCellName(this, d);
-                        d.H(this.h());
-                        c = Math.ceil(10 * g) / 10;
-                        d.setScale(c);
-
-                        if(d.toString() == 20){console.log("found it!")}
-
-                        /*new*/setVirusInfo(this, d, c);
-                        d = d.render();
-                        var f = ~~(d.width / c);
-                        var l = ~~(d.height / c);
-                        /*new*/if(shouldRelocateName.call(this))
-                        /*new*/    { globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a + ~~(l ), f, l); a += d.height / 2 / c + 8; }
-                        /*new*/else
-                            globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a - ~~(l / 2), f, l);
-                        a += d.height / 2 / c + 4;
-                    }
-                    /*new*/var massValue = (~~(this.size * this.size / 100)).toString();
-                    /*new*/if(showVisualCues){
-                        /*new*/if(_.contains(myIDs, this.id)) {massValue += " (" + getBlobShotsAvailable(this).toString() + ")";}
-                        /*new*/}
-                    if(isShowMass) {
-                        if(b || 0 == myPoints.length && ((!this.isVirus || this.j) && 20 < this.size)) {
-                            if(null == this.J) {
-                                this.J = new ja(this.h() / 2, "#FFFFFF", true, "#000000");
-                            }
-                            b = this.J;
-                            b.H(this.h() / 2);
-                            b.setValue(~~(this.size * this.size / 100));
-                            /*new*/b.setValue(massValue);
-
-                            c = Math.ceil(10 * g) / 10;
-                            b.setScale(c);
-                            /*new*/b.setScale(c * ( shouldRelocateName.call(this) ? 2 : 1));
-
-                            d = b.render();
-                            f = ~~(d.width / c);
-                            l = ~~(d.height / c);
-                            /*new*/if(shouldRelocateName.call(this))
-                            /*new*/    globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a + ~~(l), f, l);
-                            /*new*/else
-                                globalCtx.drawImage(d, ~~this.x - ~~(f / 2), a - ~~(l / 2), f, l);
-                        }
-                    }
-                    globalCtx.restore();
-                }
-            }
-        };
-        ja.prototype = {
-            _value: "",
-            N: "#000000",
-            P: false,
-            s: "#000000",
-            r: 16,
-            m: null,
-            O: null,
-            g: false,
-            v: 1,
-            H: function (a) {
-                if(this.r != a) {
-                    this.r = a;
-                    this.g = true;
-                }
-            },
-            setScale: function (a) {
-                if(this.v != a) {
-                    this.v = a;
-                    this.g = true;
-                }
-            },
-            setStrokeColor: function (a) {
-                if(this.s != a) {
-                    this.s = a;
-                    this.g = true;
-                }
-            },
-            setValue: function (a) {
-                if(a != this._value) {
-                    this._value = a;
-                    this.g = true;
-                }
-            },
-            render: function () {
-                if(null == this.m) {
-                    this.m = document.createElement("canvas");
-                    this.O = this.m.getContext("2d");
-                }
-                if(this.g) {
-                    this.g = false;
-                    var a = this.m;
-                    var b = this.O;
-                    var c = this._value;
-                    var d = this.v;
-                    var e = this.r;
-                    var l = e + "px Ubuntu";
-                    b.font = l;
-                    var k = ~~(0.2 * e);
-                    a.width = (b.measureText(c)
-                            .width + 6) * d;
-                    a.height = (e + k) * d;
-                    b.font = l;
-                    b.scale(d, d);
-                    b.globalAlpha = 1;
-                    b.lineWidth = 3;
-                    b.strokeStyle = this.s;
-                    b.fillStyle = this.N;
-                    if(this.P) {
-                        b.strokeText(c, 3, e - k / 2);
-                    }
-                    b.fillText(c, 3, e - k / 2);
-                }
-                return this.m;
-            }
-        };
-        if(!Date.now) {
-            Date.now = function () {
-                return(new Date)
-                    .getTime();
-            };
-        }
-        var Ua = {
-            ca: function (a$$0) {
-                function b$$1(a, b, c, d, e) {
-                    this.x = a;
-                    this.y = b;
-                    this.f = c;
-                    this.c = d;
-                    this.depth = e;
-                    this.items = [];
-                    this.b = [];
-                }
-                var c$$1 = a$$0.da || 2;
-                var d$$0 = a$$0.ea || 4;
-                b$$1.prototype = {
-                    x: 0,
-                    y: 0,
-                    f: 0,
-                    c: 0,
-                    depth: 0,
-                    items: null,
-                    b: null,
-                    B: function (a) {
-                        var b$$0 = 0;
-                        for(; b$$0 < this.items.length; ++b$$0) {
-                            var c = this.items[b$$0];
-                            if(c.x >= a.x && (c.y >= a.y && (c.x < a.x + a.f && c.y < a.y + a.c))) {
-                                return true;
+                        f = this.j ? (19 * f + this.size) / 20 : (12 * f + this.size) / 13;
+                        a$$0[d].e = (e + l + 8 * f) / 10;
+                        e = 2 * Math.PI / c;
+                        l = this.a[d].e;
+                        if(this.d) {
+                            if(0 == d % 2) {
+                                l += 5;
                             }
                         }
-                        if(0 != this.b.length) {
-                            var d = this;
-                            return this.V(a, function (b) {
-                                return d.b[b].B(a);
-                            });
+                        a$$0[d].x = this.x + Math.cos(e * d + g) * l;
+                        a$$0[d].y = this.y + Math.sin(e * d + g) * l;
+                    }
+                },
+                K: function () {
+                    if(0 == this.id) {
+                        return 1;
+                    }
+                    var a;
+                    a = (H - this.L) / 120;
+                    a = 0 > a ? 0 : 1 < a ? 1 : a;
+                    var b = 0 > a ? 0 : 1 < a ? 1 : a;
+                    this.h();
+                    if(this.A && 1 <= b) {
+                        var c = I.indexOf(this);
+                        if(-1 != c) {
+                            I.splice(c, 1);
                         }
-                        return false;
-                    },
-                    t: function (a, b) {
-                        var c$$0 = 0;
-                        for(; c$$0 < this.items.length; ++c$$0) {
-                            b(this.items[c$$0]);
+                    }
+                    this.x = a * (this.D - this.p) + this.p;
+                    this.y = a * (this.F - this.q) + this.q;
+                    this.size = b * (this.n - this.o) + this.o;
+                    return b;
+                },
+                I: function () {
+                    return 0 == this.id ? true : this.x + this.size + 40 < t - q / 2 / k || (this.y + this.size + 40 < u - r / 2 / k || (this.x - this.size - 40 > t + q / 2 / k || this.y - this.size - 40 > u + r / 2 / k)) ? false : true;
+                },
+                T: function (a) {
+                    if(this.I()) {
+                        var b = 0 != this.id && (!this.d && (!this.j && 0.4 > k));
+                        if(5 > this.C()) {
+                            b = true;
                         }
-                        if(0 != this.b.length) {
-                            var d = this;
-                            this.V(a, function (c) {
-                                d.b[c].t(a, b);
-                            });
+                        if(this.M && !b) {
+                            var c = 0;
+                            for(; c < this.a.length; c++) {
+                                this.a[c].e = this.size;
+                            }
                         }
-                    },
-                    i: function (a) {
-                        if(0 != this.b.length) {
-                            this.b[this.U(a)].i(a);
+                        this.M = b;
+                        a.save();
+                        this.ba = H;
+                        c = this.K();
+                        if(this.A) {
+                            a.globalAlpha *= 1 - c;
+                        }
+                        a.lineWidth = 10;
+                        a.lineCap = "round";
+                        a.lineJoin = this.d ? "miter" : "round";
+                        if(Ba) {
+                            a.fillStyle = "#FFFFFF";
+                            a.strokeStyle = "#AAAAAA";
                         } else {
-                            if(this.items.length >= c$$1 && this.depth < d$$0) {
-                                this.aa();
+                            a.fillStyle = this.color;
+                            a.strokeStyle = this.color;
+                        }
+                        /*new*//*remap*/ drawCellInfos(Ba, globalCtx, this);
+                        if(b) {
+                            a.beginPath();
+                            a.arc(this.x, this.y, this.size + 5, 0, 2 * Math.PI, false);
+                        } else {
+                            this.ha();
+                            a.beginPath();
+                            var d = this.C();
+                            a.moveTo(this.a[0].x, this.a[0].y);
+                            c = 1;
+                            for(; c <= d; ++c) {
+                                var e = c % d;
+                                a.lineTo(this.a[e].x, this.a[e].y);
+                            }
+                        }
+                        a.closePath();
+                        d = this.name.toLowerCase();
+                        //if(!this.j && (Sa && ":teams" != Q)) {
+                        //    if(-1 != Va.indexOf(d)) {
+                        //        if(!M.hasOwnProperty(d)) {
+                        //            M[d] = new Image;
+                        //            M[d].src = "skins/" + d + ".png";
+                        //        }
+                        //        c = 0 != M[d].width && M[d].complete ? M[d] : null;
+                        //    } else {
+                        //        c = null;
+                        //    }
+                        //} else {
+                        //    c = null;
+                        //}
+                        /*new*//*remap*/var c = customSkins(this, Va, M, showSkins, gameMode);
+                        c = (e = c) ? -1 != lb.indexOf(d) : false;
+                        if(!b) {
+                            a.stroke();
+                        }
+                        a.fill();
+                        /*new*/globalCtx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
+
+                        if(!(null == e)) {
+                            if(!c) {
+                                a.save();
+                                a.clip();
+                                a.drawImage(e, this.x - this.size, this.y - this.size, 2 * this.size, 2 * this.size);
+                                a.restore();
+                            }
+                        }
+                        if(Ba || 15 < this.size) {
+                            if(!b) {
+                                a.strokeStyle = "#000000";
+                                a.globalAlpha *= 0.1;
+                                a.stroke();
+                            }
+                        }
+                        a.globalAlpha = 1;
+                        if(null != e) {
+                            if(c) {
+                                a.drawImage(e, this.x - 2 * this.size, this.y - 2 * this.size, 4 * this.size, 4 * this.size);
+                            }
+                        }
+                        c = -1 != myPoints.indexOf(this);
+                        if(0 != this.id) {
+                            b = ~~this.y;
+                            if((oa || c) && (this.name && (this.k && (null == e || -1 == kb.indexOf(d))))) {
+                                /*new*/if(this.d && null == this.k){
+                                    /*new*/     this.setName(getVirusShotsNeededForSplit(this.n).toString());
+                                    /*new*/}
+                                e = this.k;
+                                e.u(this.name);
+                                /*new*//*remap*/setCellName(this, e);
+                                e.H(this.h());
+                                d = Math.ceil(10 * k) / 10;
+                                e.setScale(d);
+
+                                /*new*//*remap*/setVirusInfo(this, e, d);
+                                e = e.G();
+                                var l = ~~(e.width / d);
+                                var h = ~~(e.height / d);
+                                /*new*/if(shouldRelocateName.call(this))
+                                /*new*/    { globalCtx.drawImage(d, ~~this.x - ~~(globalCtx / 2), a + ~~(l ), globalCtx, l); a += d.height / 2 / c + 8; }
+                                /*new*/else
+                                a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
+                                b += e.height / 2 / d + 4;
+                            }
+                            /*new*/var massValue = (~~(this.size * this.size / 100)).toString();
+                            /*new*/if(showVisualCues){
+                                /*new*/if(_.contains(myIDs, this.id)) {massValue += " (" + getBlobShotsAvailable(this).toString() + ")";}
+                                /*new*/}
+                            if(isShowMass) {
+                                if(c || 0 == myPoints.length && ((!this.d || this.j) && 20 < this.size)) {
+                                    if(null == this.J) {
+                                        this.J = new na(this.h() / 2, "#FFFFFF", true, "#000000");
+                                    }
+                                    c = this.J;
+                                    c.H(this.h() / 2);
+                                    c.u(~~(this.size * this.size / 100));
+                                    /*new*//*remap*/c.u(massValue);
+                                    d = Math.ceil(10 * k) / 10;
+                                    c.setScale(d);
+                                    /*new*//*remap*/c.setScale(d * ( shouldRelocateName.call(this) ? 2 : 1));
+                                    e = c.G();
+                                    l = ~~(e.width / d);
+                                    h = ~~(e.height / d);
+                                    /*new*/if(shouldRelocateName.call(this))
+                                    /*new*/    globalCtx.drawImage(d, ~~this.x - ~~(l / 2), b + ~~(h), l, h);
+                                    /*new*/else
+                                    a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
+                                }
+                            }
+                        }
+                        a.restore();
+                    }
+                }
+            };
+            na.prototype = {
+                w: "",
+                N: "#000000",
+                P: false,
+                s: "#000000",
+                r: 16,
+                m: null,
+                O: null,
+                g: false,
+                v: 1,
+                H: function (a) {
+                    if(this.r != a) {
+                        this.r = a;
+                        this.g = true;
+                    }
+                },
+                setScale: function (a) {
+                    if(this.v != a) {
+                        this.v = a;
+                        this.g = true;
+                    }
+                },
+                $: function (a) {
+                    if(this.s != a) {
+                        this.s = a;
+                        this.g = true;
+                    }
+                },
+                /*new*//*rename*/u: function (a) {
+                    if(a != this.w) {
+                        this.w = a;
+                        this.g = true;
+                    }
+                },
+                /*new*//*rename*/G: function () {
+                    if(null == this.m) {
+                        this.m = document.createElement("canvas");
+                        this.O = this.m.getContext("2d");
+                    }
+                    if(this.g) {
+                        this.g = false;
+                        var a = this.m;
+                        var b = this.O;
+                        var c = this.w;
+                        var d = this.v;
+                        var e = this.r;
+                        var l = e + "px Ubuntu";
+                        b.font = l;
+                        var h = ~~(0.2 * e);
+                        a.width = (b.measureText(c)
+                                .width + 6) * d;
+                        a.height = (e + h) * d;
+                        b.font = l;
+                        b.scale(d, d);
+                        b.globalAlpha = 1;
+                        b.lineWidth = 3;
+                        b.strokeStyle = this.s;
+                        b.fillStyle = this.N;
+                        if(this.P) {
+                            b.strokeText(c, 3, e - h / 2);
+                        }
+                        b.fillText(c, 3, e - h / 2);
+                    }
+                    return this.m;
+                }
+            };
+            if(!Date.now) {
+                Date.now = function () {
+                    return(new Date)
+                        .getTime();
+                };
+            }
+            var Ya = {
+                ca: function (a$$0) {
+                    function b$$1(a, b, c, d, e) {
+                        this.x = a;
+                        this.y = b;
+                        this.f = c;
+                        this.c = d;
+                        this.depth = e;
+                        this.items = [];
+                        this.b = [];
+                    }
+                    var c$$1 = a$$0.da || 2;
+                    var d$$0 = a$$0.ea || 4;
+                    b$$1.prototype = {
+                        x: 0,
+                        y: 0,
+                        f: 0,
+                        c: 0,
+                        depth: 0,
+                        items: null,
+                        b: null,
+                        B: function (a) {
+                            var b$$0 = 0;
+                            for(; b$$0 < this.items.length; ++b$$0) {
+                                var c = this.items[b$$0];
+                                if(c.x >= a.x && (c.y >= a.y && (c.x < a.x + a.f && c.y < a.y + a.c))) {
+                                    return true;
+                                }
+                            }
+                            if(0 != this.b.length) {
+                                var d = this;
+                                return this.V(a, function (b) {
+                                    return d.b[b].B(a);
+                                });
+                            }
+                            return false;
+                        },
+                        t: function (a, b) {
+                            var c$$0 = 0;
+                            for(; c$$0 < this.items.length; ++c$$0) {
+                                b(this.items[c$$0]);
+                            }
+                            if(0 != this.b.length) {
+                                var d = this;
+                                this.V(a, function (c) {
+                                    d.b[c].t(a, b);
+                                });
+                            }
+                        },
+                        i: function (a) {
+                            if(0 != this.b.length) {
                                 this.b[this.U(a)].i(a);
                             } else {
-                                this.items.push(a);
+                                if(this.items.length >= c$$1 && this.depth < d$$0) {
+                                    this.aa();
+                                    this.b[this.U(a)].i(a);
+                                } else {
+                                    this.items.push(a);
+                                }
                             }
+                        },
+                        U: function (a) {
+                            return a.x < this.x + this.f / 2 ? a.y < this.y + this.c / 2 ? 0 : 2 : a.y < this.y + this.c / 2 ? 1 : 3;
+                        },
+                        V: function (a, b) {
+                            return a.x < this.x + this.f / 2 && (a.y < this.y + this.c / 2 && b(0) || a.y >= this.y + this.c / 2 && b(2)) || a.x >= this.x + this.f / 2 && (a.y < this.y + this.c / 2 && b(1) || a.y >= this.y + this.c / 2 && b(3)) ? true : false;
+                        },
+                        aa: function () {
+                            var a = this.depth + 1;
+                            var c = this.f / 2;
+                            var d = this.c / 2;
+                            this.b.push(new b$$1(this.x, this.y, c, d, a));
+                            this.b.push(new b$$1(this.x + c, this.y, c, d, a));
+                            this.b.push(new b$$1(this.x, this.y + d, c, d, a));
+                            this.b.push(new b$$1(this.x + c, this.y + d, c, d, a));
+                            a = this.items;
+                            this.items = [];
+                            c = 0;
+                            for(; c < a.length; c++) {
+                                this.i(a[c]);
+                            }
+                        },
+                        clear: function () {
+                            var a = 0;
+                            for(; a < this.b.length; a++) {
+                                this.b[a].clear();
+                            }
+                            this.items.length = 0;
+                            this.b.length = 0;
                         }
-                    },
-                    U: function (a) {
-                        return a.x < this.x + this.f / 2 ? a.y < this.y + this.c / 2 ? 0 : 2 : a.y < this.y + this.c / 2 ? 1 : 3;
-                    },
-                    V: function (a, b) {
-                        return a.x < this.x + this.f / 2 && (a.y < this.y + this.c / 2 && b(0) || a.y >= this.y + this.c / 2 && b(2)) || a.x >= this.x + this.f / 2 && (a.y < this.y + this.c / 2 && b(1) || a.y >= this.y + this.c / 2 && b(3)) ? true : false;
-                    },
-                    aa: function () {
-                        var a = this.depth + 1;
-                        var c = this.f / 2;
-                        var d = this.c / 2;
-                        this.b.push(new b$$1(this.x, this.y, c, d, a));
-                        this.b.push(new b$$1(this.x + c, this.y, c, d, a));
-                        this.b.push(new b$$1(this.x, this.y + d, c, d, a));
-                        this.b.push(new b$$1(this.x + c, this.y + d, c, d, a));
-                        a = this.items;
-                        this.items = [];
-                        c = 0;
-                        for(; c < a.length; c++) {
-                            this.i(a[c]);
+                    };
+                    var e$$0 = {
+                        x: 0,
+                        y: 0,
+                        f: 0,
+                        c: 0
+                    };
+                    return {
+                        root: new b$$1(a$$0.X, a$$0.Y, a$$0.fa - a$$0.X, a$$0.ga - a$$0.Y, 0),
+                        i: function (a) {
+                            this.root.i(a);
+                        },
+                        t: function (a, b) {
+                            this.root.t(a, b);
+                        },
+                        ia: function (a, b, c, d, f) {
+                            e$$0.x = a;
+                            e$$0.y = b;
+                            e$$0.f = c;
+                            e$$0.c = d;
+                            this.root.t(e$$0, f);
+                        },
+                        B: function (a) {
+                            return this.root.B(a);
+                        },
+                        clear: function () {
+                            this.root.clear();
                         }
-                    },
-                    clear: function () {
-                        var a = 0;
-                        for(; a < this.b.length; a++) {
-                            this.b[a].clear();
-                        }
-                        this.items.length = 0;
-                        this.b.length = 0;
-                    }
-                };
-                var e$$0 = {
-                    x: 0,
-                    y: 0,
-                    f: 0,
-                    c: 0
-                };
-                return {
-                    root: new b$$1(a$$0.X, a$$0.Y, a$$0.fa - a$$0.X, a$$0.ga - a$$0.Y, 0),
-                    i: function (a) {
-                        this.root.i(a);
-                    },
-                    t: function (a, b) {
-                        this.root.t(a, b);
-                    },
-                    ia: function (a, b, c, d, f) {
-                        e$$0.x = a;
-                        e$$0.y = b;
-                        e$$0.f = c;
-                        e$$0.c = d;
-                        this.root.t(e$$0, f);
-                    },
-                    B: function (a) {
-                        return this.root.B(a);
-                    },
-                    clear: function () {
-                        this.root.clear();
-                    }
-                };
-            }
-        };
-        h$$0.onload = Sa;
+                    };
+                }
+            };
+            g.onload = Wa;
+        }
     }
+
 })(unsafeWindow, unsafeWindow.jQuery);
 
 
@@ -2971,7 +3005,7 @@ function UpdateChartData(mass)
     num_cells_data.push({
         x: chart_counter,
         y: my_cells.length
-     });
+    });
 
     chart_data.push({
         x: chart_counter,
@@ -3012,7 +3046,7 @@ function UpdateChart(mass, color)
     if (chart === null)
         chart = CreateChart("chart-container", color, false);
     if (UpdateChartData(mass) && display_chart)
-        chart.render();
+        chart.G();
 
     jQuery('.canvasjs-chart-credit').hide();
 }
@@ -3038,7 +3072,7 @@ function ResetStats()
 function OnGainMass(me, other)
 {
     var mass = other.size * other.size;
-    if (other.isVirus){
+    if (other.d){
         stats.viruses.num++;
         stats.viruses.mass += mass; //TODO: shouldn't add if  game mode is teams
         sfx_event("virushit");
@@ -3107,7 +3141,7 @@ function DrawPie(pellet, w, cells, viruses)
             ]
         }]
     });
-    pie.render();
+    pie.G();
 }
 
 function GetTopN(n, p)
@@ -3192,7 +3226,7 @@ function DrawStats(game_over)
         var scale = Math.max.apply(Math,chart_data.map(function(o){return o.y;}))/16;
         var scaled_data = num_cells_data.map(function(a){return {x:a.x, y:a.y*scale};});
         stat_chart.options.data.push({type: "line", dataPoints: scaled_data, toolTipContent:" "});
-        stat_chart.render();
+        stat_chart.G();
     }
     else {
         jQuery('#chartArea').width(700).height(0);
