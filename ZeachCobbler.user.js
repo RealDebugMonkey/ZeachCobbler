@@ -12,12 +12,14 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.13.0
+// @version      0.13.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.13.0 - Fixed break caused by recent code changes
+//                   1 - bug fixes
+//                     - removed direct connect UI (for now)
 //              0.12.0 - Added music and sound effects.
 //                     - Sound effects from agariomods.com
 //                     - Music from http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
@@ -111,7 +113,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.13.0';
+var _version_ = '0.13.1';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -509,7 +511,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
         for (var i = 0; i < debugStrings.length; i++) {
             /*remap*/text.u(debugStrings[i]); // setValue
-            var textRender = text.G();
+            var textRender = text.render();
             d.drawImage(textRender, 20, offsetValue);
             offsetValue += textRender.height;
         }
@@ -828,7 +830,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             zoomFactor = (zoomFactor == 10 ? 11 : 10);
         }
         else if('8'.charCodeAt(0) === d.keyCode && isPlayerAlive()) { // SELF DESTRUCT
-            C(20);
+            /*remap*/D(20);
         }
     }
     function onAfterUpdatePacket() {
@@ -1663,7 +1665,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             }
             ma.u("Score: " + ~~(J / 100));
             /*new*/ /*remap*/ ma.u("Score: " + ~~(J / 100) + extras);
-            c = ma.G();
+            c = ma.render();
             a$$0 = c.width;
             globalCtx.globalAlpha = 0.2;
             globalCtx.fillStyle = "#000000";
@@ -2575,11 +2577,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                                 e.setScale(d);
 
                                 /*new*//*remap*/setVirusInfo(this, e, d);
-                                e = e.G();
+                                e = e.render();
                                 var l = ~~(e.width / d);
                                 var h = ~~(e.height / d);
                                 /*new*/if(shouldRelocateName.call(this))
-                                /*new*/    { globalCtx.drawImage(d, ~~this.x - ~~(globalCtx / 2), a + ~~(l ), globalCtx, l); a += d.height / 2 / c + 8; }
+                                /*new*//*remap*/    { globalCtx.drawImage(e, ~~this.x - ~~(l / 2), b + ~~(h ), l, h); b += e.height / 2 / d + 8; }
                                 /*new*/else
                                 a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
                                 b += e.height / 2 / d + 4;
@@ -2600,11 +2602,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                                     d = Math.ceil(10 * k) / 10;
                                     c.setScale(d);
                                     /*new*//*remap*/c.setScale(d * ( shouldRelocateName.call(this) ? 2 : 1));
-                                    e = c.G();
+                                    e = c.render();
                                     l = ~~(e.width / d);
                                     h = ~~(e.height / d);
                                     /*new*/if(shouldRelocateName.call(this))
-                                    /*new*/    globalCtx.drawImage(d, ~~this.x - ~~(l / 2), b + ~~(h), l, h);
+                                    /*new*/    globalCtx.drawImage(e, ~~this.x - ~~(l / 2), b + ~~(h), l, h);
                                     /*new*/else
                                     a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
                                 }
@@ -2648,7 +2650,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         this.g = true;
                     }
                 },
-                /*new*//*rename*/G: function () {
+                /*new*//*rename*/render: function () {
                     if(null == this.m) {
                         this.m = document.createElement("canvas");
                         this.O = this.m.getContext("2d");
@@ -2866,34 +2868,34 @@ unsafeWindow.op_onLoad = function() {
     unsafeWindow.angal_data.server.loadList();
     unsafeWindow.angal_data.server.updateList();
 
-    jQuery("#overlays").append(
-        '<div style="position: absolute; left: 0px; right: 0px; top: 0px; z-index: 3; display: block;">'
-        + '<div style="height: 50px; width: 500px; margin: 3px auto;">'
-        + '<div style="height: 80px; width: 240px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-        + '<center>Version : ' + _version_ + "</center>Thanks to <a href='http://pastebin.com/wE1LN8fW'>angal & DiaLight's script</a> for server select code & UI.<BR />"
-        + '<br /> '
-        + '</div>'
-        + '<div style="height: 50px; width: 240px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-        + 'IP: <b id="angal_server">None</b> <br /> '
-        + '<a id="angal_server_reconnect">Reconnect</a> || <a id="angal_server_change">Change</a> || <a id="angal_server_copy">Copy</a>'
-        + '</div>'
-        + '</div>'
-        + '</div>'
-    );
-    jQuery("#overlays").append(
-        //'<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
-        //+ '<div style="height: 1px; width: 950px; margin: 100px auto;">'
-        //+ '<div style="height: 50px; width: 200px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-        //+ 'Agar.io client by <br /><b>angal</b> and <b>DiaLight</b>'
-        //+ '</div>'
-        //+ '</div>'
-        //+ '</div>'
-
-        '<div style="height: 641px; width: 225px; position: absolute; top: 50%;transform: translate(0px, -50%);left: 1225px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-        + 'Last servers: <br /> '
-        + '<ol id="angal_serverList"></ol>'
-        + '</div>'
-    );
+    //jQuery("#overlays").append(
+    //    '<div style="position: absolute; left: 0px; right: 0px; top: 0px; z-index: 3; display: block;">'
+    //    + '<div style="height: 50px; width: 500px; margin: 3px auto;">'
+    //    + '<div style="height: 80px; width: 240px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+    //    + '<center>Version : ' + _version_ + "</center>Thanks to <a href='http://pastebin.com/wE1LN8fW'>angal & DiaLight's script</a> for server select code & UI.<BR />"
+    //    + '<br /> '
+    //    + '</div>'
+    //    + '<div style="height: 50px; width: 240px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+    //    + 'IP: <b id="angal_server">None</b> <br /> '
+    //    + '<a id="angal_server_reconnect">Reconnect</a> || <a id="angal_server_change">Change</a> || <a id="angal_server_copy">Copy</a>'
+    //    + '</div>'
+    //    + '</div>'
+    //    + '</div>'
+    //);
+    //jQuery("#overlays").append(
+    //    //'<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
+    //    //+ '<div style="height: 1px; width: 950px; margin: 100px auto;">'
+    //    //+ '<div style="height: 50px; width: 200px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+    //    //+ 'Agar.io client by <br /><b>angal</b> and <b>DiaLight</b>'
+    //    //+ '</div>'
+    //    //+ '</div>'
+    //    //+ '</div>'
+    //
+    //    '<div style="height: 641px; width: 225px; position: absolute; top: 50%;transform: translate(0px, -50%);left: 1225px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
+    //    + 'Last servers: <br /> '
+    //    + '<ol id="angal_serverList"></ol>'
+    //    + '</div>'
+    //);
     jQuery("#angal_server_copy").click(function() {
         GM_setClipboard(unsafeWindow.angal_data.server.name, "text");
     });
@@ -3046,7 +3048,7 @@ function UpdateChart(mass, color)
     if (chart === null)
         chart = CreateChart("chart-container", color, false);
     if (UpdateChartData(mass) && display_chart)
-        chart.G();
+        chart.render();
 
     jQuery('.canvasjs-chart-credit').hide();
 }
@@ -3141,7 +3143,7 @@ function DrawPie(pellet, w, cells, viruses)
             ]
         }]
     });
-    pie.G();
+    pie.render();
 }
 
 function GetTopN(n, p)
@@ -3226,7 +3228,7 @@ function DrawStats(game_over)
         var scale = Math.max.apply(Math,chart_data.map(function(o){return o.y;}))/16;
         var scaled_data = num_cells_data.map(function(a){return {x:a.x, y:a.y*scale};});
         stat_chart.options.data.push({type: "line", dataPoints: scaled_data, toolTipContent:" "});
-        stat_chart.G();
+        stat_chart.render();
     }
     else {
         jQuery('#chartArea').width(700).height(0);
