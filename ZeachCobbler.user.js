@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.13.1
+// @version      0.13.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -20,6 +20,7 @@
 // @changes     0.13.0 - Fixed break caused by recent code changes
 //                   1 - bug fixes
 //                     - removed direct connect UI (for now)
+//                   2 - grazer speed improved by removing debug logging & adding artifical 200ms throttle
 //              0.12.0 - Added music and sound effects.
 //                     - Sound effects from agariomods.com
 //                     - Music from http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
@@ -113,7 +114,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.13.1';
+var _version_ = '0.13.2';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -139,6 +140,17 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     var selectedBlobID = null;
     var isAcid = false;
     var $x = unsafeWindow.jQuery;
+
+    function getWebSocket(){return ws;}
+    function getMyIDs(){return myIDs;}
+    function getMyPoints(){return myPoints;}
+    function getNodes(){return nodes;}
+    function getItems(){return items;}
+    function getBlobNx(){return "D";}
+    function getBlobNy(){return "F";}
+    function getGameModeVar() {return gameMode;}
+
+
     var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
         .appendTo(jQuery('body'))
         .get(0)
@@ -160,11 +172,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     // ======================   Utility code    ==================================================================
     function getSelectedBlob(){
-        if(!_.contains(myIDs, selectedBlobID)){
-            selectedBlobID = myPoints[0].id;
-            console.log("Had to select new blob. Its id is " + selectedBlobID);
+        if(!_.contains(getMyIDs(), selectedBlobID)){
+            selectedBlobID = getMyPoints()[0].id;
+            //console.log("Had to select new blob. Its id is " + selectedBlobID);
         }
-        return nodes[selectedBlobID];
+        return getNodes()[selectedBlobID];
     }
     function GetGmValues(){
         console.log("GM nick: " + GM_getValue('nick', "none set"));
@@ -172,7 +184,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         console.log("GM visualizeGrazing: " + GM_getValue('visualizeGrazing', "none set"));
     }
     function isPlayerAlive(){
-        return !!myPoints.length;
+        return !!getMyPoints().length;
     }
     function sendMouseUpdate(ws, mouseX2,mouseY2) {
 
@@ -190,8 +202,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return x*x/100
     }
     function lineDistance( point1, point2 ){
-        var xs = point2.D - point1.D;
-        var ys = point2.F - point1.F;
+        var xs = point2[getBlobNx()] - point1[getBlobNx()];
+        var ys = point2[getBlobNy()] - point1[getBlobNy()];
 
         return Math.sqrt( xs * xs + ys * ys );
     }
@@ -200,7 +212,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
     function calcTTR(element){
 
-        var totalMass = _.sum(_.pluck(myPoints, "nSize").map(getMass)); //_.sum(_.map(_.pluck(myPoints, "nSize"), getMass));
+        var totalMass = _.sum(_.pluck(getMyPoints(), "nSize").map(getMass)); //_.sum(_.map(_.pluck(getMyPoints(), "nSize"), getMass));
         return ~~((((totalMass*0.02)*1000)+30000) / 1000) - ~~((Date.now() - element.splitTime) / 1000);
         //return ~~((((getMass(element.size)*0.02)*1000)+30000) / 1000) - ~~((Date.now() - element.splitTime) / 1000);
 
@@ -227,20 +239,20 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         // Calculate distance to target
         var dtt = lineDistance(myBlob, targetBlob);
         // Slope and normal slope
-        var sl = (targetBlob.F-myBlob.F)/(targetBlob.D-myBlob.D);
+        var sl = (targetBlob[getBlobNy()]-myBlob[getBlobNy()])/(targetBlob[getBlobNx()]-myBlob[getBlobNx()]);
         var ns = -1/sl;
         // y-int of ptt
-        var yint1 = myBlob.F - myBlob.D*sl;
+        var yint1 = myBlob[getBlobNy()] - myBlob[getBlobNx()]*sl;
         if(!lineDistance(myBlob, potential) < dtt){
             // get second y-int
-            var yint2 = potential.F - potential.D * ns;
+            var yint2 = potential[getBlobNy()] - potential[getBlobNx()] * ns;
             var interx = (yint2-yint1)/(sl-ns);
             var intery = sl*interx + yint1;
             var pseudoblob = {"D": interx, "F": intery};
-            if (((targetBlob.D < myBlob.D && targetBlob.D < interx && interx < myBlob.D) ||
-                (targetBlob.D > myBlob.D && targetBlob.D > interx && interx > myBlob.D)) &&
-                ((targetBlob.F < myBlob.F && targetBlob.F < intery && intery < myBlob.F) ||
-                (targetBlob.F > myBlob.F && targetBlob.F > intery && intery > myBlob.F))){
+            if (((targetBlob[getBlobNx()] < myBlob[getBlobNx()] && targetBlob[getBlobNx()] < interx && interx < myBlob[getBlobNx()]) ||
+                (targetBlob[getBlobNx()] > myBlob[getBlobNx()] && targetBlob[getBlobNx()] > interx && interx > myBlob[getBlobNx()])) &&
+                ((targetBlob[getBlobNy()] < myBlob[getBlobNy()] && targetBlob[getBlobNy()] < intery && intery < myBlob[getBlobNy()]) ||
+                (targetBlob[getBlobNy()] > myBlob[getBlobNy()] && targetBlob[getBlobNy()] > intery && intery > myBlob[getBlobNy()]))){
                 if(lineDistance(potential, pseudoblob) < potential.size+100){
                     return true;
                 }
@@ -273,7 +285,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     // All blobs that aren't mine
     function getOtherBlobs(){
-        return _.omit(nodes, myIDs);
+        return _.omit(getNodes(), getMyIDs());
     }
 
     // Gets any item which is a threat including bigger players and viruses
@@ -292,23 +304,35 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         });
     }
 
+    var throttledResetGrazingTargetId = null;
+
     function doGrazing(ws)
     {
         if(!isPlayerAlive()){
             isGrazing = false;
             return;
         }
+
+        if(null == throttledResetGrazingTargetId){
+            throttledResetGrazingTargetId = _.throttle(function (){
+                grazingTargetID = null;
+                //console.log(~~(Date.now()/1000));
+            }, 200);
+        }
+
+
         // with target fixation on, target remains until it's eaten by someone or
         // otherwise disappears. With it off target is constantly recalculated
         // at the expense of CPU
         if(!grazingTargetFixation){
-            grazingTargetID = null;
+            throttledResetGrazingTargetId();
         }
 
+
         var target;
-        if(!nodes.hasOwnProperty(grazingTargetID))
+        if(!getNodes().hasOwnProperty(grazingTargetID))
         {
-            var target = findFoodToEat(getSelectedBlob(),items);
+            var target = findFoodToEat(getSelectedBlob(),getItems());
             if(-1 == target){
                 isGrazing = false;
                 return;
@@ -317,9 +341,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         else
         {
-            target = nodes[grazingTargetID];
+            target = getNodes()[grazingTargetID];
         }
-        sendMouseUpdate(ws, target.x + Math.random(), target.y + Math.random());
+        sendMouseUpdate(getWebSocket(), target.x + Math.random(), target.y + Math.random());
     }
 
     function findFoodToEat(cell, blobArray){
@@ -341,17 +365,17 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         });
         edibles = edibles.sort(function(x,y){return x.distance<y.distance?-1:1;});
         edibles.forEach(function (element){
-            var density = calcFoodDensity(nodes[element.id], blobArray)/(element.distance*2);
+            var density = calcFoodDensity(getNodes()[element.id], blobArray)/(element.distance*2);
             densityResults.push({"density":density, "id":element.id});
         });
         if(0 === densityResults.length){
-            console.log("No target found");
+            //console.log("No target found");
             //return avoidThreats(threats, k[0]);
             return -1;
         }
         var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
-        console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].density);
-        return nodes[target[0].id];
+        //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].density);
+        return getNodes()[target[0].id];
     }
 
     function calcFoodDensity(cell2, blobArray2){
@@ -363,7 +387,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             var cond1 = getMass(element2.size) <= (getMass(getSelectedBlob().size) * 0.4);
             var cond2 = distance2 < MaxDistance2;
             var cond3 = !element2.d;
-            console.log(cond1 + " " + distance2 + " " + cell2.isSafeTarget);
+            //console.log(cond1 + " " + distance2 + " " + cell2.isSafeTarget);
             if( cond1 && cond2 && cond3 && cell2.isSafeTarget ){
                 pelletCount +=1;
             }
@@ -396,11 +420,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function drawCellInfos(xa, xb, thisCell) {
         var color = this.color;
         if (showVisualCues) {
-            color = setCellColors(thisCell, myPoints);
+            color = setCellColors(thisCell, getMyPoints());
             if (thisCell.d) {
-                if (!nodes.hasOwnProperty(nearestVirusID))
+                if (!getNodes().hasOwnProperty(nearestVirusID))
                     nearestVirusID = thisCell.id;
-                else if (distanceFromCellZero(thisCell) < distanceFromCellZero(nodes[nearestVirusID]))
+                else if (distanceFromCellZero(thisCell) < distanceFromCellZero(getNodes()[nearestVirusID]))
                     nearestVirusID = thisCell.id;
             }
             xa ? (xb.fillStyle = "#FFFFFF", xb.strokeStyle = "#AAAAAA") : (xb.fillStyle = color, xb.strokeStyle = thisCell.id == nearestVirusID ? "red" : color);
@@ -450,7 +474,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     // TODO: K below is build dependant
     function isTeamMode(){
-        return (K === ":teams");
+        return (getGameModeVar() === ":teams");
     }
     function setCellColors(cell,myPoints){
         if(!showVisualCues){
@@ -461,7 +485,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             var size_this =  getMass(cell.size);
             var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
             if (cell.d || myPoints.length === 0) {
-                color = virusColor; // Viruses are always gray, and everything is gray when dead
+                color = virusColor;
             } else if (~myPoints.indexOf(cell)) {
                 color = myColor;
             } else if (size_this > size_that * Huge) {
@@ -529,7 +553,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
 
 
-        _.forEach(myPoints, function(myBlob){
+        _.forEach(getMyPoints(), function(myBlob){
             miniMapCtx.strokeStyle = "#FFFFFF";
             miniMapCtx.beginPath();
             miniMapCtx.arc(myBlob.x / 64, myBlob.y / 64, myBlob.size / 64, 0, 2 * Math.PI);
@@ -544,13 +568,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.stroke();
     }
     function drawGrazingLines(ctx) {
-        if(!isGrazing || grazingTargetID == null || !visualizeGrazing ||!nodes.hasOwnProperty(grazingTargetID) || !isPlayerAlive())
+        if(!isGrazing || grazingTargetID == null || !visualizeGrazing ||!getNodes().hasOwnProperty(grazingTargetID) || !isPlayerAlive())
         {
             return;
         }
         var oldLineWidth = ctx.lineWidth;
         var oldColor = ctx.color;
-        items.forEach(function (element){
+        getItems().forEach(function (element){
             var color;
             if(element.isSafeTarget === true)
                 drawLine(ctx,element, getSelectedBlob(), "white" );
@@ -563,7 +587,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
         });
         ctx.lineWidth = 10;
-        drawLine(ctx, nodes[grazingTargetID], getSelectedBlob(), "green");
+        drawLine(ctx, getNodes()[grazingTargetID], getSelectedBlob(), "green");
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
 
@@ -594,13 +618,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
         // TODO: count availableshots and limit shots sent to  Math.min(shotsNeeded, ShotsAvailable)
         var shotsNeeded = getVirusShotsNeededForSplit(nearestVirus.size);
-        var shotsFired = 0 / myPoints.length;
+        var shotsFired = 0 / getMyPoints().length;
         if(shotsNeeded <= 0){
             return;
         }
 
         suspendMouseUpdates = true;
-        console.log("Nearest Virus at: ("+ nearestVirus.x + "," + nearestVirus.y + ") requires " + shotsNeeded + " shots.");
+        //console.log("Nearest Virus at: ("+ nearestVirus.x + "," + nearestVirus.y + ") requires " + shotsNeeded + " shots.");
         // two mouse updates in a row to make sure new position is locked in.
         sendMouseUpdate(ws, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
         window.setTimeout(function () { sendMouseUpdate(ws, nearestVirus.x + Math.random(), nearestVirus.y + Math.random()); }, 25);
@@ -615,7 +639,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
 
     function fireAtVirusNearestToCursor(){
-        fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), items);
+        fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), getItems());
     }
 // ======================   Skins    ==================================================================
     /* AgarioMod.com skins have been moved to the very end of the file */
@@ -748,22 +772,22 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
 
         if(9 === d.keyCode && isPlayerAlive()) {
-            var myids_sorted = _.pluck(myPoints, "id").sort(); // sort ids because they could
+            var myids_sorted = _.pluck(getMyPoints(), "id").sort(); // sort ids because they could
             var indexloc = _.indexOf(myids_sorted, selectedBlobID);
             d.preventDefault();
             if(-1 === indexloc){
-                selectedBlobID = myPoints[0].id;
+                selectedBlobID = getMyPoints()[0].id;
                 console.log("Had to select new blob. Its id is " + selectedBlobID);
-                return nodes[selectedBlobID];
+                return getNodes()[selectedBlobID];
             }
             indexloc += 1;
             if(indexloc >= myids_sorted.length){
-                selectedBlobID = myPoints[0].id;
+                selectedBlobID = getMyPoints()[0].id;
                 console.log("Reached array end. Moving to begining with id " + selectedBlobID);
-                return nodes[selectedBlobID];
+                return getNodes()[selectedBlobID];
             }
-            selectedBlobID = myPoints[indexloc].id;
-            return nodes[selectedBlobID];
+            selectedBlobID = getMyPoints()[indexloc].id;
+            return getNodes()[selectedBlobID];
         }
         else if('A'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             isAcid = !isAcid;
@@ -805,7 +829,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             grazingTargetFixation = !grazingTargetFixation;
         }
         else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
-            fireAtVirusNearestToBlob(getSelectedBlob(),items);
+            fireAtVirusNearestToBlob(getSelectedBlob(),getItems());
         }
         else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && isGrazing && grazingTargetFixation)
         {
@@ -814,7 +838,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
             pseudoBlob.size = getSelectedBlob().size;
             //pseudoBlob.scoreboard = scoreboard;
-            var target = findFoodToEat(pseudoBlob,items);
+            var target = findFoodToEat(pseudoBlob,getItems());
             if(-1 == target){
                 isGrazing = false;
                 return;
@@ -842,14 +866,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
     function onBeforeNewPointPacket() {
-        if (0 == _.size(myPoints)){
+        if (0 == _.size(getMyPoints())){
             timeSpawned = Date.now();
         }
     }
     function setCellName(cell, d) {
         if (showVisualCues) {
             var pct;
-            if (_.contains(myIDs, cell.id) && _.size(myPoints) > 1) {
+            if (_.contains(getMyIDs(), cell.id) && _.size(getMyPoints()) > 1) {
                 pct = (cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n);
                 d.u(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
             } else if (!cell.d && isPlayerAlive()) {
