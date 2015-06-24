@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.13.2
+// @version      0.13.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -21,6 +21,8 @@
 //                   1 - bug fixes
 //                     - removed direct connect UI (for now)
 //                   2 - grazer speed improved by removing debug logging & adding artifical 200ms throttle
+//                   3 - fixed virus poppers
+//                     - fixed ttr calculation
 //              0.12.0 - Added music and sound effects.
 //                     - Sound effects from agariomods.com
 //                     - Music from http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
@@ -114,7 +116,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.13.2';
+var _version_ = '0.13.3';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -149,7 +151,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function getBlobNx(){return "D";}
     function getBlobNy(){return "F";}
     function getGameModeVar() {return gameMode;}
-
+    function getMouseX2(){return Z;}
+    function getMouseY2(){return $;}
+    function getFireFunction(){return D};
+    function getVirusPropertyName(){return "d";}
+    var nSizeName = "n";
 
     var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
         .appendTo(jQuery('body'))
@@ -212,10 +218,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
     function calcTTR(element){
 
-        var totalMass = _.sum(_.pluck(getMyPoints(), "nSize").map(getMass)); //_.sum(_.map(_.pluck(getMyPoints(), "nSize"), getMass));
+        var totalMass = _.sum(_.pluck(getMyPoints(), nSizeName).map(getMass));
         return ~~((((totalMass*0.02)*1000)+30000) / 1000) - ~~((Date.now() - element.splitTime) / 1000);
-        //return ~~((((getMass(element.size)*0.02)*1000)+30000) / 1000) - ~~((Date.now() - element.splitTime) / 1000);
-
     }
     function getBlobShotsAvailable(blob) {
         return ~~(Math.max(0, (getMass(blob.n)-20)/15));
@@ -226,10 +230,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     // Hack: Mouse variables must have these names
     function getMouseCoordsAsPseudoBlob(){
         return {
-            x: mouseX2,
-            y: mouseY2,
-            D: mouseX2,
-            F: mouseY2,
+            x: getMouseX2(),
+            y: getMouseY2(),
+            D: getMouseX2(),
+            F: getMouseY2(),
         };
     }
     // ======================   Grazing code    ==================================================================
@@ -472,7 +476,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.globalAlpha = hold;
     }
 
-    // TODO: K below is build dependant
     function isTeamMode(){
         return (getGameModeVar() === ":teams");
     }
@@ -509,7 +512,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             return;
         }
 
-        // HACK: On update change this function name to correct function
         var textSize = 15;
         var debugStrings = [];
         if(1 <= displayDebugInfo) {
@@ -594,7 +596,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 // ======================   Virus Popper    ==================================================================
     function findNearestVirus(cell, blobArray){
-        var nearestVirus = _.min(_.filter(blobArray, "isVirus", true), function(element) {
+        var nearestVirus = _.min(_.filter(blobArray, getVirusPropertyName(), true), function(element) {
             return lineDistance(cell, element);
         });
 
@@ -607,12 +609,16 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function fireAtVirusNearestToBlob(blob, blobArray)
     {
+        console.log("fireAtVirusNearestToBlob");
         /*remap*/// HACK: On update change this function name to correct function
-        var fireFunction = C;
+        var fireFunction = getFireFunction();
         var msDelayBetweenShots = 75;
         nearestVirus = findNearestVirus(blob, blobArray);
 
         if(-1 == nearestVirus){
+            console.log("No Nearby Virus Found");
+            console.log(blobArray);
+            console.log(blob);
             return;
         }
 
@@ -624,7 +630,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
 
         suspendMouseUpdates = true;
-        //console.log("Nearest Virus at: ("+ nearestVirus.x + "," + nearestVirus.y + ") requires " + shotsNeeded + " shots.");
+        console.log("Nearest Virus at: ("+ nearestVirus.x + "," + nearestVirus.y + ") requires " + shotsNeeded + " shots.");
         // two mouse updates in a row to make sure new position is locked in.
         sendMouseUpdate(ws, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
         window.setTimeout(function () { sendMouseUpdate(ws, nearestVirus.x + Math.random(), nearestVirus.y + Math.random()); }, 25);
@@ -882,13 +888,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             }
         }
     }
-    function setVirusInfo(cell, d, c) {
-        d.setScale(c * 1.25);
+    function setVirusInfo(cell, ctx, c) {
+        ctx.setScale(c * 1.25);
         if (showVisualCues) {
             if (cell.d) {
                 cell.k.u(getVirusShotsNeededForSplit(cell.n));
                 var nameSizeMultiplier = 4;
-                d.setScale(c * 4);
+                ctx.setScale(c * nameSizeMultiplier);
             }
         }
         if (cell.d && !showVisualCues) {
@@ -2589,9 +2595,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         c = -1 != myPoints.indexOf(this);
                         if(0 != this.id) {
                             b = ~~this.y;
-                            if((oa || c) && (this.name && (this.k && (null == e || -1 == kb.indexOf(d))))) {
+                            if((oa || c) && (this.name && (this.k && (null == e || -1 == kb.indexOf(d)))) /*new*/|| this.d) {
                                 /*new*/if(this.d && null == this.k){
-                                    /*new*/     this.setName(getVirusShotsNeededForSplit(this.n).toString());
+                                    /*new*//*remap*/     this.Z(getVirusShotsNeededForSplit(this.n).toString());
                                     /*new*/}
                                 e = this.k;
                                 e.u(this.name);
