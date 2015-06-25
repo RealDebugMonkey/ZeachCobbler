@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.13.5
+// @version      0.13.6
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -23,6 +23,7 @@
 //                   2 - grazer speed improved by removing debug logging & adding artifical 200ms throttle
 //                   3 - fixed virus poppers
 //                     - fixed ttr calculation
+//                   6 - fixed flickering grazer lines
 //              0.12.0 - Added music and sound effects.
 //                     - Sound effects from agariomods.com
 //                     - Music from http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
@@ -116,7 +117,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.13.5';
+var _version_ = '0.13.6';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -454,8 +455,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function drawRescaledItems(ctx) {
         if (showVisualCues && isPlayerAlive()) {
-            drawGrazingLines(ctx);
             drawMapBorders(ctx);
+            drawGrazingLines(ctx);
             drawSplitGuide(ctx, getSelectedBlob());
             drawMiniMap(ctx);
         }
@@ -495,7 +496,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 
     function drawMapBorders(ctx) {
-        if (zeach.isNightmode) {
+        if (zeach.isNightMode) {
             ctx.strokeStyle = '#FFFFFF';
         }
         ctx.beginPath();
@@ -627,8 +628,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.stroke();
     }
     function drawGrazingLines(ctx) {
-        if(!isGrazing || grazingTargetID == null || !visualizeGrazing ||!zeach.allNodes.hasOwnProperty(grazingTargetID) || !isPlayerAlive())
+        if(!isGrazing || !visualizeGrazing ||  !isPlayerAlive())
         {
+            //console.log("returning early");
             return;
         }
         var oldLineWidth = ctx.lineWidth;
@@ -638,14 +640,17 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 drawLine(ctx,element, getSelectedBlob(), "white" );
             else if (element.isSafeTarget === false)
                 drawLine(ctx,element, getSelectedBlob(), "red" );
-            // else
-            // {
-            //     // value is null -- neither
-            // }
+            else
+            {
+                //drawLine(ctx,element, getSelectedBlob(), "blue" );
+            }
 
         });
-        ctx.lineWidth = 10;
-        drawLine(ctx, zeach.allNodes[grazingTargetID], getSelectedBlob(), "green");
+
+        if(_.has(zeach.allNodes, grazingTargetID)){
+            ctx.lineWidth = 10;
+            drawLine(ctx, zeach.allNodes[grazingTargetID], getSelectedBlob(), "green");
+        }
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
 
