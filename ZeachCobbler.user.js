@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.13.3
+// @version      0.13.5
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -116,7 +116,7 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-var _version_ = '0.13.3';
+var _version_ = '0.13.5';
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -141,28 +141,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     var visualizeGrazing = GM_getValue('visualizeGrazing', true);
     var selectedBlobID = null;
     var isAcid = false;
-    var $x = unsafeWindow.jQuery;
-
-    function getWebSocket(){return ws;}
-    function getMyIDs(){return myIDs;}
-    function getMyPoints(){return myPoints;}
-    function getNodes(){return nodes;}
-    function getItems(){return items;}
-    function getBlobNx(){return "D";}
-    function getBlobNy(){return "F";}
-    function getGameModeVar() {return gameMode;}
-    function getMouseX2(){return Z;}
-    function getMouseY2(){return $;}
-    function getFireFunction(){return D};
-    function getVirusPropertyName(){return "d";}
-    var nSizeName = "n";
-
-    var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
-        .appendTo(jQuery('body'))
-        .get(0)
-        .getContext("2d");
-    GetGmValues();
-
     var Huge = 2.66,
         Large = 1.25,
         Small = 0.7,
@@ -176,27 +154,92 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         virusColor ="#666666";
 
 
+    var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
+        .appendTo(jQuery('body'))
+        .get(0)
+        .getContext("2d");
+
+    GetGmValues();
+
+
+
+    // ======================   Property & Var Name Restoration  =======================================================
+    var zeach = {
+        get myIDs()         {return myIDs;},
+        get myPoints()      {return myPoints;},
+        get allNodes()      {return nodes;},
+        get allItems()      {return items;},
+        get mouseX2()       {return Z;},
+        get mouseY2()       {return $s;},
+        get isShowSkins()   {return showSkins;},
+        get isNightMode()   {return isNightMode;},
+        get isShowMass()    {return isShowMass;},
+        get webSocket()     {return ws;},
+        get gameMode()      {return gameMode;},
+        get fireFunction()  {return D;},
+        get isColors()      {return Ba;},
+        get ctx()           {return globalCtx;},
+        get defaultSkins()  {return Va;},
+        get imgCache()      {return M;},
+        get textFunc()      {return na;},
+        get textBlobs()     {return kb;},
+        get hasNickname()   {return oa}
+    };
+
+    function restoreCanvasElementObj(objPrototype){
+        var canvasElementPropMap = {
+            'setValue'   : 'u',
+            'render'     : 'rndr',
+        };
+        _.forEach(canvasElementPropMap, function(newPropName,oldPropName){
+            Object.defineProperty(objPrototype, oldPropName, {
+                get: function()     { return this[newPropName];},
+                set: function(val)  { this[newPropName] = val; }
+            });
+        });
+    }
+
+
+    function restorePointObj(objPrototype){
+        var pointPropMap = {
+            'isVirus'   : 'd',
+            'nx'        : 'D',
+            'ny'        : 'F',
+            'setName'   : 'Z',
+            'nSize'     : 'n',
+        };
+        _.forEach(pointPropMap, function(newPropName,oldPropName){
+            Object.defineProperty(objPrototype, oldPropName, {
+                get: function()     { return this[newPropName];},
+                set: function(val)  { this[newPropName] = val; }
+            });
+        });
+    }
+
     // ======================   Utility code    ==================================================================
     function getSelectedBlob(){
-        if(!_.contains(getMyIDs(), selectedBlobID)){
-            selectedBlobID = getMyPoints()[0].id;
+        if(!_.contains(zeach.myIDs, selectedBlobID)){
+            selectedBlobID = zeach.myPoints[0].id;
             //console.log("Had to select new blob. Its id is " + selectedBlobID);
         }
-        return getNodes()[selectedBlobID];
+        return zeach.allNodes[selectedBlobID];
     }
+
     function GetGmValues(){
         console.log("GM nick: " + GM_getValue('nick', "none set"));
         console.log("GM rightClickFires: " + GM_getValue('rightClickFires', "none set"));
         console.log("GM visualizeGrazing: " + GM_getValue('visualizeGrazing', "none set"));
     }
+
     function isPlayerAlive(){
-        return !!getMyPoints().length;
+        return !!zeach.myPoints.length;
     }
+
     function sendMouseUpdate(ws, mouseX2,mouseY2) {
 
         if (ws != null && ws.readyState == ws.OPEN) {
-            z0 = new ArrayBuffer(21);
-            z1 = new DataView(z0);
+            var z0 = new ArrayBuffer(21);
+            var z1 = new DataView(z0);
             z1.setUint8(0, 16);
             z1.setFloat64(1, mouseX2, true);
             z1.setFloat64(9, mouseY2, true);
@@ -204,36 +247,42 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             ws.send(z0);
         }
     }
+
     function getMass(x){
         return x*x/100
     }
+
     function lineDistance( point1, point2 ){
-        var xs = point2[getBlobNx()] - point1[getBlobNx()];
-        var ys = point2[getBlobNy()] - point1[getBlobNy()];
+        var xs = point2.nx - point1.nx;
+        var ys = point2.ny - point1.ny;
 
         return Math.sqrt( xs * xs + ys * ys );
     }
+
     function getVirusShotsNeededForSplit(cellSize){
         return ~~((150-cellSize)/7);
     }
+
     function calcTTR(element){
 
-        var totalMass = _.sum(_.pluck(getMyPoints(), nSizeName).map(getMass));
+        var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
         return ~~((((totalMass*0.02)*1000)+30000) / 1000) - ~~((Date.now() - element.splitTime) / 1000);
     }
+
     function getBlobShotsAvailable(blob) {
-        return ~~(Math.max(0, (getMass(blob.n)-20)/15));
+        return ~~(Math.max(0, (getMass(blob.nSize)-20)/15));
     }
+
     function distanceFromCellZero(blob) {
         return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) : 11180;
     }
-    // Hack: Mouse variables must have these names
+
     function getMouseCoordsAsPseudoBlob(){
         return {
-            x: getMouseX2(),
-            y: getMouseY2(),
-            D: getMouseX2(),
-            F: getMouseY2(),
+            x: zeach.mouseX2,
+            y: zeach.mouseY2,
+            D: zeach.mouseX2,
+            F: zeach.mouseY2,
         };
     }
     // ======================   Grazing code    ==================================================================
@@ -243,20 +292,22 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         // Calculate distance to target
         var dtt = lineDistance(myBlob, targetBlob);
         // Slope and normal slope
-        var sl = (targetBlob[getBlobNy()]-myBlob[getBlobNy()])/(targetBlob[getBlobNx()]-myBlob[getBlobNx()]);
+        var sl = (targetBlob.ny-myBlob.ny)/(targetBlob.nx-myBlob.nx);
         var ns = -1/sl;
         // y-int of ptt
-        var yint1 = myBlob[getBlobNy()] - myBlob[getBlobNx()]*sl;
+        var yint1 = myBlob.ny - myBlob.nx*sl;
         if(!lineDistance(myBlob, potential) < dtt){
             // get second y-int
-            var yint2 = potential[getBlobNy()] - potential[getBlobNx()] * ns;
+            var yint2 = potential.ny - potential.nx * ns;
             var interx = (yint2-yint1)/(sl-ns);
             var intery = sl*interx + yint1;
-            var pseudoblob = {"D": interx, "F": intery};
-            if (((targetBlob[getBlobNx()] < myBlob[getBlobNx()] && targetBlob[getBlobNx()] < interx && interx < myBlob[getBlobNx()]) ||
-                (targetBlob[getBlobNx()] > myBlob[getBlobNx()] && targetBlob[getBlobNx()] > interx && interx > myBlob[getBlobNx()])) &&
-                ((targetBlob[getBlobNy()] < myBlob[getBlobNy()] && targetBlob[getBlobNy()] < intery && intery < myBlob[getBlobNy()]) ||
-                (targetBlob[getBlobNy()] > myBlob[getBlobNy()] && targetBlob[getBlobNy()] > intery && intery > myBlob[getBlobNy()]))){
+            var pseudoblob = {};
+            pseudoblob.nx = interx;
+            pseudoblob.ny = intery;
+            if (((targetBlob.nx < myBlob.nx && targetBlob.nx < interx && interx < myBlob.nx) ||
+                (targetBlob.nx > myBlob.nx && targetBlob.nx > interx && interx > myBlob.nx)) &&
+                ((targetBlob.ny < myBlob.ny && targetBlob.ny < intery && intery < myBlob.ny) ||
+                (targetBlob.ny > myBlob.ny && targetBlob.ny > intery && intery > myBlob.ny))){
                 if(lineDistance(potential, pseudoblob) < potential.size+100){
                     return true;
                 }
@@ -264,13 +315,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         return false;
     }
-    function isSafeTarget(myBlob, targetBlob, blobArray, threats){
+    function isSafeTarget(myBlob, targetBlob, threats){
 
         var isSafe = true;
         // check target against each enemy to make sure no collision is possible
         threats.forEach(function (threat){
             if(isSafe) {
-                if(threat.d) {
+                if(threat.isVirus) {
                     //todo once we are big enough, our center might still be far enough
                     // away that it doesn't cross virus but we still pop
                     if(checkCollision(myBlob, targetBlob, threat) )  {
@@ -289,7 +340,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     // All blobs that aren't mine
     function getOtherBlobs(){
-        return _.omit(getNodes(), getMyIDs());
+        return _.omit(zeach.allNodes, zeach.myIDs);
     }
 
     // Gets any item which is a threat including bigger players and viruses
@@ -299,7 +350,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return _.filter(getOtherBlobs(), function(possibleThreat){
             var possibleThreatMass = getMass(possibleThreat.size);
 
-            if(possibleThreat.d) {
+            if(possibleThreat.isVirus) {
                 // Viruses are only a threat if we are bigger than them
                 return myMass >= possibleThreatMass;
             }
@@ -310,7 +361,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     var throttledResetGrazingTargetId = null;
 
-    function doGrazing(ws)
+    function doGrazing()
     {
         if(!isPlayerAlive()){
             isGrazing = false;
@@ -334,9 +385,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
 
         var target;
-        if(!getNodes().hasOwnProperty(grazingTargetID))
+        if(!zeach.allNodes.hasOwnProperty(grazingTargetID))
         {
-            var target = findFoodToEat(getSelectedBlob(),getItems());
+            var target = findFoodToEat(getSelectedBlob(), zeach.allItems);
             if(-1 == target){
                 isGrazing = false;
                 return;
@@ -345,20 +396,20 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         else
         {
-            target = getNodes()[grazingTargetID];
+            target = zeach.allNodes[grazingTargetID];
         }
-        sendMouseUpdate(getWebSocket(), target.x + Math.random(), target.y + Math.random());
+        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
     }
 
     function findFoodToEat(cell, blobArray){
         var edibles = [];
         var densityResults = [];
         var threats = getThreats(blobArray, getMass(cell.size));
-        blobArray.forEach(function (element, index, array){
+        blobArray.forEach(function (element){
             var distance = lineDistance(cell, element);
             element.isSafeTarget = null;
-            if( getMass(element.size) <= (getMass(cell.size) * 0.4) && !element.d){
-                if(isSafeTarget(cell, element, blobArray, threats)){
+            if( getMass(element.size) <= (getMass(cell.size) * 0.4) && !element.isVirus){
+                if(isSafeTarget(cell, element, threats)){
                     edibles.push({"distance":distance, "id":element.id});
                     element.isSafeTarget = true;
                 }
@@ -369,7 +420,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         });
         edibles = edibles.sort(function(x,y){return x.distance<y.distance?-1:1;});
         edibles.forEach(function (element){
-            var density = calcFoodDensity(getNodes()[element.id], blobArray)/(element.distance*2);
+            var density = calcFoodDensity(zeach.allNodes[element.id], blobArray)/(element.distance*2);
             densityResults.push({"density":density, "id":element.id});
         });
         if(0 === densityResults.length){
@@ -378,8 +429,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             return -1;
         }
         var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
-        //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].density);
-        return getNodes()[target[0].id];
+        //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
+        return zeach.allNodes[target[0].id];
     }
 
     function calcFoodDensity(cell2, blobArray2){
@@ -390,7 +441,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
             var cond1 = getMass(element2.size) <= (getMass(getSelectedBlob().size) * 0.4);
             var cond2 = distance2 < MaxDistance2;
-            var cond3 = !element2.d;
+            var cond3 = !element2.isVirus;
             //console.log(cond1 + " " + distance2 + " " + cell2.isSafeTarget);
             if( cond1 && cond2 && cond3 && cell2.isSafeTarget ){
                 pelletCount +=1;
@@ -404,11 +455,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function drawRescaledItems(ctx) {
         if (showVisualCues && isPlayerAlive()) {
             drawGrazingLines(ctx);
-            drawMapBorders(ctx, isNightMode);
+            drawMapBorders(ctx);
             drawSplitGuide(ctx, getSelectedBlob());
             drawMiniMap(ctx);
         }
     }
+
     function getScoreBoardExtrasString(F) {
         var extras = " ";
         if (showVisualCues) {
@@ -421,22 +473,29 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return extras;
     }
 
-    function drawCellInfos(xa, xb, thisCell) {
+    function drawCellInfos(noColors, ctx) {
         var color = this.color;
         if (showVisualCues) {
-            color = setCellColors(thisCell, getMyPoints());
-            if (thisCell.d) {
-                if (!getNodes().hasOwnProperty(nearestVirusID))
-                    nearestVirusID = thisCell.id;
-                else if (distanceFromCellZero(thisCell) < distanceFromCellZero(getNodes()[nearestVirusID]))
-                    nearestVirusID = thisCell.id;
+            color = setCellColors(this, zeach.myPoints);
+            if (this.isVirus) {
+                if (!zeach.allNodes.hasOwnProperty(nearestVirusID))
+                    nearestVirusID = this.id;
+                else if (distanceFromCellZero(this) < distanceFromCellZero(zeach.allNodes[nearestVirusID]))
+                    nearestVirusID = this.id;
             }
-            xa ? (xb.fillStyle = "#FFFFFF", xb.strokeStyle = "#AAAAAA") : (xb.fillStyle = color, xb.strokeStyle = thisCell.id == nearestVirusID ? "red" : color);
+            if(noColors) {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.strokeStyle = "#AAAAAA"
+            }
+            else {
+                ctx.fillStyle = color;
+                ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : color
+            }
         }
     }
 
-    function drawMapBorders(ctx, isNightmode) {
-        if (isNightmode) {
+    function drawMapBorders(ctx) {
+        if (zeach.isNightmode) {
             ctx.strokeStyle = '#FFFFFF';
         }
         ctx.beginPath();
@@ -447,8 +506,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.lineTo(0, 0);
         ctx.stroke();
     }
-    function drawSplitGuide(ctx, cell)
-    {
+
+    function drawSplitGuide(ctx, cell) {
         if( !isPlayerAlive())
         {
             return;
@@ -477,7 +536,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 
     function isTeamMode(){
-        return (getGameModeVar() === ":teams");
+        return (zeach.gameMode === ":teams");
     }
     function setCellColors(cell,myPoints){
         if(!showVisualCues){
@@ -487,7 +546,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         if (myPoints.length > 0 && !isTeamMode()) {
             var size_this =  getMass(cell.size);
             var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
-            if (cell.d || myPoints.length === 0) {
+            if (cell.isVirus || myPoints.length === 0) {
                 color = virusColor;
             } else if (~myPoints.indexOf(cell)) {
                 color = myColor;
@@ -506,7 +565,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         return color;
     }
 
-    function displayDebugText(d, agarTextFunction) {
+    function displayDebugText(ctx, agarTextFunction) {
 
         if(0 >= displayDebugInfo) {
             return;
@@ -536,9 +595,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         var text = new agarTextFunction(textSize, (isNightMode ? '#F2FBFF' : '#111111'));
 
         for (var i = 0; i < debugStrings.length; i++) {
-            /*remap*/text.u(debugStrings[i]); // setValue
+            text.setValue(debugStrings[i]); // setValue
             var textRender = text.render();
-            d.drawImage(textRender, 20, offsetValue);
+            ctx.drawImage(textRender, 20, offsetValue);
             offsetValue += textRender.height;
         }
     }
@@ -547,15 +606,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         miniMapCtx.clearRect(0, 0, 175, 175);
 
         _.forEach(_.values(getOtherBlobs()), function(blob){
-            miniMapCtx.strokeStyle = blob.d ?  "#33FF33" : 'rgb(52,152,219)' ;
+            miniMapCtx.strokeStyle = blob.isVirus ?  "#33FF33" : 'rgb(52,152,219)' ;
             miniMapCtx.beginPath();
-            miniMapCtx.arc(blob.D / 64, blob.F / 64, blob.size / 64, 0, 2 * Math.PI);
+            miniMapCtx.arc(blob.nx / 64, blob.ny / 64, blob.size / 64, 0, 2 * Math.PI);
             miniMapCtx.stroke();
         });
 
-
-
-        _.forEach(getMyPoints(), function(myBlob){
+        _.forEach(zeach.myPoints, function(myBlob){
             miniMapCtx.strokeStyle = "#FFFFFF";
             miniMapCtx.beginPath();
             miniMapCtx.arc(myBlob.x / 64, myBlob.y / 64, myBlob.size / 64, 0, 2 * Math.PI);
@@ -570,14 +627,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.stroke();
     }
     function drawGrazingLines(ctx) {
-        if(!isGrazing || grazingTargetID == null || !visualizeGrazing ||!getNodes().hasOwnProperty(grazingTargetID) || !isPlayerAlive())
+        if(!isGrazing || grazingTargetID == null || !visualizeGrazing ||!zeach.allNodes.hasOwnProperty(grazingTargetID) || !isPlayerAlive())
         {
             return;
         }
         var oldLineWidth = ctx.lineWidth;
         var oldColor = ctx.color;
-        getItems().forEach(function (element){
-            var color;
+        zeach.allItems.forEach(function (element){
             if(element.isSafeTarget === true)
                 drawLine(ctx,element, getSelectedBlob(), "white" );
             else if (element.isSafeTarget === false)
@@ -589,14 +645,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
         });
         ctx.lineWidth = 10;
-        drawLine(ctx, getNodes()[grazingTargetID], getSelectedBlob(), "green");
+        drawLine(ctx, zeach.allNodes[grazingTargetID], getSelectedBlob(), "green");
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
 
     }
 // ======================   Virus Popper    ==================================================================
     function findNearestVirus(cell, blobArray){
-        var nearestVirus = _.min(_.filter(blobArray, getVirusPropertyName(), true), function(element) {
+        var nearestVirus = _.min(_.filter(blobArray, "isVirus", true), function(element) {
             return lineDistance(cell, element);
         });
 
@@ -610,8 +666,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function fireAtVirusNearestToBlob(blob, blobArray)
     {
         console.log("fireAtVirusNearestToBlob");
-        /*remap*/// HACK: On update change this function name to correct function
-        var fireFunction = getFireFunction();
         var msDelayBetweenShots = 75;
         nearestVirus = findNearestVirus(blob, blobArray);
 
@@ -624,7 +678,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
         // TODO: count availableshots and limit shots sent to  Math.min(shotsNeeded, ShotsAvailable)
         var shotsNeeded = getVirusShotsNeededForSplit(nearestVirus.size);
-        var shotsFired = 0 / getMyPoints().length;
+        var shotsFired = 0 / zeach.myPoints.length;
         if(shotsNeeded <= 0){
             return;
         }
@@ -632,12 +686,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         suspendMouseUpdates = true;
         console.log("Nearest Virus at: ("+ nearestVirus.x + "," + nearestVirus.y + ") requires " + shotsNeeded + " shots.");
         // two mouse updates in a row to make sure new position is locked in.
-        sendMouseUpdate(ws, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
-        window.setTimeout(function () { sendMouseUpdate(ws, nearestVirus.x + Math.random(), nearestVirus.y + Math.random()); }, 25);
+        sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
+        window.setTimeout(function () { sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random()); }, 25);
 
         // schedules all shots needed spaced evenly apart by of 'msDelayBetweenShots'
         for ( ; shotsFired < shotsNeeded; shotsFired++){
-            window.setTimeout(function () { sendMouseUpdate(ws, nearestVirus.x + Math.random(), nearestVirus.y + Math.random()); fireFunction(21); },
+            window.setTimeout(function () { sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random()); zeach.fireFunction(21); },
                 msDelayBetweenShots *(shotsFired+1));
         }
         window.setTimeout(function () { suspendMouseUpdates = false;}, msDelayBetweenShots *(shotsFired+1));
@@ -645,7 +699,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
 
     function fireAtVirusNearestToCursor(){
-        fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), getItems());
+        fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), zeach.allItems);
     }
 // ======================   Skins    ==================================================================
     /* AgarioMod.com skins have been moved to the very end of the file */
@@ -715,7 +769,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         {
             retval = null;
         }
-        else if(!this.isAgitated && showSkins ){
+        else if(!cell.isAgitated && showSkins ){
             if(-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
                 isBitDoSkin(userName) || isAgarioModsSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
@@ -767,10 +821,91 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         return retval;
     }
-// ======================   Misc    ==================================================================
-    function shouldRelocateName(cell){
+
+
+// ======================   Draw Functions    ==================================================================
+    function shouldRelocateName(){
         return ((isExtendedSkin(this.name)|| isSpecialSkin(this.name) || isBitDoSkin(this.name)));
     }
+
+    function drawCellName(isMyCell, kbIndex, itemToDraw){
+        var yBasePos;
+        var nameCache = this.k;
+        yBasePos = ~~this.y;
+        // Viruses have empty name caches. If this is a virus with an empty name cache
+        // then give it a name of the # of shots needed to split it.
+        if(this.isVirus && null == nameCache){
+            var virusSize = this.nSize;
+            var shotsNeeded = getVirusShotsNeededForSplit(virusSize).toString()
+            this.setName(shotsNeeded);
+        }
+
+        if((zeach.hasNickname || isMyCell) && (this.name && (nameCache && (null == itemToDraw || -1 == zeach.textBlobs.indexOf(kbIndex)))) ) {
+
+            itemToDraw = nameCache;
+            itemToDraw.setValue(this.name);
+            setCellName(this, itemToDraw);
+            itemToDraw.H(this.h());
+            var scale = Math.ceil(10 * k) / 10;
+            itemToDraw.setScale(scale);
+
+            setVirusInfo(this, itemToDraw, scale);
+            itemToDraw = itemToDraw.rndr();
+            var xPos = ~~(itemToDraw.width / scale);
+            var yPos = ~~(itemToDraw.height / scale);
+
+            if(shouldRelocateName.call(this)) {
+                // relocate names to UNDER the cell rather than on top of it
+                globalCtx.drawImage(itemToDraw, ~~this.x - ~~(xPos / 2), yBasePos + ~~(yPos ), xPos, yPos);
+                yBasePos += itemToDraw.height / 2 / scale + 8;
+            }
+            else {
+                zeach.ctx.drawImage(itemToDraw, ~~this.x - ~~(xPos / 2), yBasePos - ~~(yPos / 2), xPos, yPos);
+            }
+            yBasePos += itemToDraw.height / 2 / scale + 4;
+        }
+        return yBasePos;
+    }
+
+    function drawCellMass(yBasePos, itemToDraw){
+        var massValue = (~~(getMass(this.size))).toString();
+        // Append shots to mass if visual cues are enabled
+        if(showVisualCues && _.contains(myIDs, this.id)){
+            massValue += " (" + getBlobShotsAvailable(this).toString() + ")";
+        }
+
+        if(zeach.isShowMass) {
+            var scale;
+            if(itemToDraw || 0 == myPoints.length && ((!this.isVirus || this.j) && 20 < this.size)) {
+                if(null == this.J) {
+                    this.J = new na(this.h() / 2, "#FFFFFF", true, "#000000");
+                }
+                itemToDraw = this.J;
+                itemToDraw.H(this.h() / 2);
+                itemToDraw.setValue(massValue); // precalculated & possibly appended
+                scale = Math.ceil(10 * k) / 10;
+                itemToDraw.setScale(scale);
+
+                // Tweak : relocated mass is line is bigger than stock
+                itemToDraw.setScale(scale * ( shouldRelocateName.call(this) ? 2 : 1));
+
+                var e = itemToDraw.rndr();
+                var xPos = ~~(e.width / scale);
+                var yPos = ~~(e.height / scale);
+                if(shouldRelocateName.call(this)) {
+                    // relocate mass to UNDER the cell rather than on top of it
+                    globalCtx.drawImage(e, ~~this.x - ~~(xPos / 2), yBasePos + ~~(yPos), xPos, yPos);
+                }
+                else {
+                    zeach.ctx.drawImage(e, ~~this.x - ~~(xPos / 2), yBasePos - ~~(yPos / 2), xPos, yPos);
+                }
+            }
+        }
+
+    }
+
+// ======================   Misc    ==================================================================
+
     function customKeyDownEvents(d)
     {
         if(jQuery("#overlays").is(':visible')){
@@ -778,22 +913,22 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
 
         if(9 === d.keyCode && isPlayerAlive()) {
-            var myids_sorted = _.pluck(getMyPoints(), "id").sort(); // sort ids because they could
+            var myids_sorted = _.pluck(zeach.myPoints, "id").sort(); // sort by id
             var indexloc = _.indexOf(myids_sorted, selectedBlobID);
             d.preventDefault();
             if(-1 === indexloc){
-                selectedBlobID = getMyPoints()[0].id;
+                selectedBlobID = zeach.myPoints[0].id;
                 console.log("Had to select new blob. Its id is " + selectedBlobID);
-                return getNodes()[selectedBlobID];
+                return zeach.allNodes[selectedBlobID];
             }
             indexloc += 1;
             if(indexloc >= myids_sorted.length){
-                selectedBlobID = getMyPoints()[0].id;
+                selectedBlobID = zeach.myPoints[0].id;
                 console.log("Reached array end. Moving to begining with id " + selectedBlobID);
-                return getNodes()[selectedBlobID];
+                return zeach.allNodes[selectedBlobID];
             }
-            selectedBlobID = getMyPoints()[indexloc].id;
-            return getNodes()[selectedBlobID];
+            selectedBlobID = zeach.myPoints[indexloc].id;
+            return zeach.allNodes[selectedBlobID];
         }
         else if('A'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             isAcid = !isAcid;
@@ -835,7 +970,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             grazingTargetFixation = !grazingTargetFixation;
         }
         else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
-            fireAtVirusNearestToBlob(getSelectedBlob(),getItems());
+            fireAtVirusNearestToBlob(getSelectedBlob(),zeach.allItems);
         }
         else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && isGrazing && grazingTargetFixation)
         {
@@ -844,7 +979,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
             pseudoBlob.size = getSelectedBlob().size;
             //pseudoBlob.scoreboard = scoreboard;
-            var target = findFoodToEat(pseudoBlob,getItems());
+            var target = findFoodToEat(pseudoBlob,zeach.allItems);
             if(-1 == target){
                 isGrazing = false;
                 return;
@@ -860,9 +995,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             zoomFactor = (zoomFactor == 10 ? 11 : 10);
         }
         else if('8'.charCodeAt(0) === d.keyCode && isPlayerAlive()) { // SELF DESTRUCT
-            /*remap*/D(20);
+            zeach.fireFunction(20);
         }
     }
+
     function onAfterUpdatePacket() {
         if (!isPlayerAlive()){
             timeSpawned = null;
@@ -871,36 +1007,40 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             timeSpawned = Date.now(); // it's been reported we miss some instances of player spawning
         }
     }
+
     function onBeforeNewPointPacket() {
-        if (0 == _.size(getMyPoints())){
+        if (0 == _.size(zeach.myPoints)){
             timeSpawned = Date.now();
         }
     }
+
     function setCellName(cell, d) {
         if (showVisualCues) {
             var pct;
-            if (_.contains(getMyIDs(), cell.id) && _.size(getMyPoints()) > 1) {
+            if (_.contains(zeach.myIDs, cell.id) && _.size(zeach.myPoints) > 1) {
                 pct = (cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n);
-                d.u(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
-            } else if (!cell.d && isPlayerAlive()) {
+                d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
+            } else if (!cell.isVirus && isPlayerAlive()) {
                 pct = ~~((cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n));
-                d.u(cell.name + " " + pct.toString() + "%");
+                d.setValue(cell.name + " " + pct.toString() + "%");
             }
         }
     }
+
     function setVirusInfo(cell, ctx, c) {
         ctx.setScale(c * 1.25);
         if (showVisualCues) {
-            if (cell.d) {
-                cell.k.u(getVirusShotsNeededForSplit(cell.n));
+            if (cell.isVirus) {
+                cell.k.setValue(getVirusShotsNeededForSplit(cell.n));
                 var nameSizeMultiplier = 4;
                 ctx.setScale(c * nameSizeMultiplier);
             }
         }
-        if (cell.d && !showVisualCues) {
-            cell.k.u(" ");
+        if (cell.isVirus && !showVisualCues) {
+            cell.k.setValue(" ");
         }
     }
+
 // ======================   Start main    ==================================================================
     function Wa() {
         pa = true;
@@ -1497,7 +1637,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         .style.display = "none";
                     myPoints.push(n);
                     if(1 == myPoints.length) {
-                        /*new*//*mikey*/OnGameStart(myPoints);
+                        /*new*//*mikey*/OnGameStart(zeach.myPoints);
                         t = n.x;
                         u = n.y;
                     }
@@ -1523,7 +1663,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 
     function N() {
-        /*new*/if(isGrazing){ doGrazing(ws); return; }
+        /*new*/if(isGrazing){ doGrazing(); return; }
         /*new*/if(suspendMouseUpdates){return;}
         var a;
         if(ya()) {
@@ -1604,7 +1744,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 a += myPoints[b].size;
             }
             a = Math.pow(Math.min(64 / a, 1), 0.4) * Ra();
-            k = (9 * k + a) / 10;
+            //k = (9 * k + a) / 10;
             /*new*//*remap*/k = (9 * k + a) / zoomFactor;
         }
     }
@@ -1661,7 +1801,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         for(; d < items.length; d++) {
             items[d].T(globalCtx);
         }
-        /*new*/drawRescaledItems(globalCtx);
+        /*new*/drawRescaledItems(zeach.ctx);
         if(wa) {
             fa = (3 * fa + ua) / 4;
             ga = (3 * ga + va) / 4;
@@ -1686,16 +1826,16 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 globalCtx.drawImage(x, q - x.width - 10, 10);
             }
         }
-        /*new*//*mikey*/OnDraw(globalCtx);
+        /*new*//*mikey*/OnDraw(zeach.ctx);
         J = Math.max(J, hb());
         /*new*//*remap*/ var extras = " " + getScoreBoardExtrasString(J);
         if(0 != J) {
             if(null == ma) {
                 ma = new na(24, "#FFFFFF");
             }
-            ma.u("Score: " + ~~(J / 100));
-            /*new*/ /*remap*/ ma.u("Score: " + ~~(J / 100) + extras);
-            c = ma.render();
+            ma.setValue("Score: " + ~~(J / 100));
+            /*new*/ /*remap*/ ma.setValue("Score: " + ~~(J / 100) + extras);
+            c = ma.rndr();
             a$$0 = c.width;
             globalCtx.globalAlpha = 0.2;
             globalCtx.fillStyle = "#000000";
@@ -1719,7 +1859,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         if(1 < z) {
             z = 1;
         }
-        /*new*//*remap*/displayDebugText(globalCtx,na); // second param is same as above 'new ??(24,  "#FFFFFF");'
+        /*new*//*remap*/displayDebugText(zeach.ctx,zeach.textFunc); // second param is same as above 'new ??(24,  "#FFFFFF");'
     }
 
     function gb() {
@@ -2310,7 +2450,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 a: null,
                 l: null,
                 name: null,
-                /*new*//*rename*/k: null,
+                k: null,
                 J: null,
                 x: 0,
                 y: 0,
@@ -2318,15 +2458,15 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                 p: 0,
                 q: 0,
                 o: 0,
-                /*new*//*rename*/D: 0,
-                /*new*//*rename*/F: 0,
-                /*new*//*rename*/n: 0,
+                D: 0,
+                F: 0,
+                n: 0,
                 W: 0,
                 L: 0,
                 ja: 0,
                 ba: 0,
-                /*new*//*rename*/A: false,
-                /*new*//*rename*/d: false,
+                A: false,
+                d: false,
                 j: false,
                 M: true,
                 S: function () {
@@ -2533,7 +2673,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                             a.fillStyle = this.color;
                             a.strokeStyle = this.color;
                         }
-                        /*new*//*remap*/ drawCellInfos(Ba, globalCtx, this);
+                        /*new*/drawCellInfos.call(this, zeach.isColors, zeach.ctx);
                         if(b) {
                             a.beginPath();
                             a.arc(this.x, this.y, this.size + 5, 0, 2 * Math.PI, false);
@@ -2563,13 +2703,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         //} else {
                         //    c = null;
                         //}
-                        /*new*//*remap*/var c = customSkins(this, Va, M, showSkins, gameMode);
+                        /*new*/var c = customSkins(this, zeach.defaultSkins, zeach.imgCache, zeach.isShowSkins, zeach.gameMode);
                         c = (e = c) ? -1 != lb.indexOf(d) : false;
                         if(!b) {
                             a.stroke();
                         }
                         a.fill();
-                        /*new*/globalCtx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
+                        /*new*/globalCtx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
 
                         if(!(null == e)) {
                             if(!c) {
@@ -2594,58 +2734,62 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         }
                         c = -1 != myPoints.indexOf(this);
                         if(0 != this.id) {
-                            b = ~~this.y;
-                            if((oa || c) && (this.name && (this.k && (null == e || -1 == kb.indexOf(d)))) /*new*/|| this.d) {
-                                /*new*/if(this.d && null == this.k){
-                                    /*new*//*remap*/     this.Z(getVirusShotsNeededForSplit(this.n).toString());
-                                    /*new*/}
-                                e = this.k;
-                                e.u(this.name);
-                                /*new*//*remap*/setCellName(this, e);
-                                e.H(this.h());
-                                d = Math.ceil(10 * k) / 10;
-                                e.setScale(d);
+                            //b = ~~this.y;
+                            //if((oa || c) && (this.name && (this.k && (null == e || -1 == kb.indexOf(d)))) /*new*/|| this.d) {
+                            //    /*new*/if(this.d && null == this.k){
+                            //        /*new*/this.setName(getVirusShotsNeededForSplit(this.nSize).toString());
+                            //        /*new*/}
+                            //    e = this.k;
+                            //    e.u(this.name);
+                            //    /*new*//*remap*/setCellName(this, e);
+                            //    e.H(this.h());
+                            //    d = Math.ceil(10 * k) / 10;
+                            //    e.setScale(d);
+                            //
+                            //    /*new*//*remap*/setVirusInfo(this, e, d);
+                            //    e = e.render();
+                            //    var l = ~~(e.width / d);
+                            //    var h = ~~(e.height / d);
+                            //    /*new*/if(shouldRelocateName.call(this))
+                            //    /*new*//*remap*/    { globalCtx.drawImage(e, ~~this.x - ~~(l / 2), b + ~~(h ), l, h); b += e.height / 2 / d + 8; }
+                            //    /*new*/else
+                            //    a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
+                            //    b += e.height / 2 / d + 4;
+                            //}
+                            /*new*//*remap*/b = drawCellName.call(this,c,d,e);
 
-                                /*new*//*remap*/setVirusInfo(this, e, d);
-                                e = e.render();
-                                var l = ~~(e.width / d);
-                                var h = ~~(e.height / d);
-                                /*new*/if(shouldRelocateName.call(this))
-                                /*new*//*remap*/    { globalCtx.drawImage(e, ~~this.x - ~~(l / 2), b + ~~(h ), l, h); b += e.height / 2 / d + 8; }
-                                /*new*/else
-                                a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
-                                b += e.height / 2 / d + 4;
-                            }
-                            /*new*/var massValue = (~~(this.size * this.size / 100)).toString();
-                            /*new*/if(showVisualCues){
-                                /*new*/if(_.contains(myIDs, this.id)) {massValue += " (" + getBlobShotsAvailable(this).toString() + ")";}
-                                /*new*/}
-                            if(isShowMass) {
-                                if(c || 0 == myPoints.length && ((!this.d || this.j) && 20 < this.size)) {
-                                    if(null == this.J) {
-                                        this.J = new na(this.h() / 2, "#FFFFFF", true, "#000000");
-                                    }
-                                    c = this.J;
-                                    c.H(this.h() / 2);
-                                    c.u(~~(this.size * this.size / 100));
-                                    /*new*//*remap*/c.u(massValue);
-                                    d = Math.ceil(10 * k) / 10;
-                                    c.setScale(d);
-                                    /*new*//*remap*/c.setScale(d * ( shouldRelocateName.call(this) ? 2 : 1));
-                                    e = c.render();
-                                    l = ~~(e.width / d);
-                                    h = ~~(e.height / d);
-                                    /*new*/if(shouldRelocateName.call(this))
-                                    /*new*/    globalCtx.drawImage(e, ~~this.x - ~~(l / 2), b + ~~(h), l, h);
-                                    /*new*/else
-                                    a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
-                                }
-                            }
+                            ///*new*/var massValue = (~~(this.size * this.size / 100)).toString();
+                            ///*new*/if(showVisualCues){
+                            //    /*new*/if(_.contains(myIDs, this.id)) {massValue += " (" + getBlobShotsAvailable(this).toString() + ")";}
+                            //    /*new*/}
+                            //if(isShowMass) {
+                            //    if(c || 0 == myPoints.length && ((!this.d || this.j) && 20 < this.size)) {
+                            //        if(null == this.J) {
+                            //            this.J = new na(this.h() / 2, "#FFFFFF", true, "#000000");
+                            //        }G
+                            //        c = this.J;
+                            //        c.H(this.h() / 2);
+                            //        c.u(~~(this.size * this.size / 100));
+                            //        /*new*//*remap*/c.u(massValue);
+                            //        d = Math.ceil(10 * k) / 10;
+                            //        c.setScale(d);
+                            //        /*new*//*remap*/c.setScale(d * ( shouldRelocateName.call(this) ? 2 : 1));
+                            //        e = c.render();
+                            //        l = ~~(e.width / d);
+                            //        h = ~~(e.height / d);
+                            //        /*new*/if(shouldRelocateName.call(this))
+                            //        /*new*/    globalCtx.drawImage(e, ~~this.x - ~~(l / 2), b + ~~(h), l, h);
+                            //        /*new*/else
+                            //        a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
+                            //    }
+                            //}
+                            /*new*//*remap*/ drawCellMass.call(this,b,c);
                         }
                         a.restore();
                     }
                 }
             };
+            /*new*//*remap*/restorePointObj(Oa.prototype);
             na.prototype = {
                 w: "",
                 N: "#000000",
@@ -2674,13 +2818,13 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                         this.g = true;
                     }
                 },
-                /*new*//*rename*/u: function (a) {
+                u: function (a) {
                     if(a != this.w) {
                         this.w = a;
                         this.g = true;
                     }
                 },
-                /*new*//*rename*/render: function () {
+                /*new*//*rename*/rndr: function () {
                     if(null == this.m) {
                         this.m = document.createElement("canvas");
                         this.O = this.m.getContext("2d");
@@ -2712,6 +2856,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     return this.m;
                 }
             };
+            /*new*//*remap*/restoreCanvasElementObj(na.prototype);
+
             if(!Date.now) {
                 Date.now = function () {
                     return(new Date)
