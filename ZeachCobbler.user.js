@@ -18,6 +18,7 @@
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.14.0 - Major refactoring to help with future updates
+//                     - Support for AgarioMods connect skins
 //              0.13.0 - Fixed break caused by recent code changes
 //                   1 - bug fixes
 //                     - removed direct connect UI (for now)
