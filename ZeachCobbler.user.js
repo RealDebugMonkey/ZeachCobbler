@@ -798,7 +798,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     else if(isAMConnectSkin(userNameLowerCase)) {
                         console.log("is AmConnect skin")
                         imgCache[userNameLowerCase] = new Image;
-                        imgCache[userNameLowerCase].src = "http://37.59.116.89/img_" + userNameLowerCase.slice(1) + ".png";
+                        imgCache[userNameLowerCase].src = "http://connect.agariomods.com/img_" + userNameLowerCase.slice(1) + ".png";
                     }
                     else if(isBitDoSkin(userNameLowerCase)){
                         if(-1 != bitdoAlreadyChecked.indexOf(userNameLowerCase))
