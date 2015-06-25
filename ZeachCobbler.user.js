@@ -763,6 +763,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function isImgurSkin(targetName){
         return _.startsWith(targetName, "i/");
     }
+    function isAMConnectSkin(targetName){
+        return _.startsWith(targetName, "*");
+    }
+
     function isBitDoSkin(targetName){
         return _.startsWith(targetName, "`");
     }
@@ -777,7 +781,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         else if(!cell.isAgitated && showSkins ){
             if(-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
-                isBitDoSkin(userName) || isAgarioModsSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
+                isBitDoSkin(userName) || isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
                     if(isSpecialSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
@@ -790,6 +794,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
                     else if(isAgarioModsSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://skins.agariomods.com/i/" + userNameLowerCase + ".png";
+                    }
+                    else if(isAMConnectSkin(userNameLowerCase)) {
+                        console.log("is AmConnect skin")
+                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase].src = "http://37.59.116.89/img_" + userNameLowerCase.slice(1) + ".png";
                     }
                     else if(isBitDoSkin(userNameLowerCase)){
                         if(-1 != bitdoAlreadyChecked.indexOf(userNameLowerCase))
