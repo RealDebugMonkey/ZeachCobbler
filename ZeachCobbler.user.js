@@ -442,7 +442,143 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
     }
 
+    function augmentBlobArray(cell, blobArray) {
+
+        blobArray = blobArray.slice();
+
+        // Avoid walls too
+        blobArray.push({id: -2, x: cell.x, y: zeach.mapTop - 1, size: cell.size * 30, isSafeTarget: null});
+        blobArray.push({id: -2, x: cell.x, y: zeach.mapBottom + 1, size: cell.size * 30, isSafeTarget: null});
+        blobArray.push({id: -2, y: cell.y, x: zeach.mapLeft - 1, size: cell.size * 30, isSafeTarget: null});
+        blobArray.push({id: -2, y: cell.y, x: zeach.mapRight + 1, size: cell.size * 30, isSafeTarget: null});
+
+        return blobArray;
+    }
+
     function findFoodToEat(cell, blobArray){
+        blobArray = augmentBlobArray(cell, blobArray);
+
+        var nullVec = {x: 0, y: 0};
+        blobArray.forEach(function (element){
+            if( !element.isVirus && getMass(element.size) * 4 <= (getMass(cell.size) * 3)) {
+            //if(!element.isVirus && (getMass(element.size) <= 9)) {
+                element.isSafeTarget = true; //edible
+            } else if (!element.isVirus && (getMass(element.size) * 3 < (getMass(cell.size) * 4))) {
+                element.isSafeTarget = false; //not edible ignorable
+            } else {
+                element.isSafeTarget = null; //threat
+            }
+        });
+
+        var direction = blobArray.reduce(function(acc, el) {
+            if(false === el.isSafeTarget) {
+                // Ignorable blob. Skip.
+                // TODO: shouldn't really be so clear-cut. Must generate minor repulsion/attraction depending on size.
+                return acc;
+            }
+
+            // Calculate repulsion vector
+            var vec = { x: cell.x - el.x, y: cell.y - el.y };
+            var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+            // Normalize it to unit length
+            vec.x /= dist;
+            vec.y /= dist;
+
+            if(el.size > cell.size) {
+                if(el.isVirus) {
+                    // Viruses are only a threat if they're smaller than us
+                    return acc;
+                }
+
+                if(0 > el.id) {
+                    // Walls have pseudo-size to generate repulsion, but we can move farther.
+                    dist += cell.size / 2.0;
+                } else {
+                    // Distance till consuming
+                    dist -= el.size;
+                    dist += cell.size /　3.0;
+                    dist -= 11;
+                }
+
+                dist = Math.max(dist, 0.01);
+
+                if(0 > el.id) {
+                    // Walls. Hate them muchly.
+                    dist /= 10;
+                }
+
+                // Prioritize targets by size
+                if(null !== el.isSafeTarget) {
+                    dist /= el.size;
+                } else {
+                    var ratio = getMass(el.size) / getMass(cell.size);
+                    // Cells that 1 to 8 times bigger are the most dangerous.
+                    // Prioritize them by a truncated parabola up to 6 times.
+                    ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
+                    dist /= ratio * cell.size;
+                }
+
+            } else {
+                // Distance till consuming
+                dist += el.size * 1 / 3;
+                dist -= cell.size;
+                dist -= 11;
+
+                if(el.isVirus) {
+                    // Hate them a bit less than same-sized blobs.
+                    dist *= 2;
+                }
+
+                dist = Math.max(dist, 0.01);
+
+                // Prioritize targets by size
+                dist /= el.size;
+            }
+
+            if(null !== el.isSafeTarget) {
+                //Not a threat. Make it attractive.
+                dist = -dist;
+            }
+
+            // The farther they're from us the less repulsive/attractive they are.
+            vec.x /= dist;
+            vec.y /= dist;
+
+            if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                return acc;
+            }
+
+            // Save element-produced force for visualization
+            el.grazeVec = vec;
+
+            // Sum forces from all threats
+            acc.x += vec.x;
+            acc.y += vec.y;
+
+            return acc;
+        }, {x: 0, y: 0});
+
+        // Save resulting force for visualization
+        cell.grazeDir = {x: direction.x, y: direction.y};
+
+        // Normalize force to unit direction vector
+        var dir_norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+        direction.x /= dir_norm;
+        direction.y /= dir_norm;
+
+        if(!isFinite(direction.x) || !isFinite(direction.y)) {
+            return -1;
+        }
+
+        return {
+            id: -5,
+            x: Math.min(zeach.mapRight - cell.size/2, Math.max(zeach.mapLeft + cell.size/2, cell.x + direction.x * 200)),
+            y: Math.min(zeach.mapBottom - cell.size/2, Math.max(zeach.mapTop + cell.size/2, cell.y + direction.y * 200)),
+        };
+    }
+
+    function findFoodToEat_old(cell, blobArray){
         var edibles = [];
         var densityResults = [];
         var threats = getThreats(blobArray, getMass(cell.size));
@@ -473,6 +609,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
         return zeach.allNodes[target[0].id];
     }
+
     function avoidThreats(threats, cell){
         // Avoid walls too
         threats.push({x: cell.x, y: zeach.mapTop - 1, size: 1});
