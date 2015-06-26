@@ -745,25 +745,73 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         var oldLineWidth = ctx.lineWidth;
         var oldColor = ctx.color;
-        zeach.allItems.forEach(function (element){
-            if(element.isSafeTarget === true)
-                drawLine(ctx,element, getSelectedBlob(), "white" );
-            else if (element.isSafeTarget === false)
-                drawLine(ctx,element, getSelectedBlob(), "red" );
-            else
-            {
-                //drawLine(ctx,element, getSelectedBlob(), "blue" );
-            }
+        var oldGlobalAlpha = ctx.globalAlpha;
 
+        var playerBlob = getSelectedBlob();
+        var blobArray = augmentBlobArray(playerBlob, zeach.allItems);
+
+        var nullVec = { x: 0, y: 0 };
+        var cumulatives = [{ x: 0, y: 0 }, { x: 0, y: 0 }];
+        var maxSize = 0.001;
+
+        blobArray.forEach(function (element){
+
+            var color;
+            var grazeVec = element.grazeVec ? element.grazeVec : nullVec;
+            var cumul = cumulatives[(element.isSafeTarget === true) ? 1 : 0];
+            cumul.x += grazeVec.x;
+            cumul.y += grazeVec.y;
+
+            if(element.isSafeTarget === true) {
+                //drawLine(ctx,element, playerBlob, "white" );
+                drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "green" );
+                //drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "green" );
+            } else { //if (element.isSafeTarget === false)
+                //drawLine(ctx,element, playerBlob, "red" );
+                //drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "red" );
+                drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "red" );
+
+                var grazeVecLen = Math.sqrt(grazeVec.x * grazeVec.x + grazeVec.y * grazeVec.y);
+
+                ctx.globalAlpha = 0.5;
+                ctx.beginPath();
+                ctx.arc(element.x, element.y, grazeVecLen / maxSize / 20, 0, 2 * Math.PI, false);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#00FF00';
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
         });
 
-        if(_.has(zeach.allNodes, grazingTargetID)){
-            ctx.lineWidth = 10;
-            drawLine(ctx, zeach.allNodes[grazingTargetID], getSelectedBlob(), "green");
-        }
+        var grazeVec = playerBlob.grazeDir ? playerBlob.grazeDir : nullVec;
+
+        // Prepare to render cumulatives
+        maxSize *= blobArray.length;
+        maxSize /= 10;
+
+        ctx.lineWidth = 10;
+
+        // Render summary force without special forces, like walls
+        drawLine(ctx,playerBlob,
+            {
+                x: playerBlob.x + (cumulatives[0].x + cumulatives[1].x) / maxSize,
+                y: playerBlob.y + (cumulatives[0].y + cumulatives[1].y) / maxSize,
+            }, "gray"
+        );
+
+        // Render foods and threats force cumulatives
+        drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[1].x / maxSize, y: playerBlob.y + cumulatives[1].y / maxSize }, "green" );
+        drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[0].x / maxSize, y: playerBlob.y + cumulatives[0].y / maxSize }, "red" );
+
+        // Render summart force with special forces, like walls
+        ctx.lineWidth = 5;
+        drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeVec.x) / maxSize, y: playerBlob.y + (grazeVec.y) / maxSize }, "orange" );
+
+        ctx.globalAlpha = oldGlobalAlpha;
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
-
     }
 // ======================   Virus Popper    ==================================================================
     function findNearestVirus(cell, blobArray){
