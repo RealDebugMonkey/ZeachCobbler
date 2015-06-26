@@ -317,7 +317,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function distanceFromCellZero(blob) {
-        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) : 11180;
+        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) :
+            Math.sqrt((zeach.mapRight - zeach.mapLeft) * (zeach.mapRight - zeach.mapLeft) + (zeach.mapBottom - zeach.mapTop) * (zeach.mapBottom - zeach.mapTop));
     }
 
     function getMouseCoordsAsPseudoBlob(){
@@ -474,10 +475,10 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
     function avoidThreats(threats, cell){
         // Avoid walls too
-        threats.push({x: cell.x, y: -1, size: 1});
-        threats.push({x: cell.x, y: 11181, size: 1});
-        threats.push({y: cell.y, x: -1, size: 1});
-        threats.push({y: cell.y, x: 11181, size: 1});
+        threats.push({x: cell.x, y: zeach.mapTop - 1, size: 1});
+        threats.push({x: cell.x, y: zeach.mapBottom + 1, size: 1});
+        threats.push({y: cell.y, x: zeach.mapLeft - 1, size: 1});
+        threats.push({y: cell.y, x: zeach.mapRight + 1, size: 1});
 
         var direction = threats.reduce(function(acc, el) {
             // Calculate repulsion vector
