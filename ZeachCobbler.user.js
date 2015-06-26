@@ -148,6 +148,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         Large = 1.25,
         Small = 0.7,
         Tiny = 0.375;
+    var fieldTop = -7071,
+        fieldLeft = -7071,
+        fieldBottom = 7071,
+        fieldRight = 7071;
     var Huge_Color = "#FF3C3C",
         Large_Color = "#FFBF3D",
         Same_Color = "#FFFF00",
@@ -278,7 +282,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 
     function distanceFromCellZero(blob) {
-        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) : 11180;
+        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) :
+            Math.sqrt((fieldRight - fieldLeft) * (fieldRight - fieldLeft) + (fieldBottom - fieldTop) * (fieldBottom - fieldTop));
     }
 
     function getMouseCoordsAsPseudoBlob(){
@@ -502,11 +507,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             ctx.strokeStyle = '#FFFFFF';
         }
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(11180, 0);
-        ctx.lineTo(11180, 11180);
-        ctx.lineTo(0, 11180);
-        ctx.lineTo(0, 0);
+        ctx.moveTo(fieldLeft, fieldTop);
+        ctx.lineTo(fieldRight, fieldTop);
+        ctx.lineTo(fieldRight, fieldBottom);
+        ctx.lineTo(fieldLeft, fieldBottom);
+        ctx.lineTo(fieldLeft, fieldTop);
         ctx.stroke();
     }
 
