@@ -159,6 +159,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         Tiny_Color = "#CC66FF",
         myColor ="#3371FF",
         virusColor ="#666666";
+    var ghostBlobs = [];
 
 
     var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
@@ -284,6 +285,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     function distanceFromCellZero(blob) {
         return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) :
             Math.sqrt((fieldRight - fieldLeft) * (fieldRight - fieldLeft) + (fieldBottom - fieldTop) * (fieldBottom - fieldTop));
+    }
+
+    function getViewportDeltaX(cellSize){
+        return 1024 / Math.pow(Math.min(64.0 / cellSize, 1), 0.4);
+    }
+
+    function getViewportDeltaY(cellSize){
+        return 600 / Math.pow(Math.min(64.0 / cellSize, 1), 0.4);
     }
 
     function getMouseCoordsAsPseudoBlob(){
@@ -418,6 +427,34 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         blobArray.push({id: -2, x: cell.x, y: fieldBottom + 1, size: cell.size * 30, isSafeTarget: null});
         blobArray.push({id: -2, y: cell.y, x: fieldLeft - 1, size: cell.size * 30, isSafeTarget: null});
         blobArray.push({id: -2, y: cell.y, x: fieldRight + 1, size: cell.size * 30, isSafeTarget: null});
+
+        var curTimestamp = Date.now();
+
+        // Outdated blob id set
+        var ghostSet = [];
+
+        blobArray.forEach(function (element) {
+            ghostSet[element.id] = true;
+            element.lastTimestamp = curTimestamp;
+        });
+
+        var deltaX = getViewportDeltaX(cell.size);
+        var deltaY = getViewportDeltaY(cell.size);
+
+        ghostBlobs = _.filter(ghostBlobs, function (element) {
+            return !ghostSet[element.id] && // a fresher blob with the same id doesn't exist in blobArray already
+                (curTimestamp - element.lastTimestamp < 10000) && // last seen no more than 10 seconds ago
+                (
+                 (Math.abs(cell.x - element.x) > (deltaX - element.size) * 0.9) ||
+                 (Math.abs(cell.y - element.y) > (deltaY - element.size) * 0.9)
+                ); // outside of firmly visible area, otherwise there's no need to remember it
+        });
+
+        ghostBlobs.forEach(function (element) {
+            blobArray.push(element);
+        });
+
+        ghostBlobs = blobArray;
 
         return blobArray;
     }
@@ -1719,6 +1756,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             if(l) {
                 if(h) {
                     /*new*//*mikey*//*remap*/OnCellEaten(l,h);
+                    // Remove from 10-sec-remembered cells list by id
+                    _.remove(ghostBlobs, {id: h.id});
+
                     h.S();
                     h.p = h.x;
                     h.q = h.y;
