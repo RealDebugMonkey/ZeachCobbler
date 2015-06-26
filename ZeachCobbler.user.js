@@ -383,7 +383,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function doGrazing() {
         if(!isPlayerAlive()){
-            isGrazing = false;
             return;
         }
 
@@ -408,7 +407,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         {
             var target = findFoodToEat(getSelectedBlob(), zeach.allItems);
             if(-1 == target){
-                isGrazing = false;
                 return;
             }
             grazingTargetID = target.id;
@@ -1219,7 +1217,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             //pseudoBlob.scoreboard = scoreboard;
             var target = findFoodToEat(pseudoBlob,zeach.allItems);
             if(-1 == target){
-                isGrazing = false;
                 return;
             }
             grazingTargetID = target.id;
