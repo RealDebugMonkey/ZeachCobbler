@@ -846,6 +846,21 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.lineWidth = 5;
         drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeVec.x) / maxSize, y: playerBlob.y + (grazeVec.y) / maxSize }, "orange" );
 
+        // Render viewport borders, useful for blob lookout and 10-sec-memoization debugging
+        var deltaX = getViewportDeltaX(playerBlob.size);
+        var deltaY = getViewportDeltaY(playerBlob.size);
+
+        ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
+        ctx.lineWidth = 5;
+
+        ctx.beginPath();
+        ctx.moveTo(playerBlob.x - deltaX, playerBlob.y - deltaY);
+        ctx.lineTo(playerBlob.x + deltaX, playerBlob.y - deltaY);
+        ctx.lineTo(playerBlob.x + deltaX, playerBlob.y + deltaY);
+        ctx.lineTo(playerBlob.x - deltaX, playerBlob.y + deltaY);
+        ctx.lineTo(playerBlob.x - deltaX, playerBlob.y - deltaY);
+        ctx.stroke();
+
         ctx.globalAlpha = oldGlobalAlpha;
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
