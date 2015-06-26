@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.14.0
+// @version      0.14.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -175,7 +175,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         get allNodes()      {return A;},
         get allItems()      {return v;},
         get mouseX2()       {return Z;},
-        get mouseY2()       {return $s;},
+        get mouseY2()       {return $;},
         get isShowSkins()   {return Sa;},
         get isNightMode()   {return la;},
         get isShowMass()    {return Ta;},
@@ -841,7 +841,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
 // ======================   Draw Functions    ==================================================================
     function shouldRelocateName(){
-        return ((isExtendedSkin(this.name)|| isSpecialSkin(this.name) || isBitDoSkin(this.name)));
+        return ((isExtendedSkin(this.name)|| isSpecialSkin(this.name) || isBitDoSkin(this.name)|| isAMConnectSkin(this.name)));
     }
 
     function drawCellName(isMyCell, kbIndex, itemToDraw){
