@@ -383,6 +383,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function doGrazing() {
         if(!isPlayerAlive()){
+            document.getElementById("playBtn").click();
             return;
         }
 
