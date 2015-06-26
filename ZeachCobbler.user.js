@@ -159,6 +159,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         Tiny_Color = "#CC66FF",
         myColor ="#3371FF",
         virusColor ="#666666";
+    var lastMouseCoords = { x: 0, y: 0 };
     var ghostBlobs = [];
 
 
@@ -245,6 +246,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
     }
 
     function sendMouseUpdate(ws, mouseX2,mouseY2) {
+        lastMouseCoords = {x: mouseX2, y: mouseY2};
 
         if (ws != null && ws.readyState == ws.OPEN) {
             var z0 = new ArrayBuffer(21);
@@ -845,6 +847,17 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         // Render summart force with special forces, like walls
         ctx.lineWidth = 5;
         drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeVec.x) / maxSize, y: playerBlob.y + (grazeVec.y) / maxSize }, "orange" );
+
+        // Render sent mouse coords as a small circle
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(lastMouseCoords.x, lastMouseCoords.y, 0.1 * playerBlob.size, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
+        ctx.stroke();
+        ctx.globalAlpha = 1;
 
         // Render viewport borders, useful for blob lookout and 10-sec-memoization debugging
         var deltaX = getViewportDeltaX(playerBlob.size);
