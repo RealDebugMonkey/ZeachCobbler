@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.14.1
+// @version      0.14.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -283,10 +283,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     function getMouseCoordsAsPseudoBlob(){
         return {
-            x: zeach.mouseX2,
-            y: zeach.mouseY2,
-            D: zeach.mouseX2,
-            F: zeach.mouseY2,
+            "x": zeach.mouseX2,
+            "y": zeach.mouseY2,
+            "nx": zeach.mouseX2,
+            "ny": zeach.mouseY2,
         };
     }
     // ======================   Grazing code    ==================================================================
@@ -3628,8 +3628,8 @@ nodeAudio.id = 'audiotemplate';
 nodeAudio.preload = "auto";
 jQuery(playBtn).parent().get(0).appendChild(nodeAudio);
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
-checkbox_div.append('<label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
-checkbox_div.append('<label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
+checkbox_div.append('<BR><label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
+checkbox_div.append('<BR><label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
 var bgmusic = $('#audiotemplate').clone()[0];
 bgmusic.src = tracks[Math.floor(Math.random() * tracks.length)];
 bgmusic.load();
