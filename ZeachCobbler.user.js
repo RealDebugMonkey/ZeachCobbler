@@ -498,26 +498,24 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function findFoodToEat(cell, blobArray){
         blobArray = augmentBlobArray(cell, blobArray);
 
-        var nullVec = {x: 0, y: 0};
-        blobArray.forEach(function (element){
-            if(_.includes(zeach.myIDs, element.id)) {
-                element.isSafeTarget = false; //our cell, ignore
-            } else if( !element.isVirus && (getMass(element.nSize) * 4 <= getMass(cell.nSize) * 3)) {
-            //if(!element.isVirus && (getMass(element.nSize) <= 9)) {
-                element.isSafeTarget = true; //edible
-            } else if (!element.isVirus && (getMass(element.nSize) * 3 < (getMass(cell.nSize) * 4))) {
-                element.isSafeTarget = false; //not edible ignorable
-            } else {
-                element.isSafeTarget = null; //threat
-            }
-        });
+        var acc = { fx: 0, fy: 0, x: cell.nx, y: cell.ny, size : cell.nSize };
 
-        //console.log({x: cell.x, y: cell.y, nx: cell.nx, ny: cell.ny, size: cell.size, nsize: cell.nSize});
-        var direction = blobArray.reduce(function(acc, el) {
+        blobArray.forEach(function(el) {
+            if(_.includes(zeach.myIDs, el.id)) {
+                el.isSafeTarget = false; //our cell, ignore
+            } else if( !el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
+            //if(!el.isVirus && (getMass(el.nSize) <= 9)) {
+                el.isSafeTarget = true; //edible
+            } else if (!el.isVirus && (getMass(el.nSize) * 3 < (getMass(cell.nSize) * 4))) {
+                el.isSafeTarget = false; //not edible ignorable
+            } else {
+                el.isSafeTarget = null; //threat
+            }
+
             if(false === el.isSafeTarget) {
                 // Ignorable blob. Skip.
                 // TODO: shouldn't really be so clear-cut. Must generate minor repulsion/attraction depending on size.
-                return acc;
+                return;
             }
 
             // Calculate repulsion vector
@@ -531,7 +529,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             if(el.nSize > cell.nSize) {
                 if(el.isVirus) {
                     // Viruses are only a threat if they're smaller than us
-                    return acc;
+                    return;
                 }
 
                 if(0 > el.id) {
@@ -589,23 +587,23 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             vec.y /= dist;
 
             if(!isFinite(vec.x) || !isFinite(vec.y)) {
-                return acc;
+                return;
             }
 
             // Save element-produced force for visualization
             el.grazeVec = vec;
 
             // Sum forces from all threats
-            acc.x += vec.x;
-            acc.y += vec.y;
+            acc.fx += vec.x;
+            acc.fy += vec.y;
 
-            return acc;
-        }, {x: 0, y: 0});
+        });
 
         // Save resulting force for visualization
-        cell.grazeDir = {x: direction.x, y: direction.y};
+        cell.grazeDir = {x: acc.fx, y: acc.fy};
 
         // Normalize force to unit direction vector
+        var direction = {x: acc.fx, y: acc.fy};
         var dir_norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
         direction.x /= dir_norm;
         direction.y /= dir_norm;
