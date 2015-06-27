@@ -12,12 +12,14 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.14.2
+// @version      0.15.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.14.0 - Major refactoring to help with future updates
+// @changes     0.15.0 - Fixed Minimap (Zeach broke it)
+//                     - Fixed Borders(Zeach broke them too)
+//              0.14.0 - Major refactoring to help with future updates
 //                     - Support for AgarioMods connect skins
 //              0.13.0 - Fixed break caused by recent code changes
 //                   1 - bug fixes
@@ -120,30 +122,44 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 var _version_ = GM_info.script.version;
-
+var debugMonkeyReleaseMessage = "<h3>Quick Note</h3><p> Hey there. Zeach's change to a negative coordinate system " +
+    "broke the minimap and borders, which forced me to release mid-development.</p> <p>Forgive the rough edges. Next " +
+    "release should be better</p><br><p>-debugmonkey</p> <br><p>PS. The minimap is bigger because the overall" +
+    "size of the map has been increased. Oh, and switch to the 'stats' tab if you don't want sizing issues with</p>";
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
 //https://cdn.rawgit.com/pockata/blackbird-js/1e4c9812f8e6266bf71a25e91cb12a553e7756f4/blackbird.js
 //https://raw.githubusercontent.com/pockata/blackbird-js/cc2dc268b89e6345fa99ca6109ddaa6c22143ad0/blackbird.css
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js");
+$.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js");
 
 (function (g, m) {
 
+    // Options that will always be reset on reload
+    var isAcid = false;
     var zoomFactor = 10;
+    var isGrazing = false;
+    var serverIP = "";
+    var showVisualCues = true;
+
+    // Configurable options we want to persist
+    var visualizeGrazing = GM_getValue('visualizeGrazing', true);
+    var rightClickFires = GM_getValue('rightClickFires', false);
+    var minimapScale = 48; //  1/miniMapScale
+    var displayDebugInfo = 1;   // Has multiple levels
+    var autoRespawn = false;
+    var grazeOnAutoRespawn = false;
+
+    // Game State & Info
     var highScore = 0;
     var timeSpawned = null;
-    var isGrazing = false;
-    var grazingTargetID;
-    var serverIP = "";
-    var suspendMouseUpdates = false;
+    var grazingTargetID;    // primarily used for target fixation
     var nearestVirusID;
-    var rightClickFires = GM_getValue('rightClickFires', false);
-    var displayDebugInfo = 1;
-    var showVisualCues = true;
+    var suspendMouseUpdates = false;
     var grazingTargetFixation = false;
-    var visualizeGrazing = GM_getValue('visualizeGrazing', true);
     var selectedBlobID = null;
-    var isAcid = false;
+
+    // Constants
     var Huge = 2.66,
         Large = 1.25,
         Small = 0.7,
@@ -164,7 +180,17 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 
     GetGmValues();
 
-
+    var cobbler = {
+        "isAcid" : false,
+        "autoRespawn": false,
+        "respawnWithGrazer" : false,
+        "visualizeGrazer" : true,
+        "displayMiniMap" : true,
+        "clickToShoot" : false,
+        "sfxVol" : 0,
+        "BGMVol" : 0,
+    };
+    g.cobbler = cobbler;
 
     // ======================   Property & Var Name Restoration  =======================================================
     var zeach = {
@@ -176,6 +202,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         get allItems()      {return v;},
         get mouseX2()       {return Z;},
         get mouseY2()       {return $;},
+        get mapTop()        {return ha; },
+        get mapLeft()       {return ia;},
+        get mapBottom()     {return ja;},
+        get mapRight()      {return ka;},
         get isShowSkins()   {return Sa;},
         get isNightMode()   {return la;},
         get isShowMass()    {return Ta;},
@@ -186,7 +216,10 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         get imgCache()      {return M;},
         get textFunc()      {return na;},
         get textBlobs()     {return kb;},
-        get hasNickname()   {return oa}
+        get hasNickname()   {return oa},
+        // These never existed before but are useful
+        get mapWidth()      {return  ~~(Math.abs(zeach.mapLeft) + zeach.mapRight)},
+        get mapHeight()  {return  ~~(Math.abs(zeach.mapTop) + zeach.mapBottom)},
     };
 
     function restoreCanvasElementObj(objPrototype){
@@ -203,7 +236,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         });
     }
 
-
     function restorePointObj(objPrototype){
         var pointPropMap = {
             'isVirus'   : 'd',
@@ -219,6 +251,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             });
         });
     }
+    // ======================  UI Responders   ===================================================================
+
 
     // ======================   Utility code    ==================================================================
     function getSelectedBlob(){
@@ -319,8 +353,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
         return false;
     }
-    function isSafeTarget(myBlob, targetBlob, threats){
 
+    function isSafeTarget(myBlob, targetBlob, threats){
         var isSafe = true;
         // check target against each enemy to make sure no collision is possible
         threats.forEach(function (threat){
@@ -378,14 +412,12 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             }, 200);
         }
 
-
         // with target fixation on, target remains until it's eaten by someone or
         // otherwise disappears. With it off target is constantly recalculated
         // at the expense of CPU
         if(!grazingTargetFixation){
             throttledResetGrazingTargetId();
         }
-
 
         var target;
         if(!zeach.allNodes.hasOwnProperty(grazingTargetID))
@@ -428,12 +460,53 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         });
         if(0 === densityResults.length){
             //console.log("No target found");
-            //return avoidThreats(threats, k[0]);
+            return avoidThreats(threats, getSelectedBlob());
             return -1;
         }
         var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
         //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
         return zeach.allNodes[target[0].id];
+    }
+    function avoidThreats(threats, cell){
+        // Avoid walls too
+        threats.push({x: cell.x, y: -1, size: 1});
+        threats.push({x: cell.x, y: 11181, size: 1});
+        threats.push({y: cell.y, x: -1, size: 1});
+        threats.push({y: cell.y, x: 11181, size: 1});
+
+        var direction = threats.reduce(function(acc, el) {
+            // Calculate repulsion vector
+            var vec = { x: cell.x - el.x, y: cell.y - el.y };
+            var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+            // Normalize it to unit length
+            vec.x /= dist;
+            vec.y /= dist;
+
+            // Take enemy cell size into account
+            dist -= el.size;
+
+            // The farther they're from us the less repulsive they are
+            vec.x /= dist;
+            vec.y /= dist;
+
+            // Sum forces from all threats
+            acc.x += vec.x;
+            acc.y += vec.y;
+
+            return acc;
+        }, {x: 0, y: 0});
+
+        // Normalize force to unit direction vector
+        var dir_norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+        direction.x /= dir_norm;
+        direction.y /= dir_norm;
+
+        if(!isFinite(direction.x) || !isFinite(direction.y)) {
+            return -1;
+        }
+
+        return { id: -5, x: cell.x + direction.x * cell.size * 5, y: cell.y + direction.y * cell.size * 5 };
     }
 
     function calcFoodDensity(cell2, blobArray2){
@@ -502,11 +575,11 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             ctx.strokeStyle = '#FFFFFF';
         }
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(11180, 0);
-        ctx.lineTo(11180, 11180);
-        ctx.lineTo(0, 11180);
-        ctx.lineTo(0, 0);
+        ctx.moveTo(zeach.mapLeft, zeach.mapTop);        // 0
+        ctx.lineTo(zeach.mapRight, zeach.mapTop);       // >
+        ctx.lineTo(zeach.mapRight, zeach.mapBottom);    // V
+        ctx.lineTo(zeach.mapLeft, zeach.mapBottom);     // <
+        ctx.lineTo(zeach.mapLeft, zeach.mapTop);        // ^
         ctx.stroke();
     }
 
@@ -518,19 +591,14 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         var centerX = cell.x;
         var centerY = cell.y;
         var hold = ctx.globalAlpha;
-        //ctx.globalAlpha = 0.05;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius+cell.size, 0, 2 * Math.PI, false);
-        //ctx.fillStyle = 'green';
-        //ctx.fill();
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#FF0000';
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-        //ctx.fillStyle = 'red';
-        //ctx.fill();
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#00FF00';
         ctx.stroke();
@@ -604,20 +672,38 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         }
     }
 
+    // Probably isn't necessary to throttle it ... but what the hell.
+    var rescaleMinimap = _.throttle(function(){
+        var scaledWidth = ~~(zeach.mapWidth/minimapScale);
+        var scaledHeight = ~~(zeach.mapHeight/minimapScale);
+        var minimap = jQuery("#mini-map");
+
+        if(minimap.width() != scaledWidth || minimap.height() != scaledHeight){
+            // rescale the div
+            minimap.width(scaledWidth);
+            minimap.height(scaledHeight);
+            // rescale the canvas element
+            minimap[0].width = scaledWidth;
+            minimap[0].height = scaledHeight;
+        }
+    }, 10*1000);
+
     function drawMiniMap() {
-        miniMapCtx.clearRect(0, 0, 175, 175);
+        rescaleMinimap();
+
+        miniMapCtx.clearRect(0, 0, ~~(zeach.mapWidth/minimapScale), ~~(zeach.mapHeight/minimapScale));
 
         _.forEach(_.values(getOtherBlobs()), function(blob){
             miniMapCtx.strokeStyle = blob.isVirus ?  "#33FF33" : 'rgb(52,152,219)' ;
             miniMapCtx.beginPath();
-            miniMapCtx.arc(blob.nx / 64, blob.ny / 64, blob.size / 64, 0, 2 * Math.PI);
+            miniMapCtx.arc((blob.nx+Math.abs(zeach.mapLeft)) / minimapScale, (blob.ny+Math.abs(zeach.mapTop)) / minimapScale, blob.size / minimapScale, 0, 2 * Math.PI);
             miniMapCtx.stroke();
         });
 
         _.forEach(zeach.myPoints, function(myBlob){
             miniMapCtx.strokeStyle = "#FFFFFF";
             miniMapCtx.beginPath();
-            miniMapCtx.arc(myBlob.x / 64, myBlob.y / 64, myBlob.size / 64, 0, 2 * Math.PI);
+            miniMapCtx.arc((myBlob.nx+Math.abs(zeach.mapLeft)) / minimapScale, (myBlob.ny+Math.abs(zeach.mapTop)) / minimapScale, myBlob.size / minimapScale, 0, 2 * Math.PI);
             miniMapCtx.stroke();
         });
     }
@@ -628,6 +714,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.lineTo(point2.x, point2.y);
         ctx.stroke();
     }
+
     function drawGrazingLines(ctx) {
         if(!isGrazing || !visualizeGrazing ||  !isPlayerAlive())
         {
@@ -656,6 +743,9 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
         ctx.color = oldColor;
 
     }
+// =============
+
+
 // ======================   Virus Popper    ==================================================================
     function findNearestVirus(cell, blobArray){
         var nearestVirus = _.min(_.filter(blobArray, "isVirus", true), function(element) {
@@ -947,8 +1037,8 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
             return zeach.allNodes[selectedBlobID];
         }
         else if('A'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
-            isAcid = !isAcid;
-            setAcid(isAcid);
+            cobbler.isAcid = !cobbler.isAcid;
+            setAcid(cobbler.isAcid);
         }
         else if('C'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazingTargetID = null;
@@ -3091,37 +3181,92 @@ AppendCheckbox(checkbox_div, 'chart-checkbox', 'Show chart', display_chart, OnCh
 AppendCheckbox(checkbox_div, 'stats-checkbox', 'Show stats', display_stats, OnChangeDisplayStats);
 jQuery("#helloDialog").css('left','230px');
 jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; background-color: #FFFFFF; ' +
-    'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)"><div id="page1">' +
-    '<div id="statArea" style="vertical-align:top; width:350px; display:inline-block;"></div>' +
-    '<div id="pieArea" style="vertical-align: top; width:350px; height:250px; display:inline-block; vertical-align:top"> </div>' +
-    '<div id="gainArea" style="width:350px; display:inline-block; vertical-align:top"></div><div id="lossArea" style="width:350px; display:inline-block;"></div>' +
-    '<div id="chartArea" style="width:700px; display:inline-block; vertical-align:top"></div></div></div>');
+    'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
+//    '<div>'+
+//        '<!-- Nav tabs -->'+
+//    '<ul class="nav nav-tabs" role="tablist">'+
+//    '<li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a></li>'+
+//'<li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Profile</a></li>'+
+//'<li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>'+
+//'<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>'+
+//'</ul>'+
+//    '<!-- Tab panes -->'+
+//'<div class="tab-content">'+
+//    '<div role="tabpanel" class="tab-pane active" id="home">A</div>'+
+//'<div role="tabpanel" class="tab-pane" id="profile">B</div>'+
+//'<div role="tabpanel" class="tab-pane" id="messages">C</div>'+
+//'<div role="tabpanel" class="tab-pane" id="settings">D</div>'+
+//'</div>'+
 
-jQuery('#stats').hide(0);
+    '<ul class="nav nav-pills" role="tablist">' +
+        '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
+        '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
+        '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Extended Options</a></li>' +
+        //'<li role="presentation"><a href="#page3" role="tab" data-toggle="tab">IP Connect</a></li>' +
+    '</ul>'+
+
+    '<div id="bigbox" class="tab-content">' +
+        '<div id="page0" role="tabpanel" class="tab-pane active">'+ debugMonkeyReleaseMessage +'</div>' +
+
+        '<div id="page1" role="tabpanel" class="tab-pane">' +
+            '<div id="statArea" style="vertical-align:top; width:350px; display:inline-block;"></div>' +
+            '<div id="pieArea" style="vertical-align: top; width:350px; height:250px; display:inline-block; vertical-align:top"></div>' +
+            '<div id="gainArea" style="width:350px; display:inline-block; vertical-align:top"></div><div id="lossArea" style="width:350px; display:inline-block;"></div>' +
+            '<div id="chartArea" style="width:700px; display:inline-block; vertical-align:top"></div></div>' +
+        '<div id="page2" role="tabpanel" class="tab-pane">' +
+            '<div class="row">' +
+                '<div class="col-sm-1"></div><div id="col1" class="col-sm-3"><h5>ZeachCobbler Options</h5></div>' +
+                '<div class="col-sm-1"></div><div id="col2" class="col-sm-3"></div>' +
+                '<div class="col-sm-1"></div><div id="col3" class="col-sm-3"></div>' +
+            '</div>' +
+        '</div>'+
+        //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
+    '</div>' +
+    '</div>');
+//jQuery('#stats').hide(0);
 //jQuery('#page1').hide(0);
-//jQuery('#stats').append('<div id="page2"><h2>Zeach Cobbler Options</h2></div>');
-//var page2 = jQuery('#page2');
 ////Existing:
-//AppendCheckboxBR(page2, 'option2', 'Visualize Grazer', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option4', 'Acid Mode', false, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option7', 'Skins: Agariomods.com', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option8', 'Skins: Bit.do', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option9', 'Skins: Default', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option10', 'Skins: Imgur', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option16', 'Enable MiniMap', true, OnChangeDisplayChart);
-////Soon Hopefully
-//AppendCheckboxBR(page2, 'option1', 'Auto-respawn', false, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option6', 'Pirates v Ninja V Robot Teams', false, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option3', 'Pacifist Grazer', false, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option5', 'Lite-Brite Mode', false, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option17', 'Enable background Gcommer participation', true, OnChangeDisplayChart);
-//EventuallyMaybe
-//AppendCheckboxBR(page2, 'option11', 'Use Apostolique Bot instead of Grazer', false, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option12', 'Enable Viral Retaliationn', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option13', 'Enable Enemy Tagging', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option14', 'Enable Auto-suicide', true, OnChangeDisplayChart);
-//AppendCheckboxBR(page2, 'option15', 'Enable QuickMerge', false, OnChangeDisplayChart);
 
+//var setAutoRespawn = function (state) {
+//    cobbler.autoRespawn = state;
+//}
+//var setvisualGrazer = function (state){
+//    cobbler.visualizeGrazer = state;
+//}
+//var setMinimap =function (state){
+//    cobbler.displayMiniMap = jQuery("#minimap").show(state);
+//}
+//var setClickToShoot = function (state){
+//    cobbler.rightClickFires = state;
+//}
+//function populateOptions(){
+//
+//
+//    AppendCheckboxBR(page2, 'option1', ' Acid Mode', cobbler.isAcid, setAcid);
+//    AppendCheckboxBR(page2, 'option2', ' Auto-respawn', cobbler.autoRespawn, setAcid);
+//    AppendCheckboxBR(page2, 'option3', ' Visualize Grazer', cobbler.visualizeGrazer, setAcid);
+//    AppendCheckboxBR(page2, 'option4', ' Display MiniMap', cobbler.displayMiniMap, setAcid);
+//    AppendCheckboxBR(page2, 'option5', ' Click-to-Shoot', cobbler.rightClickFires, setAcid);
+//    //AppendCheckboxBR(page2, 'option4', 'Acid Mode', false, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option7', 'Skins: Agariomods.com', true, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option8', 'Skins: Bit.do', true, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option9', 'Skins: Default', true, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option10', 'Skins: Imgur', true, OnChangeDisplayChart);
+//
+//    ////Soon Hopefully
+//    //AppendCheckboxBR(page2, 'option6', 'Pirates v Ninja V Robot Teams', false, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option3', 'Pacifist Grazer', false, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option5', 'Lite-Brite Mode', false, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option17', 'Enable background Gcommer participation', true, OnChangeDisplayChart);
+//    //EventuallyMaybe
+//    //AppendCheckboxBR(page2, 'option11', 'Use Apostolique Bot instead of Grazer', false, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option12', 'Enable Viral Retaliationn', true, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option13', 'Enable Enemy Tagging', true, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option14', 'Enable Auto-suicide', true, OnChangeDisplayChart);
+//    //AppendCheckboxBR(page2, 'option15', 'Enable QuickMerge', false, OnChangeDisplayChart);
+//
+//}
+var page2 = jQuery('#col1');
 function LS_getValue(aKey, aDefault) {
     var val = localStorage.getItem(__STORAGE_PREFIX + aKey);
     if (null === val && 'undefined' != typeof aDefault) return aDefault;
@@ -3174,7 +3319,7 @@ function AppendCheckbox(e, id, label, checked, on_change)
 }
 function AppendCheckboxBR(e, id, label, checked, on_change)
 {
-    e.append('<label><input type="checkbox" id="'+id+'">'+label+'</label><br/>');
+    e.append('<div class="checkbox"><label><input type="checkbox" id="'+id+'">'+label+'</label></div>');
     jQuery('#'+id).attr('checked', checked);
     jQuery('#'+id).change(function(){
         on_change(!!this.checked);
@@ -3627,9 +3772,9 @@ var nodeAudio = document.createElement("audio");
 nodeAudio.id = 'audiotemplate';
 nodeAudio.preload = "auto";
 jQuery(playBtn).parent().get(0).appendChild(nodeAudio);
-var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
-checkbox_div.append('<BR><label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
-checkbox_div.append('<BR><label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
+//var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
+page2.append('<BR><label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
+page2.append('<BR><label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
 var bgmusic = $('#audiotemplate').clone()[0];
 bgmusic.src = tracks[Math.floor(Math.random() * tracks.length)];
 bgmusic.load();
@@ -3639,8 +3784,6 @@ bgmusic.onended = function() {
     bgmusic.src = track;
     bgmusic.play();
 };
-
-
 
 // ===============================================================================================================
 $("label:contains(' Dark Theme') input").prop('checked', true);
@@ -3652,6 +3795,5 @@ $('#nick').val(GM_getValue("nick", ""));
 // default helloDialog has a margin of 10 px. take that away to make it line up with our other dialogs.
 $("#helloDialog").css("marginTop", "0px");
 
-
 var agariomodsSkins = ("1up;8ball;agariomods.com;albania;android;anonymous;apple;atari;awesome;baka;bandaid;bane;baseball;basketball;batman;beats;bender;bert;bitcoin;blobfish;bobross;bobsaget;boo;boogie2988;borg;bp;breakfast;buckballs;burgundy;butters;byzantium;charmander;chechenya;chickfila;chocolate;chrome;cj;coca cola;cokacola;converse;cornella;creeper;cyprus;czechrepublic;deadpool;deal with it;deathstar;derp;dickbutt;doge;doggie;dolan;domo;domokun;dong;donut;dreamcast;drunken;ebin;egg;egoraptor;egypt;electrokitty;epicface;expand;eye;facebook;fast forward;fastforward;fbi;fidel;finn;firefox;fishies;flash;florida;freeman;freemason;friesland;frogout;fuckfacebook;gaben;garfield;gaston;generikb;getinmybelly;getinthebox;gimper;github;giygas;gnomechild;gonzo;grayhat;halflife;halflife3;halo;handicapped;hap;hatty;hebrew;heisenburg;helix;hipsterwhale;hitler;honeycomb;hydro;iceland;ie;illuminati;imgur;imperial japan;imperialjapan;instagram;isaac;isis;isreal;itchyfeetleech;ivysaur;james bond;java;jew;jewnose;jimmies;kappa;kenny;kingdomoffrance;kingjoffrey;kirby;kitty;klingon;knightstemplar;knowyourmeme;kyle;ladle;lenny;lgbt;libertyy;liechtenstien;linux;love;luigi;macedonia;malta;mario;mars;maryland;masterball;mastercheif;mcdonalds;meatboy;meatwad;megamilk;mike tyson;mlg;moldova;mortalkombat;mr burns;mr.bean;mr.popo;n64;nasa;nazi;nick;nickelodeon;nipple;northbrabant;nosmoking;notch;nsa;obey;osu;ouch;pandaexpress;pedo;pedobear;peka;pepe;pepsi;pewdiepie;pi;pig;piggy;pika;pinkfloyd;pinkstylist;piratebay;pizza;playstation;poop;potato;quantum leap;rageface;rewind;rockstar;rolfharris;rss;satan;serbia;shell;shine;shrek;sinistar;sir;skull;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;snafu;snapchat;soccer;soliare;solomid;somalia;space;spawn;spiderman;spongegar;spore;spy;squirtle;stalinjr;starbucks;starrynight;stitch;stupid;summit1g;superman;taco;teamfortress;tintin;transformer;transformers;triforce;trollface;tubbymcfatfuck;turkey;twitch;twitter;ukip;uppercase;uruguay;utorrent;voyager;wakawaka;wewlad;white  light;windows;wwf;wykop;yinyang;ylilauta;yourmom;youtube;zoella;zoidberg").split(";");
-;
+$("#playBtn").click(function(){$('#statsTab').tab('show');return false;});
