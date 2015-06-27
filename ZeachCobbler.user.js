@@ -500,7 +500,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
         var nullVec = {x: 0, y: 0};
         blobArray.forEach(function (element){
-            if( !element.isVirus && getMass(element.size) * 4 <= (getMass(cell.size) * 3)) {
+            if(_.includes(zeach.myIDs, element.id)) {
+                element.isSafeTarget = false; //our cell, ignore
+            } else if( !element.isVirus && (getMass(element.size) * 4 <= getMass(cell.size) * 3)) {
             //if(!element.isVirus && (getMass(element.size) <= 9)) {
                 element.isSafeTarget = true; //edible
             } else if (!element.isVirus && (getMass(element.size) * 3 < (getMass(cell.size) * 4))) {
