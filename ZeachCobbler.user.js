@@ -324,12 +324,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             Math.sqrt((zeach.mapRight - zeach.mapLeft) * (zeach.mapRight - zeach.mapLeft) + (zeach.mapBottom - zeach.mapTop) * (zeach.mapBottom - zeach.mapTop));
     }
 
-    function getViewportDeltaX(cellSize){
-        return 1024 / Math.pow(Math.min(64.0 / cellSize, 1), 0.4);
-    }
-
-    function getViewportDeltaY(cellSize){
-        return 600 / Math.pow(Math.min(64.0 / cellSize, 1), 0.4);
+    function getViewport() {
+        var x =  _.sum(_.pluck(zeach.myPoints, "nx")) / zeach.myPoints.length;
+        var y =  _.sum(_.pluck(zeach.myPoints, "ny")) / zeach.myPoints.length;
+        var totalRadius =  _.sum(_.pluck(zeach.myPoints, "nSize"));
+        var zoomFactor = Math.pow(Math.min(64.0 / totalRadius, 1), 0.4);
+        var deltaX = 1024 / zoomFactor;
+        var deltaY = 600 / zoomFactor;
+        return { x: x, y: y, dx: deltaX, dy: deltaY };
     }
 
     function getMouseCoordsAsPseudoBlob(){
@@ -473,15 +475,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             element.lastTimestamp = curTimestamp;
         });
 
-        var deltaX = getViewportDeltaX(cell.size);
-        var deltaY = getViewportDeltaY(cell.size);
+        var viewport = getViewport();
 
         ghostBlobs = _.filter(ghostBlobs, function (element) {
             return !ghostSet[element.id] && // a fresher blob with the same id doesn't exist in blobArray already
                 (curTimestamp - element.lastTimestamp < 10000) && // last seen no more than 10 seconds ago
                 (
-                 (Math.abs(cell.x - element.x) > (deltaX - element.size) * 0.9) ||
-                 (Math.abs(cell.y - element.y) > (deltaY - element.size) * 0.9)
+                 (Math.abs(viewport.x - element.x) > (viewport.dx + element.size) * 0.9) ||
+                 (Math.abs(viewport.y - element.y) > (viewport.dy + element.size) * 0.9)
                 ); // outside of firmly visible area, otherwise there's no need to remember it
         });
 
@@ -981,18 +982,17 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         ctx.globalAlpha = 1;
 
         // Render viewport borders, useful for blob lookout and 10-sec-memoization debugging
-        var deltaX = getViewportDeltaX(playerBlob.size);
-        var deltaY = getViewportDeltaY(playerBlob.size);
+        var viewport = getViewport();
 
         ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
         ctx.lineWidth = 5;
 
         ctx.beginPath();
-        ctx.moveTo(playerBlob.x - deltaX, playerBlob.y - deltaY);
-        ctx.lineTo(playerBlob.x + deltaX, playerBlob.y - deltaY);
-        ctx.lineTo(playerBlob.x + deltaX, playerBlob.y + deltaY);
-        ctx.lineTo(playerBlob.x - deltaX, playerBlob.y + deltaY);
-        ctx.lineTo(playerBlob.x - deltaX, playerBlob.y - deltaY);
+        ctx.moveTo(viewport.x - viewport.dx, viewport.y - viewport.dy);
+        ctx.lineTo(viewport.x + viewport.dx, viewport.y - viewport.dy);
+        ctx.lineTo(viewport.x + viewport.dx, viewport.y + viewport.dy);
+        ctx.lineTo(viewport.x - viewport.dx, viewport.y + viewport.dy);
+        ctx.lineTo(viewport.x - viewport.dx, viewport.y - viewport.dy);
         ctx.stroke();
 
         ctx.globalAlpha = oldGlobalAlpha;
