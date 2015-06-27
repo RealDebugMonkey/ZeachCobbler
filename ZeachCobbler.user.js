@@ -460,10 +460,10 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         blobArray = blobArray.slice();
 
         // Avoid walls too
-        blobArray.push({id: -2, x: cell.x, y: zeach.mapTop - 1, size: cell.size * 30, isSafeTarget: null});
-        blobArray.push({id: -2, x: cell.x, y: zeach.mapBottom + 1, size: cell.size * 30, isSafeTarget: null});
-        blobArray.push({id: -2, y: cell.y, x: zeach.mapLeft - 1, size: cell.size * 30, isSafeTarget: null});
-        blobArray.push({id: -2, y: cell.y, x: zeach.mapRight + 1, size: cell.size * 30, isSafeTarget: null});
+        blobArray.push({id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30, isSafeTarget: null});
+        blobArray.push({id: -2, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30, isSafeTarget: null});
+        blobArray.push({id: -2, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30, isSafeTarget: null});
+        blobArray.push({id: -2, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30, isSafeTarget: null});
 
         var curTimestamp = Date.now();
 
@@ -481,8 +481,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             return !ghostSet[element.id] && // a fresher blob with the same id doesn't exist in blobArray already
                 (curTimestamp - element.lastTimestamp < 10000) && // last seen no more than 10 seconds ago
                 (
-                 (Math.abs(viewport.x - element.x) > (viewport.dx + element.size) * 0.9) ||
-                 (Math.abs(viewport.y - element.y) > (viewport.dy + element.size) * 0.9)
+                 (Math.abs(viewport.x - element.nx) > (viewport.dx + element.nSize) * 0.9) ||
+                 (Math.abs(viewport.y - element.ny) > (viewport.dy + element.nSize) * 0.9)
                 ); // outside of firmly visible area, otherwise there's no need to remember it
         });
 
@@ -502,16 +502,17 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         blobArray.forEach(function (element){
             if(_.includes(zeach.myIDs, element.id)) {
                 element.isSafeTarget = false; //our cell, ignore
-            } else if( !element.isVirus && (getMass(element.size) * 4 <= getMass(cell.size) * 3)) {
-            //if(!element.isVirus && (getMass(element.size) <= 9)) {
+            } else if( !element.isVirus && (getMass(element.nSize) * 4 <= getMass(cell.nSize) * 3)) {
+            //if(!element.isVirus && (getMass(element.nSize) <= 9)) {
                 element.isSafeTarget = true; //edible
-            } else if (!element.isVirus && (getMass(element.size) * 3 < (getMass(cell.size) * 4))) {
+            } else if (!element.isVirus && (getMass(element.nSize) * 3 < (getMass(cell.nSize) * 4))) {
                 element.isSafeTarget = false; //not edible ignorable
             } else {
                 element.isSafeTarget = null; //threat
             }
         });
 
+        //console.log({x: cell.x, y: cell.y, nx: cell.nx, ny: cell.ny, size: cell.size, nsize: cell.nSize});
         var direction = blobArray.reduce(function(acc, el) {
             if(false === el.isSafeTarget) {
                 // Ignorable blob. Skip.
@@ -520,14 +521,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             }
 
             // Calculate repulsion vector
-            var vec = { x: cell.x - el.x, y: cell.y - el.y };
+            var vec = { x: cell.nx - el.nx, y: cell.ny - el.ny };
             var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
 
             // Normalize it to unit length
             vec.x /= dist;
             vec.y /= dist;
 
-            if(el.size > cell.size) {
+            if(el.nSize > cell.nSize) {
                 if(el.isVirus) {
                     // Viruses are only a threat if they're smaller than us
                     return acc;
@@ -535,11 +536,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
                 if(0 > el.id) {
                     // Walls have pseudo-size to generate repulsion, but we can move farther.
-                    dist += cell.size / 2.0;
+                    dist += cell.nSize / 2.0;
                 } else {
                     // Distance till consuming
-                    dist -= el.size;
-                    dist += cell.size /　3.0;
+                    dist -= el.nSize;
+                    dist += cell.nSize /　3.0;
                     dist -= 11;
                 }
 
@@ -552,19 +553,19 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
                 // Prioritize targets by size
                 if(null !== el.isSafeTarget) {
-                    dist /= el.size;
+                    dist /= el.nSize;
                 } else {
-                    var ratio = getMass(el.size) / getMass(cell.size);
+                    var ratio = getMass(el.nSize) / getMass(cell.nSize);
                     // Cells that 1 to 8 times bigger are the most dangerous.
                     // Prioritize them by a truncated parabola up to 6 times.
                     ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
-                    dist /= ratio * cell.size;
+                    dist /= ratio * cell.nSize;
                 }
 
             } else {
                 // Distance till consuming
-                dist += el.size * 1 / 3;
-                dist -= cell.size;
+                dist += el.nSize * 1 / 3;
+                dist -= cell.nSize;
                 dist -= 11;
 
                 if(el.isVirus) {
@@ -575,7 +576,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 dist = Math.max(dist, 0.01);
 
                 // Prioritize targets by size
-                dist /= el.size;
+                dist /= el.nSize;
             }
 
             if(null !== el.isSafeTarget) {
@@ -615,8 +616,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
         return {
             id: -5,
-            x: Math.min(zeach.mapRight - cell.size/2, Math.max(zeach.mapLeft + cell.size/2, cell.x + direction.x * 200)),
-            y: Math.min(zeach.mapBottom - cell.size/2, Math.max(zeach.mapTop + cell.size/2, cell.y + direction.y * 200)),
+            x: Math.min(zeach.mapRight - cell.nSize/2, Math.max(zeach.mapLeft + cell.nSize/2, cell.nx + direction.x * 200)),
+            y: Math.min(zeach.mapBottom - cell.nSize/2, Math.max(zeach.mapTop + cell.nSize/2, cell.ny + direction.y * 200)),
         };
     }
 
