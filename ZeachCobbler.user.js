@@ -1137,10 +1137,12 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         ctx.lineWidth = 5;
         drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeVec.fx) / maxSize, y: playerBlob.y + (grazeVec.fy) / maxSize }, "orange" );
 
+        var viewport = getViewport(true);
+
         // Render sent mouse coords as a small circle
         ctx.globalAlpha = 0.5;
         ctx.beginPath();
-        ctx.arc(lastMouseCoords.x, lastMouseCoords.y, 0.1 * playerBlob.size, 0, 2 * Math.PI, false);
+        ctx.arc(lastMouseCoords.x, lastMouseCoords.y, 0.01 * viewport.dx, 0, 2 * Math.PI, false);
         ctx.fillStyle = 'red';
         ctx.fill();
         ctx.lineWidth = 2;
@@ -1149,8 +1151,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         ctx.globalAlpha = 1;
 
         // Render viewport borders, useful for blob lookout and 10-sec-memoization debugging
-        var viewport = getViewport(true);
-
         ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
         ctx.lineWidth = 5;
 
