@@ -581,7 +581,131 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
     function findFoodToEat(cell, blobArray){
         var accs = zeach.myPoints.map(function (cell) {
-            return calcForces(cell, blobArray);
+            blobArray = augmentBlobArray(cell, blobArray);
+
+            var acc = { fx: 0, fy: 0, x: cell.nx, y: cell.ny, size : cell.nSize };
+            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
+
+            blobArray.forEach(function(el) {
+                if(_.includes(zeach.myIDs, el.id)) {
+                    el.isSafeTarget = false; //our cell, ignore
+                } else if( !el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
+                //if(!el.isVirus && (getMass(el.nSize) <= 9)) {
+                    el.isSafeTarget = true; //edible
+                } else if (!el.isVirus && (getMass(el.nSize) * 3 < (getMass(cell.nSize) * 4))) {
+                    el.isSafeTarget = false; //not edible ignorable
+                } else {
+                    el.isSafeTarget = null; //threat
+                }
+
+                if(false === el.isSafeTarget) {
+                    // Ignorable blob. Skip.
+                    // TODO: shouldn't really be so clear-cut. Must generate minor repulsion/attraction depending on size.
+                    return;
+                }
+
+                // Calculate repulsion vector
+                var vec = { x: cell.nx - el.nx, y: cell.ny - el.ny };
+                var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+                // Normalize it to unit length
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(el.nSize > cell.nSize) {
+                    if(el.isVirus) {
+                        // Viruses are only a threat if they're smaller than us
+                        return;
+                    }
+
+                    if(0 > el.id) {
+                        // Walls have pseudo-size to generate repulsion, but we can move farther.
+                        dist += cell.nSize / 2.0;
+                    } else {
+                        // Distance till consuming
+                        dist -= el.nSize;
+                        dist += cell.nSize /　3.0;
+                        dist -= 11;
+                    }
+
+                    dist = Math.max(dist, 0.01);
+
+                    if(0 > el.id) {
+                        // Walls. Hate them muchly.
+                        dist /= 10;
+                    }
+
+                    // Prioritize targets by size
+                    if(null !== el.isSafeTarget) {
+                        dist /= el.nSize;
+                    } else {
+                        var ratio = getMass(el.nSize) / getMass(cell.nSize);
+                        // Cells that 1 to 8 times bigger are the most dangerous.
+                        // Prioritize them by a truncated parabola up to 6 times.
+
+                        // when we are fractured into small parts, we might underestimate
+                        // how cells a lot bigger than us can be interested in us as a conglomerate of mass.
+                        // So calculate threat index for our total mass too.
+                        var ratio2 = getMass(el.nSize) / totalMass;
+                        if(ratio2 < 4.5 && ratio > 4.5) {
+                            ratio2 = 4.5;
+                        }
+
+                        ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
+                        ratio2 = Math.min(5, Math.max(0, - (ratio2 - 1) * (ratio2 - 8))) + 1;
+                        ratio = Math.max(ratio, ratio2);
+
+                        // The more we're split and the more we're to lose, the more we should be afraid.
+                        dist /= ratio * cell.nSize * Math.sqrt(zeach.myPoints.length);
+                    }
+
+                } else {
+                    // Distance till consuming
+                    dist += el.nSize * 1 / 3;
+                    dist -= cell.nSize;
+                    dist -= 11;
+
+                    if(el.isVirus) {
+                        if(zeach.myPoints.length >= 16 ) {
+                            // Can't split anymore so viruses are actually a good food!
+                            el.isSafeTarget = true;
+                        } else {
+                            // Hate them a bit less than same-sized blobs.
+                            dist *= 2;
+                        }
+                    }
+
+                    dist = Math.max(dist, 0.01);
+
+                    // Prioritize targets by size
+                    dist /= el.nSize;
+                }
+
+                if(null !== el.isSafeTarget) {
+                    //Not a threat. Make it attractive.
+                    dist = -dist;
+                }
+
+                // The farther they're from us the less repulsive/attractive they are.
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                    return;
+                }
+
+                // Save element-produced force for visualization
+                el.grazeVec = vec;
+
+                // Sum forces from all threats
+                acc.fx += vec.x;
+                acc.fy += vec.y;
+
+            });
+
+            // Save resulting force for visualization
+            cell.grazeDir = acc;
+            return acc;
         });
 
         var funcs = accs.map(function(acc) {
@@ -628,134 +752,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         return ans;
     }
 
-    function calcForces(cell, blobArray){
-        blobArray = augmentBlobArray(cell, blobArray);
-
-        var acc = { fx: 0, fy: 0, x: cell.nx, y: cell.ny, size : cell.nSize };
-        var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
-
-        blobArray.forEach(function(el) {
-            if(_.includes(zeach.myIDs, el.id)) {
-                el.isSafeTarget = false; //our cell, ignore
-            } else if( !el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
-            //if(!el.isVirus && (getMass(el.nSize) <= 9)) {
-                el.isSafeTarget = true; //edible
-            } else if (!el.isVirus && (getMass(el.nSize) * 3 < (getMass(cell.nSize) * 4))) {
-                el.isSafeTarget = false; //not edible ignorable
-            } else {
-                el.isSafeTarget = null; //threat
-            }
-
-            if(false === el.isSafeTarget) {
-                // Ignorable blob. Skip.
-                // TODO: shouldn't really be so clear-cut. Must generate minor repulsion/attraction depending on size.
-                return;
-            }
-
-            // Calculate repulsion vector
-            var vec = { x: cell.nx - el.nx, y: cell.ny - el.ny };
-            var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
-
-            // Normalize it to unit length
-            vec.x /= dist;
-            vec.y /= dist;
-
-            if(el.nSize > cell.nSize) {
-                if(el.isVirus) {
-                    // Viruses are only a threat if they're smaller than us
-                    return;
-                }
-
-                if(0 > el.id) {
-                    // Walls have pseudo-size to generate repulsion, but we can move farther.
-                    dist += cell.nSize / 2.0;
-                } else {
-                    // Distance till consuming
-                    dist -= el.nSize;
-                    dist += cell.nSize /　3.0;
-                    dist -= 11;
-                }
-
-                dist = Math.max(dist, 0.01);
-
-                if(0 > el.id) {
-                    // Walls. Hate them muchly.
-                    dist /= 10;
-                }
-
-                // Prioritize targets by size
-                if(null !== el.isSafeTarget) {
-                    dist /= el.nSize;
-                } else {
-                    var ratio = getMass(el.nSize) / getMass(cell.nSize);
-                    // Cells that 1 to 8 times bigger are the most dangerous.
-                    // Prioritize them by a truncated parabola up to 6 times.
-
-                    // when we are fractured into small parts, we might underestimate
-                    // how cells a lot bigger than us can be interested in us as a conglomerate of mass.
-                    // So calculate threat index for our total mass too.
-                    var ratio2 = getMass(el.nSize) / totalMass;
-                    if(ratio2 < 4.5 && ratio > 4.5) {
-                        ratio2 = 4.5;
-                    }
-
-                    ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
-                    ratio2 = Math.min(5, Math.max(0, - (ratio2 - 1) * (ratio2 - 8))) + 1;
-                    ratio = Math.max(ratio, ratio2);
-
-                    // The more we're split and the more we're to lose, the more we should be afraid.
-                    dist /= ratio * cell.nSize * Math.sqrt(zeach.myPoints.length);
-                }
-
-            } else {
-                // Distance till consuming
-                dist += el.nSize * 1 / 3;
-                dist -= cell.nSize;
-                dist -= 11;
-
-                if(el.isVirus) {
-                    if(zeach.myPoints.length >= 16 ) {
-                        // Can't split anymore so viruses are actually a good food!
-                        el.isSafeTarget = true;
-                    } else {
-                        // Hate them a bit less than same-sized blobs.
-                        dist *= 2;
-                    }
-                }
-
-                dist = Math.max(dist, 0.01);
-
-                // Prioritize targets by size
-                dist /= el.nSize;
-            }
-
-            if(null !== el.isSafeTarget) {
-                //Not a threat. Make it attractive.
-                dist = -dist;
-            }
-
-            // The farther they're from us the less repulsive/attractive they are.
-            vec.x /= dist;
-            vec.y /= dist;
-
-            if(!isFinite(vec.x) || !isFinite(vec.y)) {
-                return;
-            }
-
-            // Save element-produced force for visualization
-            el.grazeVec = vec;
-
-            // Sum forces from all threats
-            acc.fx += vec.x;
-            acc.fy += vec.y;
-
-        });
-
-        // Save resulting force for visualization
-        cell.grazeDir = {x: acc.fx, y: acc.fy};
-
-        return acc;
-    }
 
     function findFoodToEat_old(cell, blobArray){
         var edibles = [];
@@ -1085,7 +1081,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             }
         });
 
-        var grazeVec = playerBlob.grazeDir ? playerBlob.grazeDir : nullVec;
+        var grazeVec = playerBlob.grazeDir ? playerBlob.grazeDir : { fx: 0, fy: 0 };
 
         // Prepare to render cumulatives
         maxSize *= blobArray.length;
@@ -1107,7 +1103,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
         // Render summart force with special forces, like walls
         ctx.lineWidth = 5;
-        drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeVec.x) / maxSize, y: playerBlob.y + (grazeVec.y) / maxSize }, "orange" );
+        drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeVec.fx) / maxSize, y: playerBlob.y + (grazeVec.fy) / maxSize }, "orange" );
 
         // Render sent mouse coords as a small circle
         ctx.globalAlpha = 0.5;
