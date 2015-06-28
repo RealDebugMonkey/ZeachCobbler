@@ -588,6 +588,16 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             return new dasMouseSpeedFunction(acc.x, acc.y, 200, acc.fx, acc.fy);
         });
 
+        // Pick gradient ascent step size for better convergence
+        // so that coord jumps don't exceed ~50 units
+        var step = _.sum(accs.map(function(acc) {
+            return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
+        }));
+        step = 50 / step;
+        if(!isFinite(step)) {
+            step = 50;
+        }
+
         var viewport = getViewport(false);
         funcs.push(
             new dasBorderFunction(
@@ -602,7 +612,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         var func = new dasSumFunction(funcs);
 
         var results = accs.map(function(acc) {
-            return gradient_ascend(func, 50, 100, acc.x, acc.y);
+            return gradient_ascend(func, step, 100, acc.x, acc.y);
         });
 
         var coords = results.reduce(function(res1, res2) {
