@@ -58,3 +58,15 @@ Custom Agario modifications. Currently only works in Chrome via Tampermonkey.
 17. 'Time alive' tracker
 18. 'Highest score' tracker
 19. Acid mode support
+ 
+
+# Contributers and Used code
+* Angal - For the original Server select UI (now unused)
+* Apostolique - debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
+* Electronoob - Imgur skins, Agariomods.com skins, connect.agariomod.com skins
+* GamerLio - Minimap from his awesome bot -- https://github.com/leomwu/agario-bot
+* Gjum - Bug fixes
+* Incompetech - For KSP soundtrack music - http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
+* Mikeyk730 - stats screen code - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
+* White Light - Grazer enemy avoidance code
+
