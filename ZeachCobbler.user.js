@@ -324,10 +324,10 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             Math.sqrt((zeach.mapRight - zeach.mapLeft) * (zeach.mapRight - zeach.mapLeft) + (zeach.mapBottom - zeach.mapTop) * (zeach.mapBottom - zeach.mapTop));
     }
 
-    function getViewport() {
-        var x =  _.sum(_.pluck(zeach.myPoints, "nx")) / zeach.myPoints.length;
-        var y =  _.sum(_.pluck(zeach.myPoints, "ny")) / zeach.myPoints.length;
-        var totalRadius =  _.sum(_.pluck(zeach.myPoints, "nSize"));
+    function getViewport(interpolated) {
+        var x =  _.sum(_.pluck(zeach.myPoints, interpolated ? "x" : "nx")) / zeach.myPoints.length;
+        var y =  _.sum(_.pluck(zeach.myPoints, interpolated ? "y" : "ny")) / zeach.myPoints.length;
+        var totalRadius =  _.sum(_.pluck(zeach.myPoints, interpolated ? "size" : "nSize"));
         var zoomFactor = Math.pow(Math.min(64.0 / totalRadius, 1), 0.4);
         var deltaX = 1024 / zoomFactor;
         var deltaY = 600 / zoomFactor;
@@ -475,7 +475,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             element.lastTimestamp = curTimestamp;
         });
 
-        var viewport = getViewport();
+        var viewport = getViewport(false);
 
         ghostBlobs = _.filter(ghostBlobs, function (element) {
             return !ghostSet[element.id] && // a fresher blob with the same id doesn't exist in blobArray already
@@ -983,7 +983,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         ctx.globalAlpha = 1;
 
         // Render viewport borders, useful for blob lookout and 10-sec-memoization debugging
-        var viewport = getViewport();
+        var viewport = getViewport(true);
 
         ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
         ctx.lineWidth = 5;
