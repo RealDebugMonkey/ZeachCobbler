@@ -481,18 +481,18 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             var v = 0, dx = 0, dy = 0;
             if (x < this.l) {
                 v += this.l - x;
-                dx = this.w;
+                dx = -this.w;
             } else if (x > this.r) {
                 v += x - this.r;
-                dx = -this.w;
+                dx = this.w;
             }
 
             if (y < this.t) {
                 v += this.t - y;
-                dy = this.w;
+                dy = -this.w;
             } else if (y > this.b) {
                 v += y - this.b;
-                dy = -this.w;
+                dy = this.w;
             }
 
             return [v * this.w, dx, dy];
