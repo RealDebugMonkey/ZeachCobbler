@@ -526,13 +526,15 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             tmp = func.value(x, y);
             if (tmp[0] < best_val) {
                 step /= 2;
-                continue;
+            } else {
+                step = Math.min(2 * step, max_step);
             }
             //console.log([x, y, tmp[0], step]);
-            step = Math.min(2 * step, max_step);
 
             best_x = x; best_y = y;
-            best_val = tmp[0]; last_dx = tmp[1]; last_dy = tmp[2];
+            best_val = tmp[0];
+            last_dx = (last_dx + tmp[1])/2.0;
+            last_dy = (last_dy + tmp[2])/2.0;
         }
 
         return [best_x, best_y, best_val];
