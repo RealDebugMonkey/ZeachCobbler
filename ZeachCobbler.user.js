@@ -464,13 +464,13 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
             var val = x * this.nx + y * this.ny;
             if (len > this.radius) {
-                return [
-                    val / len,
-                    y * (this.nx * y - this.ny * x) / (lensq * len),
-                    x * (this.ny * x - this.nx * y) / (lensq * len),
-                ];
+                return {
+                    v: val / len,
+                    dx: y * (this.nx * y - this.ny * x) / (lensq * len),
+                    dy: x * (this.ny * x - this.nx * y) / (lensq * len),
+                };
             } else {
-                return [val / this.radius, this.nx, this.ny];
+                return {v: val / this.radius, dx: this.nx, dy: this.ny};
             }
         }
     }
@@ -495,7 +495,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 dy = this.w;
             }
 
-            return [v * this.w, dx, dy];
+            return {v: v * this.w, dx: dx, dy: dy};
         }
     }
 
@@ -505,7 +505,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             return sumfuncs.map(function(func) {
                 return func.value(x, y);
             }).reduce(function (acc, val) {
-                acc[0] += val[0]; acc[1] += val[1]; acc[2] += val[2];
+                acc.v += val.v; acc.dx += val.dx; acc.dy += val.dy;
                 return acc;
             });
         }
@@ -514,30 +514,27 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function gradient_ascend(func, step, iters, x, y) {
         var max_step = step;
 
-        var tmp = func.value(x, y);
-        var best_x = x, best_y = y;
-        var best_val = tmp[0], last_dx = tmp[1], last_dy = tmp[2];
+        var last = func.value(x, y);
 
         while(iters > 0) {
             iters -= 1;
 
-            x = best_x + last_dx * step;
-            y = best_y + last_dy * step;
-            tmp = func.value(x, y);
-            if (tmp[0] < best_val) {
+            x += last.dx * step;
+            y += last.dy * step;
+            var tmp = func.value(x, y);
+            if (tmp.v < last.v) {
                 step /= 2;
             } else {
                 step = Math.min(2 * step, max_step);
             }
             //console.log([x, y, tmp[0], step]);
 
-            best_x = x; best_y = y;
-            best_val = tmp[0];
-            last_dx = (last_dx + tmp[1])/2.0;
-            last_dy = (last_dy + tmp[2])/2.0;
+            last.v = tmp.v;
+            last.dx = (last.dx + tmp.dx)/2.0;
+            last.dy = (last.dy + tmp.dy)/2.0;
         }
 
-        return [best_x, best_y, best_val];
+        return {x: x, y: y, v: last.v};
     }
 
     function augmentBlobArray(blobArray) {
@@ -776,14 +773,12 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             return gradient_ascend(func, step, 100, acc.x, acc.y);
         });
 
-        var coords = results.reduce(function(res1, res2) {
-            return res1[2] > res2[2] ? res1 : res2;
-        });
+        var coords = _.max(results, "v");
 
         var ans = {
             id: -5,
-            x: Math.min(zeach.mapRight - cell.nSize/2, Math.max(zeach.mapLeft + cell.nSize/2, coords[0])),
-            y: Math.min(zeach.mapBottom - cell.nSize/2, Math.max(zeach.mapTop + cell.nSize/2, coords[1])),
+            x: Math.min(zeach.mapRight - cell.nSize/2, Math.max(zeach.mapLeft + cell.nSize/2, coords.x)),
+            y: Math.min(zeach.mapBottom - cell.nSize/2, Math.max(zeach.mapTop + cell.nSize/2, coords.y)),
         };
 
         return ans;
