@@ -12,13 +12,14 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.15.0
+// @version      0.15.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.15.0 - Fixed Minimap (Zeach broke it)
 //                     - Fixed Borders(Zeach broke them too)
+//                     - Lite Brite mode added (and some UI issues fixed)
 //              0.14.0 - Major refactoring to help with future updates
 //                     - Support for AgarioMods connect skins
 //              0.13.0 - Fixed break caused by recent code changes
@@ -122,16 +123,18 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 var _version_ = GM_info.script.version;
-var debugMonkeyReleaseMessage = "<h3>Quick Note</h3><p> Hey there. Zeach's change to a negative coordinate system " +
-    "broke the minimap and borders, which forced me to release mid-development.</p> <p>Forgive the rough edges. Next " +
-    "release should be better</p><br><p>-debugmonkey</p> <br><p>PS. The minimap is bigger because the overall" +
-    "size of the map has been increased. Oh, and switch to the 'stats' tab if you don't want sizing issues with</p>";
+var debugMonkeyReleaseMessage = "<h3>Another Quick Note</h3><p>This still isn't a polished release.<br>" +
+    "I was having so much fun with lite-brite mode that I decided to push.<br>" +
+    "Click on the extended options tab then go into spectate mode or play to check it out." +
+    "<br><br>Stay safe out there.<br><br>debugmonkey</p><br><br>PS. ZeachCobbler also supports " +
+    "the new AgarioMod *name skins. Try playing as *Zeach or *Pikachu to check it out.";
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
 //https://cdn.rawgit.com/pockata/blackbird-js/1e4c9812f8e6266bf71a25e91cb12a553e7756f4/blackbird.js
 //https://raw.githubusercontent.com/pockata/blackbird-js/cc2dc268b89e6345fa99ca6109ddaa6c22143ad0/blackbird.css
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js");
 $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js");
+
 
 (function (g, m) {
 
@@ -142,6 +145,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     var serverIP = "";
     var showVisualCues = true;
 
+
     // Configurable options we want to persist
     var visualizeGrazing = GM_getValue('visualizeGrazing', true);
     var rightClickFires = GM_getValue('rightClickFires', false);
@@ -149,6 +153,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     var displayDebugInfo = 1;   // Has multiple levels
     var autoRespawn = false;
     var grazeOnAutoRespawn = false;
+    var isLiteBrite = true;
 
     // Game State & Info
     var highScore = 0;
@@ -323,8 +328,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             "ny": zeach.mouseY2,
         };
     }
-    // ======================   Grazing code    ==================================================================
 
+    // ======================   Grazing code    ==================================================================
 
     function checkCollision(myBlob, targetBlob, potential){
         // Calculate distance to target
@@ -798,6 +803,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function fireAtVirusNearestToCursor(){
         fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), zeach.allItems);
     }
+
 // ======================   Skins    ==================================================================
     /* AgarioMod.com skins have been moved to the very end of the file */
     var extendedSkins = {
@@ -1146,6 +1152,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             cell.k.setValue(" ");
         }
     }
+
+    window.setLiteBrite = function (val){
+        isLiteBrite = val;
+    };
+    window.setLeftMouseButtonFires = function (val){
+        rightClickFires = val;
+    };
+
 
 // ======================   Start main    ==================================================================
 
@@ -2081,6 +2095,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         /*new*/this.splitTime = Date.now();
     }
 
+
     function na(a, b, c, d) {
         if(a) {
             this.r = a;
@@ -2810,10 +2825,15 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                         //}
                         /*new*/var c = customSkins(this, zeach.defaultSkins, zeach.imgCache, zeach.isShowSkins, zeach.gameMode);
                         c = (e = c) ? -1 != lb.indexOf(d) : false;
-                        if(!b) {
-                            a.stroke();
-                        }
-                        a.fill();
+
+                        ///*new*/if(isLiteBrite) {a.lineWidth = ~~(10/k); }
+                            //if (!b) {
+                                a.stroke();
+                            //}
+                        /*new*/if(!isLiteBrite)
+                            a.fill();
+
+
                         /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
                         if(!(null == e)) {
                             if(!c) {
@@ -3078,126 +3098,16 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 })(unsafeWindow, unsafeWindow.jQuery)
 
 
-//unsafeWindow.angal_data = {
-//    entities : {
-//        me : {
-//            max : 0,
-//            total : 0
-//        }
-//    },
-//    mapDoc : null,
-//    infoDoc : null,
-//    server: {
-//        name: "",
-//        list : [],
-//        set: function(name) {
-//            this.name = name;
-//            jQuery("#angal_server").html(name);
-//            this.list.push(name);
-//            if (this.list.length > 10) {
-//                this.list = this.list.slice(-10);
-//            }
-//            this.updateList();
-//            this.saveList();
-//        },
-//        updateList : function() {
-//            var list_tag = jQuery("#angal_serverList");
-//            list_tag.html("");
-//            for (var i = 0; i < this.list.length; i++) {
-//                if (this.list[i] == this.name) {
-//                    list_tag.prepend('<li>[S] <b>' + this.list[i] + '</b></li>');
-//                } else {
-//                    list_tag.prepend('<li><a onClick="window.angal_connectDirect(\'' + this.list[i] + '\')">[C]</a> ' + this.list[i] + '</li>');
-//                }
-//            }
-//        },
-//        saveList : function() {
-//            GM_setValue("angal_server_list", this.list);
-//        },
-//        loadList : function() {
-//            this.list = GM_getValue("angal_server_list");
-//            if (this.list == null || this.list == undefined) {
-//                this.list = [];
-//            }
-//        }
-//    }
-//};
-
-//unsafeWindow.op_onLoad = function() {
-//    console.log("Running onload");
-//    unsafeWindow.angal_data.server.loadList();
-//    unsafeWindow.angal_data.server.updateList();
-//
-//    //jQuery("#overlays").append(
-//    //    '<div style="position: absolute; left: 0px; right: 0px; top: 0px; z-index: 3; display: block;">'
-//    //    + '<div style="height: 50px; width: 500px; margin: 3px auto;">'
-//    //    + '<div style="height: 80px; width: 240px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-//    //    + '<center>Version : ' + _version_ + "</center>Thanks to <a href='http://pastebin.com/wE1LN8fW'>angal & DiaLight's script</a> for server select code & UI.<BR />"
-//    //    + '<br /> '
-//    //    + '</div>'
-//    //    + '<div style="height: 50px; width: 240px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-//    //    + 'IP: <b id="angal_server">None</b> <br /> '
-//    //    + '<a id="angal_server_reconnect">Reconnect</a> || <a id="angal_server_change">Change</a> || <a id="angal_server_copy">Copy</a>'
-//    //    + '</div>'
-//    //    + '</div>'
-//    //    + '</div>'
-//    //);
-//    //jQuery("#overlays").append(
-//    //    //'<div style="height: 1px; position: absolute; left: 0px; right: 0px; top: 0px; z-index: 1; display: block;">'
-//    //    //+ '<div style="height: 1px; width: 950px; margin: 100px auto;">'
-//    //    //+ '<div style="height: 50px; width: 200px; float:left; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-//    //    //+ 'Agar.io client by <br /><b>angal</b> and <b>DiaLight</b>'
-//    //    //+ '</div>'
-//    //    //+ '</div>'
-//    //    //+ '</div>'
-//    //
-//    //    '<div style="height: 641px; width: 225px; position: absolute; top: 50%;transform: translate(0px, -50%);left: 1225px; background-color: #FFFFFF; margin: 0px 5px; border-radius: 15px; padding: 5px 15px 5px 15px;">'
-//    //    + 'Last servers: <br /> '
-//    //    + '<ol id="angal_serverList"></ol>'
-//    //    + '</div>'
-//    //);
-//    jQuery("#angal_server_copy").click(function() {
-//        GM_setClipboard(unsafeWindow.angal_data.server.name, "text");
-//    });
-//    jQuery("#angal_server_change").click(function() {
-//        var name = prompt("Server Ip:", unsafeWindow.angal_data.server.name);
-//        if (name == null) {
-//            return;
-//        }
-//        unsafeWindow.angal_connectDirect(name);
-//    });
-//    jQuery("#angal_server_reconnect").click(function() {
-//        unsafeWindow.angal_connectDirect(unsafeWindow.angal_data.server.name);
-//    });
-//};
-
 // ====================================== Stats Screen ===========================================================
 
 var __STORAGE_PREFIX = "mikeyk730__";
 var chart_update_interval = 10;
 jQuery('body').append('<div id="chart-container" style="display:none; position:absolute; height:176px; width:300px; left:10px; bottom:44px"></div>');
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
-AppendCheckbox(checkbox_div, 'chart-checkbox', 'Show chart', display_chart, OnChangeDisplayChart);
-AppendCheckbox(checkbox_div, 'stats-checkbox', 'Show stats', display_stats, OnChangeDisplayStats);
-jQuery("#helloDialog").css('left','230px');
-jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; background-color: #FFFFFF; ' +
-    'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
-//    '<div>'+
-//        '<!-- Nav tabs -->'+
-//    '<ul class="nav nav-tabs" role="tablist">'+
-//    '<li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a></li>'+
-//'<li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Profile</a></li>'+
-//'<li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>'+
-//'<li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>'+
-//'</ul>'+
-//    '<!-- Tab panes -->'+
-//'<div class="tab-content">'+
-//    '<div role="tabpanel" class="tab-pane active" id="home">A</div>'+
-//'<div role="tabpanel" class="tab-pane" id="profile">B</div>'+
-//'<div role="tabpanel" class="tab-pane" id="messages">C</div>'+
-//'<div role="tabpanel" class="tab-pane" id="settings">D</div>'+
-//'</div>'+
 
+jQuery("#helloDialog").css('left','230px');
+jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; height:673px; background-color: #FFFFFF; ' +
+    'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
     '<ul class="nav nav-pills" role="tablist">' +
         '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
         '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
@@ -3212,10 +3122,10 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
             '<div id="statArea" style="vertical-align:top; width:350px; display:inline-block;"></div>' +
             '<div id="pieArea" style="vertical-align: top; width:350px; height:250px; display:inline-block; vertical-align:top"></div>' +
             '<div id="gainArea" style="width:350px; display:inline-block; vertical-align:top"></div><div id="lossArea" style="width:350px; display:inline-block;"></div>' +
-            '<div id="chartArea" style="width:700px; display:inline-block; vertical-align:top"></div></div>' +
+            '<div id="chartArea" style="width:700px; height:200px; display:inline-block; vertical-align:top"></div></div>' +
         '<div id="page2" role="tabpanel" class="tab-pane">' +
             '<div class="row">' +
-                '<div class="col-sm-1"></div><div id="col1" class="col-sm-3"><h5>ZeachCobbler Options</h5></div>' +
+                '<div class="col-sm-1"></div><div id="col1" class="col-sm-3"><h3>Options</h3></div>' +
                 '<div class="col-sm-1"></div><div id="col2" class="col-sm-3"></div>' +
                 '<div class="col-sm-1"></div><div id="col3" class="col-sm-3"></div>' +
             '</div>' +
@@ -3266,7 +3176,7 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
 //    //AppendCheckboxBR(page2, 'option15', 'Enable QuickMerge', false, OnChangeDisplayChart);
 //
 //}
-var page2 = jQuery('#col1');
+
 function LS_getValue(aKey, aDefault) {
     var val = localStorage.getItem(__STORAGE_PREFIX + aKey);
     if (null === val && 'undefined' != typeof aDefault) return aDefault;
@@ -3317,9 +3227,9 @@ function AppendCheckbox(e, id, label, checked, on_change)
     });
     on_change(checked);
 }
-function AppendCheckboxBR(e, id, label, checked, on_change)
+function AppendCheckboxP(e, id, label, checked, on_change)
 {
-    e.append('<div class="checkbox"><label><input type="checkbox" id="'+id+'">'+label+'</label></div>');
+    e.append('<p><input type="checkbox" id="'+id+'">'+label+'</p>');
     jQuery('#'+id).attr('checked', checked);
     jQuery('#'+id).change(function(){
         on_change(!!this.checked);
@@ -3529,7 +3439,7 @@ function DrawStats(game_over) {
     jQuery('#gainArea').empty();
     jQuery('#lossArea').empty();
     jQuery('#chartArea').empty();
-    jQuery('#stats').show();
+    jQuery('#statsTab').tab('show');
 
     if (game_over){
         stats.time_of_death = Date.now();
@@ -3572,7 +3482,8 @@ function DrawStats(game_over) {
         jQuery('#lossArea').append('<ul><li style="font-size: 20px; ">Nobody has eaten you</li></ul>');
 
     if (stats.time_of_death !== null){
-        jQuery('#chartArea').width(700).height(250);
+        jQuery('#chartArea')[0].width = 700;
+        jQuery('#chartArea')[0].height= 250;
         stat_chart = CreateChart('chartArea', my_color, true);
         var scale = Math.max.apply(Math,chart_data.map(function(o){return o.y;}))/16;
         var scaled_data = num_cells_data.map(function(a){return {x:a.x, y:a.y*scale};});
@@ -3772,9 +3683,9 @@ var nodeAudio = document.createElement("audio");
 nodeAudio.id = 'audiotemplate';
 nodeAudio.preload = "auto";
 jQuery(playBtn).parent().get(0).appendChild(nodeAudio);
+
 //var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
-page2.append('<BR><label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
-page2.append('<BR><label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
+//AppendCheckbox(checkbox_div, 'stats-checkbox', 'Show stats', display_stats, OnChangeDisplayStats);
 var bgmusic = $('#audiotemplate').clone()[0];
 bgmusic.src = tracks[Math.floor(Math.random() * tracks.length)];
 bgmusic.load();
@@ -3785,15 +3696,27 @@ bgmusic.onended = function() {
     bgmusic.play();
 };
 
-// ===============================================================================================================
-$("label:contains(' Dark Theme') input").prop('checked', true);
-setDarkTheme(true);
-$("label:contains(' Show mass') input").prop('checked', true);
-setShowMass(true);
+function uiOnLoadTweaks(){
+    $("label:contains(' Dark Theme') input").prop('checked', true);
+    setDarkTheme(true);
+    $("label:contains(' Show mass') input").prop('checked', true);
+    setShowMass(true);
 
-$('#nick').val(GM_getValue("nick", ""));
-// default helloDialog has a margin of 10 px. take that away to make it line up with our other dialogs.
-$("#helloDialog").css("marginTop", "0px");
+    // default helloDialog has a margin of 10 px. take that away to make it line up with our other dialogs.
+    $("#helloDialog").css("marginTop", "0px");
+    $("#settings").show(); $("#instructions").hide();
+    $('#nick').val(GM_getValue("nick", ""));
+}
+
+// ===============================================================================================================
+uiOnLoadTweaks();
+
+var col1 = $("#col1");
+AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
+AppendCheckboxP(col1, 'option1', ' Acid Mode', false, setAcid);
+AppendCheckboxP(col1, 'option2', ' Lite Brite', false, setLiteBrite);
+//AppendCheckboxP(col1, 'option3', ' Left Mouse Button Fires', false, setLeftMouseButtonFires);
+col1.append('<BR><label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
+col1.append('<BR><label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
 
 var agariomodsSkins = ("1up;8ball;agariomods.com;albania;android;anonymous;apple;atari;awesome;baka;bandaid;bane;baseball;basketball;batman;beats;bender;bert;bitcoin;blobfish;bobross;bobsaget;boo;boogie2988;borg;bp;breakfast;buckballs;burgundy;butters;byzantium;charmander;chechenya;chickfila;chocolate;chrome;cj;coca cola;cokacola;converse;cornella;creeper;cyprus;czechrepublic;deadpool;deal with it;deathstar;derp;dickbutt;doge;doggie;dolan;domo;domokun;dong;donut;dreamcast;drunken;ebin;egg;egoraptor;egypt;electrokitty;epicface;expand;eye;facebook;fast forward;fastforward;fbi;fidel;finn;firefox;fishies;flash;florida;freeman;freemason;friesland;frogout;fuckfacebook;gaben;garfield;gaston;generikb;getinmybelly;getinthebox;gimper;github;giygas;gnomechild;gonzo;grayhat;halflife;halflife3;halo;handicapped;hap;hatty;hebrew;heisenburg;helix;hipsterwhale;hitler;honeycomb;hydro;iceland;ie;illuminati;imgur;imperial japan;imperialjapan;instagram;isaac;isis;isreal;itchyfeetleech;ivysaur;james bond;java;jew;jewnose;jimmies;kappa;kenny;kingdomoffrance;kingjoffrey;kirby;kitty;klingon;knightstemplar;knowyourmeme;kyle;ladle;lenny;lgbt;libertyy;liechtenstien;linux;love;luigi;macedonia;malta;mario;mars;maryland;masterball;mastercheif;mcdonalds;meatboy;meatwad;megamilk;mike tyson;mlg;moldova;mortalkombat;mr burns;mr.bean;mr.popo;n64;nasa;nazi;nick;nickelodeon;nipple;northbrabant;nosmoking;notch;nsa;obey;osu;ouch;pandaexpress;pedo;pedobear;peka;pepe;pepsi;pewdiepie;pi;pig;piggy;pika;pinkfloyd;pinkstylist;piratebay;pizza;playstation;poop;potato;quantum leap;rageface;rewind;rockstar;rolfharris;rss;satan;serbia;shell;shine;shrek;sinistar;sir;skull;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;snafu;snapchat;soccer;soliare;solomid;somalia;space;spawn;spiderman;spongegar;spore;spy;squirtle;stalinjr;starbucks;starrynight;stitch;stupid;summit1g;superman;taco;teamfortress;tintin;transformer;transformers;triforce;trollface;tubbymcfatfuck;turkey;twitch;twitter;ukip;uppercase;uruguay;utorrent;voyager;wakawaka;wewlad;white  light;windows;wwf;wykop;yinyang;ylilauta;yourmom;youtube;zoella;zoidberg").split(";");
-$("#playBtn").click(function(){$('#statsTab').tab('show');return false;});
