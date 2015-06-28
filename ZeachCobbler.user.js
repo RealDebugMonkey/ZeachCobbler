@@ -455,6 +455,89 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
     }
 
+    function dasMouseSpeedFunction(cx, cy, radius, nx, ny) {
+        this.cx = cx; this.cy = cy; this.radius = radius; this.nx = nx; this.ny = ny;
+        this.value = function(x, y) {
+            x -= this.cx; y -= this.cy;
+            var lensq = x*x + y*y;
+            var len = Math.sqrt(lensq);
+
+            var val = x * this.nx + y * this.ny;
+            if (len > this.radius) {
+                return [
+                    val / len,
+                    y * (this.nx * y - this.ny * x) / (lensq * len),
+                    x * (this.ny * x - this.nx * y) / (lensq * len),
+                ];
+            } else {
+                return [val / this.radius, this.nx, this.ny];
+            }
+        }
+    }
+
+    function dasBorderFunction(l, t, r, b, w) {
+        this.l = l; this.t = t; this.r = r; this.b = b; this.w = w;
+        this.value = function(x, y) {
+            var v = 0, dx = 0, dy = 0;
+            if (x < this.l) {
+                v += this.l - x;
+                dx = this.w;
+            } else if (x > this.r) {
+                v += x - this.r;
+                dx = -this.w;
+            }
+
+            if (y < this.t) {
+                v += this.t - y;
+                dy = this.w;
+            } else if (y > this.b) {
+                v += y - this.b;
+                dy = -this.w;
+            }
+
+            return [v * this.w, dx, dy];
+        }
+    }
+
+    function dasSumFunction(sumfuncs) {
+        this.sumfuncs = sumfuncs;
+        this.value = function(x, y) {
+            return sumfuncs.map(function(func) {
+                return func.value(x, y);
+            }).reduce(function (acc, val) {
+                acc[0] += val[0]; acc[1] += val[1]; acc[2] += val[2];
+                return acc;
+            });
+        }
+    }
+
+    function gradient_ascend(func, step, iters, x, y) {
+        var max_step = step;
+
+        var tmp = func.value(x, y);
+        var best_x = x, best_y = y;
+        var best_val = tmp[0], last_dx = tmp[1], last_dy = tmp[2];
+
+        while(iters > 0) {
+            iters -= 1;
+
+            x = best_x + last_dx * step;
+            y = best_y + last_dy * step;
+            tmp = func.value(x, y);
+            if (tmp[0] < best_val) {
+                step /= 2;
+                continue;
+            }
+            //console.log([x, y, tmp[0], step]);
+            step = Math.min(2 * step, max_step);
+
+            best_x = x; best_y = y;
+            best_val = tmp[0]; last_dx = tmp[1]; last_dy = tmp[2];
+        }
+
+        return [best_x, best_y, best_val];
+    }
+
     function augmentBlobArray(cell, blobArray) {
 
         blobArray = blobArray.slice();
@@ -494,11 +577,50 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
         return blobArray;
     }
-
     function findFoodToEat(cell, blobArray){
+        var accs = zeach.myPoints.map(function (cell) {
+            return calcForces(cell, blobArray);
+        });
+
+        var funcs = accs.map(function(acc) {
+            return new dasMouseSpeedFunction(acc.x, acc.y, 200, acc.fx, acc.fy);
+        });
+
+        var viewport = getViewport(false);
+        funcs.push(
+            new dasBorderFunction(
+                viewport.x - viewport.dx,
+                viewport.y - viewport.dy,
+                viewport.x + viewport.dx,
+                viewport.y + viewport.dy,
+                -1000
+            )
+        );
+
+        var func = new dasSumFunction(funcs);
+
+        var results = accs.map(function(acc) {
+            return gradient_ascend(func, 50, 100, acc.x, acc.y);
+        });
+
+        var coords = results.reduce(function(res1, res2) {
+            return res1[2] > res2[2] ? res1 : res2;
+        });
+
+        var ans = {
+            id: -5,
+            x: Math.min(zeach.mapRight - cell.nSize/2, Math.max(zeach.mapLeft + cell.nSize/2, coords[0])),
+            y: Math.min(zeach.mapBottom - cell.nSize/2, Math.max(zeach.mapTop + cell.nSize/2, coords[1])),
+        };
+
+        return ans;
+    }
+
+    function calcForces(cell, blobArray){
         blobArray = augmentBlobArray(cell, blobArray);
 
         var acc = { fx: 0, fy: 0, x: cell.nx, y: cell.ny, size : cell.nSize };
+        var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
 
         blobArray.forEach(function(el) {
             if(_.includes(zeach.myIDs, el.id)) {
@@ -556,8 +678,21 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                     var ratio = getMass(el.nSize) / getMass(cell.nSize);
                     // Cells that 1 to 8 times bigger are the most dangerous.
                     // Prioritize them by a truncated parabola up to 6 times.
+
+                    // when we are fractured into small parts, we might underestimate
+                    // how cells a lot bigger than us can be interested in us as a conglomerate of mass.
+                    // So calculate threat index for our total mass too.
+                    var ratio2 = getMass(el.nSize) / totalMass;
+                    if(ratio2 < 4.5 && ratio > 4.5) {
+                        ratio2 = 4.5;
+                    }
+
                     ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
-                    dist /= ratio * cell.nSize;
+                    ratio2 = Math.min(5, Math.max(0, - (ratio2 - 1) * (ratio2 - 8))) + 1;
+                    ratio = Math.max(ratio, ratio2);
+
+                    // The more we're split and the more we're to lose, the more we should be afraid.
+                    dist /= ratio * cell.nSize * Math.sqrt(zeach.myPoints.length);
                 }
 
             } else {
@@ -567,8 +702,13 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 dist -= 11;
 
                 if(el.isVirus) {
-                    // Hate them a bit less than same-sized blobs.
-                    dist *= 2;
+                    if(zeach.myPoints.length >= 16 ) {
+                        // Can't split anymore so viruses are actually a good food!
+                        el.isSafeTarget = true;
+                    } else {
+                        // Hate them a bit less than same-sized blobs.
+                        dist *= 2;
+                    }
                 }
 
                 dist = Math.max(dist, 0.01);
@@ -602,21 +742,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         // Save resulting force for visualization
         cell.grazeDir = {x: acc.fx, y: acc.fy};
 
-        // Normalize force to unit direction vector
-        var direction = {x: acc.fx, y: acc.fy};
-        var dir_norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
-        direction.x /= dir_norm;
-        direction.y /= dir_norm;
-
-        if(!isFinite(direction.x) || !isFinite(direction.y)) {
-            return -1;
-        }
-
-        return {
-            id: -5,
-            x: Math.min(zeach.mapRight - cell.nSize/2, Math.max(zeach.mapLeft + cell.nSize/2, cell.nx + direction.x * 200)),
-            y: Math.min(zeach.mapBottom - cell.nSize/2, Math.max(zeach.mapTop + cell.nSize/2, cell.ny + direction.y * 200)),
-        };
+        return acc;
     }
 
     function findFoodToEat_old(cell, blobArray){
