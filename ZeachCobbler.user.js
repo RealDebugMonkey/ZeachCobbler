@@ -540,15 +540,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         return [best_x, best_y, best_val];
     }
 
-    function augmentBlobArray(cell, blobArray) {
+    function augmentBlobArray(blobArray) {
 
         blobArray = blobArray.slice();
-
-        // Avoid walls too
-        blobArray.push({id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30, isSafeTarget: null});
-        blobArray.push({id: -2, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30, isSafeTarget: null});
-        blobArray.push({id: -2, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30, isSafeTarget: null});
-        blobArray.push({id: -2, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30, isSafeTarget: null});
 
         var curTimestamp = Date.now();
 
@@ -580,11 +574,54 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         return blobArray;
     }
     function findFoodToEat(cell, blobArray){
+        blobArray = augmentBlobArray(blobArray);
+
         var accs = zeach.myPoints.map(function (cell) {
-            blobArray = augmentBlobArray(cell, blobArray);
 
             var acc = { fx: 0, fy: 0, x: cell.nx, y: cell.ny, size : cell.nSize };
             var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
+
+            // Avoid walls too
+            var wallArray = [];
+            wallArray.push({id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -2, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -2, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -2, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30});
+            wallArray.forEach(function(el) {
+                // Calculate repulsion vector
+                var vec = { x: cell.nx - el.nx, y: cell.ny - el.ny };
+                var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+                // Normalize it to unit length
+                vec.x /= dist;
+                vec.y /= dist;
+
+                // Walls have pseudo-size to generate repulsion, but we can move farther.
+                dist += cell.nSize / 2.0;
+
+                dist = Math.max(dist, 0.01);
+
+                // Walls. Hate them muchly.
+                dist /= 10;
+
+                // The more we're split and the more we're to lose, the more we should be afraid.
+                dist /= cell.nSize * Math.sqrt(zeach.myPoints.length);
+
+                // The farther they're from us the less repulsive/attractive they are.
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                    return;
+                }
+
+                // Save element-produced force for visualization
+                el.grazeVec = vec;
+
+                // Sum forces from all threats
+                acc.fx += vec.x;
+                acc.fy += vec.y;
+            });
 
             blobArray.forEach(function(el) {
                 if(_.includes(zeach.myIDs, el.id)) {
@@ -1044,7 +1081,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         var oldGlobalAlpha = ctx.globalAlpha;
 
         var playerBlob = getSelectedBlob();
-        var blobArray = augmentBlobArray(playerBlob, zeach.allItems);
+        var blobArray = augmentBlobArray(zeach.allItems);
 
         var nullVec = { x: 0, y: 0 };
         var cumulatives = [{ x: 0, y: 0 }, { x: 0, y: 0 }];
