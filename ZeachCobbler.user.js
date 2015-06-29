@@ -887,6 +887,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         if (showVisualCues && isPlayerAlive()) {
             drawMapBorders(ctx);
             drawGrazingLines(ctx);
+            drawTrailTail(ctx);
             drawSplitGuide(ctx, getSelectedBlob());
             drawMiniMap();
         }
@@ -1179,6 +1180,17 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         ctx.globalAlpha = oldGlobalAlpha;
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
+    }
+
+    function drawTrailTail(ctx) {
+        // Render trailing tail that indicates real movement,
+        // based on the difference between client-interpolated and real coords.
+        var trailScale = 5;
+        zeach.myPoints.forEach(function(playerBlob) {
+            var d = { x: playerBlob.nx - playerBlob.x, y: playerBlob.ny - playerBlob.y };
+            drawLine(ctx,playerBlob, {x: playerBlob.x - d.x * trailScale, y: playerBlob.y - d.y * trailScale }, myColor );
+            //drawLine(ctx,{x: playerBlob.ox, y: playerBlob.oy }, {x: playerBlob.nx, y: playerBlob.ny }, "green" );
+        });
     }
 
     function drawGrazingLines_old(ctx) {
