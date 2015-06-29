@@ -573,20 +573,34 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function findFoodToEat(cell, blobArray){
         blobArray = augmentBlobArray(blobArray);
 
+        zeach.myPoints.forEach(function(cell) {
+            cell.gr_is_mine = true;
+        });
+
         var accs = zeach.myPoints.map(function (cell) {
 
-            var acc = { fx: 0, fy: 0, x: cell.nx, y: cell.ny, size : cell.nSize };
+            var per_food = [], per_threat = [];
+            var acc = {
+                fx: 0,
+                fy: 0,
+                x: cell.nx,
+                y: cell.ny,
+                size : cell.nSize,
+                per_food: per_food,
+                per_threat: per_threat,
+                cumulatives: [ { x: 0, y: 0}, { x: 0, y: 0} ],
+            };
             var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
 
             // Avoid walls too
             var wallArray = [];
             wallArray.push({id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30});
-            wallArray.push({id: -2, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30});
-            wallArray.push({id: -2, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30});
-            wallArray.push({id: -2, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -3, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -4, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -5, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30});
             wallArray.forEach(function(el) {
                 // Calculate repulsion vector
-                var vec = { x: cell.nx - el.nx, y: cell.ny - el.ny };
+                var vec = { id: el.id, gr_type: true, x: cell.nx - el.nx, y: cell.ny - el.ny };
                 var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
 
                 // Normalize it to unit length
@@ -613,7 +627,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 }
 
                 // Save element-produced force for visualization
-                el.grazeVec = vec;
+                per_threat.push(vec);
 
                 // Sum forces from all threats
                 acc.fx += vec.x;
@@ -621,25 +635,21 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             });
 
             blobArray.forEach(function(el) {
-                if(_.includes(zeach.myIDs, el.id)) {
-                    el.isSafeTarget = false; //our cell, ignore
+                var vec = { id: el.id, x: cell.nx - el.nx, y: cell.ny - el.ny };
+
+                if(el.gr_is_mine) {
+                    return; //our cell, ignore
                 } else if( !el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
                 //if(!el.isVirus && (getMass(el.nSize) <= 9)) {
-                    el.isSafeTarget = true; //edible
+                    //vec.gr_type = null; //edible
                 } else if (!el.isVirus && (getMass(el.nSize) * 3 < (getMass(cell.nSize) * 4))) {
-                    el.isSafeTarget = false; //not edible ignorable
-                } else {
-                    el.isSafeTarget = null; //threat
-                }
-
-                if(false === el.isSafeTarget) {
-                    // Ignorable blob. Skip.
+                    return; //not edible ignorable
                     // TODO: shouldn't really be so clear-cut. Must generate minor repulsion/attraction depending on size.
-                    return;
+                } else {
+                    vec.gr_type = true; //threat
                 }
 
                 // Calculate repulsion vector
-                var vec = { x: cell.nx - el.nx, y: cell.ny - el.ny };
                 var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
 
                 // Normalize it to unit length
@@ -652,25 +662,16 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                         return;
                     }
 
-                    if(0 > el.id) {
-                        // Walls have pseudo-size to generate repulsion, but we can move farther.
-                        dist += cell.nSize / 2.0;
-                    } else {
-                        // Distance till consuming
-                        dist -= el.nSize;
-                        dist += cell.nSize /　3.0;
-                        dist -= 11;
-                    }
+                    // Distance till consuming
+                    dist -= el.nSize;
+                    dist += cell.nSize /　3.0;
+                    dist -= 11;
 
                     dist = Math.max(dist, 0.01);
 
-                    if(0 > el.id) {
-                        // Walls. Hate them muchly.
-                        dist /= 10;
-                    }
-
                     // Prioritize targets by size
-                    if(null !== el.isSafeTarget) {
+                    if(!vec.gr_type) {
+                        //Non-threat
                         dist /= el.nSize;
                     } else {
                         var ratio = getMass(el.nSize) / getMass(cell.nSize);
@@ -702,7 +703,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                     if(el.isVirus) {
                         if(zeach.myPoints.length >= 16 ) {
                             // Can't split anymore so viruses are actually a good food!
-                            el.isSafeTarget = true;
+                            delete vec.gr_type; //vec.gr_type = null;
                         } else {
                             // Hate them a bit less than same-sized blobs.
                             dist *= 2;
@@ -715,7 +716,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                     dist /= el.nSize;
                 }
 
-                if(null !== el.isSafeTarget) {
+                if(!vec.gr_type) {
                     //Not a threat. Make it attractive.
                     dist = -dist;
                 }
@@ -729,16 +730,20 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 }
 
                 // Save element-produced force for visualization
-                el.grazeVec = vec;
+                (vec.gr_type ? per_threat : per_food).push(vec);
 
-                // Sum forces from all threats
-                acc.fx += vec.x;
-                acc.fy += vec.y;
-
+                // Sum forces per target type
+                var cumul = acc.cumulatives[!vec.gr_type ? 1 : 0];
+                cumul.x += vec.x;
+                cumul.y += vec.y;
             });
 
-            // Save resulting force for visualization
-            cell.grazeDir = acc;
+            // Sum forces from all sources
+            acc.fx += _.sum(_.pluck(acc.cumulatives, "x"));
+            acc.fy += _.sum(_.pluck(acc.cumulatives, "y"));
+
+            // Save resulting info for visualization
+            cell.grazeInfo = acc;
             return acc;
         });
 
@@ -1075,67 +1080,76 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         var oldColor = ctx.color;
         var oldGlobalAlpha = ctx.globalAlpha;
 
-        var playerBlob = getSelectedBlob();
-        var blobArray = augmentBlobArray(zeach.allItems);
+        zeach.myPoints.forEach(function(playerBlob) {
+            if(!playerBlob.grazeInfo) {
+                return;
+            }
+            var grazeInfo = playerBlob.grazeInfo;
 
-        var nullVec = { x: 0, y: 0 };
-        var cumulatives = [{ x: 0, y: 0 }, { x: 0, y: 0 }];
-        var maxSize = 0.001;
+            var nullVec = { x: 0, y: 0 };
+            var cumulatives = grazeInfo.cumulatives;
+            var maxSize = 0.001;
 
-        blobArray.forEach(function (element){
+            // Render threat forces
+            grazeInfo.per_threat.forEach(function (grazeVec){
+                var element = zeach.allNodes[grazeVec.id];
 
-            var color;
-            var grazeVec = element.grazeVec ? element.grazeVec : nullVec;
-            var cumul = cumulatives[(element.isSafeTarget === true) ? 1 : 0];
-            cumul.x += grazeVec.x;
-            cumul.y += grazeVec.y;
+                if(!element) return; //Wall or dead or something
 
-            if(element.isSafeTarget === true) {
-                //drawLine(ctx,element, playerBlob, "white" );
-                drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "green" );
-                //drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "green" );
-            } else { //if (element.isSafeTarget === false)
                 //drawLine(ctx,element, playerBlob, "red" );
                 //drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "red" );
                 drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "red" );
 
                 var grazeVecLen = Math.sqrt(grazeVec.x * grazeVec.x + grazeVec.y * grazeVec.y);
 
-                ctx.globalAlpha = 0.5;
+                ctx.globalAlpha = 0.5 / zeach.myNodes.length;
                 ctx.beginPath();
                 ctx.arc(element.x, element.y, grazeVecLen / maxSize / 20, 0, 2 * Math.PI, false);
                 ctx.fillStyle = 'red';
                 ctx.fill();
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = '#00FF00';
+                ctx.strokeStyle = '#FFFFFF';
                 ctx.stroke();
                 ctx.globalAlpha = 1;
+            });
+
+            if(zeach.myPoints.length <= 1) {
+                // If we're not fragmented, render fancy food forces
+                grazeInfo.per_food.forEach(function (grazeVec){
+                    var element = zeach.allNodes[grazeVec.id];
+
+                    if(!element) return; //Wall or dead or something
+
+                    //drawLine(ctx,element, playerBlob, "white" );
+                    drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "green" );
+                    //drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "green" );
+                });
             }
+
+            // Prepare to render cumulatives
+            maxSize *= grazeInfo.per_threat.length + grazeInfo.per_food.length;
+            maxSize /= 10;
+
+            ctx.lineWidth = 10;
+
+            // Render summary force without special forces, like walls
+            drawLine(ctx,playerBlob,
+                {
+                    x: playerBlob.x + (cumulatives[0].x + cumulatives[1].x) / maxSize,
+                    y: playerBlob.y + (cumulatives[0].y + cumulatives[1].y) / maxSize,
+                }, "gray"
+            );
+
+            // Render foods and threats force cumulatives
+            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[1].x / maxSize, y: playerBlob.y + cumulatives[1].y / maxSize }, "green" );
+            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[0].x / maxSize, y: playerBlob.y + cumulatives[0].y / maxSize }, "red" );
+
+            // Render summary force with special forces, like walls
+            ctx.lineWidth = 5;
+            drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeInfo.fx) / maxSize, y: playerBlob.y + (grazeInfo.fy) / maxSize }, "orange" );
+            ctx.lineWidth = 1;
+            drawLine(ctx,playerBlob, {x: playerBlob.x + 300 * (grazeInfo.fx) / maxSize, y: playerBlob.y + 300 * (grazeInfo.fy) / maxSize }, "orange" );
         });
-
-        var grazeVec = playerBlob.grazeDir ? playerBlob.grazeDir : { fx: 0, fy: 0 };
-
-        // Prepare to render cumulatives
-        maxSize *= blobArray.length;
-        maxSize /= 10;
-
-        ctx.lineWidth = 10;
-
-        // Render summary force without special forces, like walls
-        drawLine(ctx,playerBlob,
-            {
-                x: playerBlob.x + (cumulatives[0].x + cumulatives[1].x) / maxSize,
-                y: playerBlob.y + (cumulatives[0].y + cumulatives[1].y) / maxSize,
-            }, "gray"
-        );
-
-        // Render foods and threats force cumulatives
-        drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[1].x / maxSize, y: playerBlob.y + cumulatives[1].y / maxSize }, "green" );
-        drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[0].x / maxSize, y: playerBlob.y + cumulatives[0].y / maxSize }, "red" );
-
-        // Render summart force with special forces, like walls
-        ctx.lineWidth = 5;
-        drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeVec.fx) / maxSize, y: playerBlob.y + (grazeVec.fy) / maxSize }, "orange" );
 
         var viewport = getViewport(true);
 
