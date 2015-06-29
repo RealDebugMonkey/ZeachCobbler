@@ -1103,7 +1103,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
                 var grazeVecLen = Math.sqrt(grazeVec.x * grazeVec.x + grazeVec.y * grazeVec.y);
 
-                ctx.globalAlpha = 0.5 / zeach.myNodes.length;
+                ctx.globalAlpha = 0.5 / zeach.myPoints.length;
                 ctx.beginPath();
                 ctx.arc(element.x, element.y, grazeVecLen / maxSize / 20, 0, 2 * Math.PI, false);
                 ctx.fillStyle = 'red';
