@@ -804,8 +804,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
         var ans = {
             id: -5,
-            x: Math.min(zeach.mapRight - cell.nSize/2, Math.max(zeach.mapLeft + cell.nSize/2, coords.x)),
-            y: Math.min(zeach.mapBottom - cell.nSize/2, Math.max(zeach.mapTop + cell.nSize/2, coords.y)),
+            x: coords.x,
+            y: coords.y,
         };
 
         return ans;
