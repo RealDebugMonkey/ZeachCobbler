@@ -12,7 +12,7 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.15.1
+// @version      0.15.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -20,6 +20,7 @@
 // @changes     0.15.0 - Fixed Minimap (Zeach broke it)
 //                     - Fixed Borders(Zeach broke them too)
 //                     - Lite Brite mode added (and some UI issues fixed)
+//                   2 - Lite Brite, SFX, and BGM settings all saved
 //              0.14.0 - Major refactoring to help with future updates
 //                     - Support for AgarioMods connect skins
 //              0.13.0 - Fixed break caused by recent code changes
@@ -149,11 +150,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     // Configurable options we want to persist
     var visualizeGrazing = GM_getValue('visualizeGrazing', true);
     var rightClickFires = GM_getValue('rightClickFires', false);
-    var minimapScale = 48; //  1/miniMapScale
+    var minimapScale = GM_getValue('minimapScale', 48);
     var displayDebugInfo = 1;   // Has multiple levels
     var autoRespawn = false;
     var grazeOnAutoRespawn = false;
-    var isLiteBrite = true;
+    var isLiteBrite = GM_getValue('isLiteBrite', false);
 
     // Game State & Info
     var highScore = 0;
@@ -183,19 +184,28 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         .get(0)
         .getContext("2d");
 
-    GetGmValues();
+    //GetGmValues();
 
     var cobbler = {
-        "isAcid" : false,
+        _isAcid : false,
+        set isAcid(val)         {_isAcid = val; setAcid(val);},
+        get isAcid()            {return this._isAcid},
+        _isLiteBrite : GM_getValue('isLiteBrite', false),
+        set isLiteBrite(val)    {_isLiteBrite = val; GM_setValue('isLiteBrite', val);},
+        get isLiteBrite()       { return this._isLiteBrite;},
+        _sfxVol : GM_getValue('sfxVol', 0.5),
+        set sfxVol(val)         {_sfxVol = val; GM_setValue('sfxVol', val);},
+        get sfxVol()            { return this._sfxVol;},
+        _bgmVol : GM_getValue('bgmVol', 0.5),
+        set bgmVol(val)         {_bgmVol = val; GM_setValue('bgmVol', val);},
+        get bgmVol()            { return this._bgmVol;},
         "autoRespawn": false,
         "respawnWithGrazer" : false,
         "visualizeGrazer" : true,
         "displayMiniMap" : true,
         "clickToShoot" : false,
-        "sfxVol" : 0,
-        "BGMVol" : 0,
     };
-    g.cobbler = cobbler;
+    window.cobbler = cobbler;
 
     // ======================   Property & Var Name Restoration  =======================================================
     var zeach = {
@@ -268,6 +278,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         return zeach.allNodes[selectedBlobID];
     }
 
+    //soley used for debugging purposes
     function GetGmValues(){
         console.log("GM nick: " + GM_getValue('nick', "none set"));
         console.log("GM rightClickFires: " + GM_getValue('rightClickFires', "none set"));
@@ -1153,9 +1164,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         }
     }
 
-    window.setLiteBrite = function (val){
-        isLiteBrite = val;
-    };
+    //window.setLiteBrite = function (val){
+    //    isLiteBrite = val;
+    //};
     window.setLeftMouseButtonFires = function (val){
         rightClickFires = val;
     };
@@ -2826,11 +2837,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                         /*new*/var c = customSkins(this, zeach.defaultSkins, zeach.imgCache, zeach.isShowSkins, zeach.gameMode);
                         c = (e = c) ? -1 != lb.indexOf(d) : false;
 
-                        ///*new*/if(isLiteBrite) {a.lineWidth = ~~(10/k); }
-                            //if (!b) {
+
+                        /*new*///if (!b) {
                                 a.stroke();
-                            //}
-                        /*new*/if(!isLiteBrite)
+                        /*new*///}
+                        /*new*/if(!cobbler.isLiteBrite)
                             a.fill();
 
 
@@ -3672,6 +3683,12 @@ StopBGM = function () {
 
 volBGM = function (vol) {
     bgmusic.volume = document.getElementById("bgm").value;
+    window.cobbler.bgmVol = vol;
+};
+
+volSFX = function (vol) {
+    bgmusic.volume = document.getElementById("sfx").value;
+    window.cobbler.sfxVol = vol;
 };
 
 var tracks = ['http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Waltz.mp3',
@@ -3714,9 +3731,9 @@ uiOnLoadTweaks();
 var col1 = $("#col1");
 AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
 AppendCheckboxP(col1, 'option1', ' Acid Mode', false, setAcid);
-AppendCheckboxP(col1, 'option2', ' Lite Brite', false, setLiteBrite);
+AppendCheckboxP(col1, 'option2', ' Lite Brite', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
 //AppendCheckboxP(col1, 'option3', ' Left Mouse Button Fires', false, setLeftMouseButtonFires);
-col1.append('<BR><label>SFX<input id="sfx" type="range" value="0" step=".1" min="0" max="1"></label>');
-col1.append('<BR><label>BGM<input type="range" id="bgm" value="0" step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
+col1.append('<BR><label>SFX<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></label>');
+col1.append('<BR><label>BGM<input type="range" id="bgm" value=' + window.cobbler.bgmVol + ' step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
 
 var agariomodsSkins = ("1up;8ball;agariomods.com;albania;android;anonymous;apple;atari;awesome;baka;bandaid;bane;baseball;basketball;batman;beats;bender;bert;bitcoin;blobfish;bobross;bobsaget;boo;boogie2988;borg;bp;breakfast;buckballs;burgundy;butters;byzantium;charmander;chechenya;chickfila;chocolate;chrome;cj;coca cola;cokacola;converse;cornella;creeper;cyprus;czechrepublic;deadpool;deal with it;deathstar;derp;dickbutt;doge;doggie;dolan;domo;domokun;dong;donut;dreamcast;drunken;ebin;egg;egoraptor;egypt;electrokitty;epicface;expand;eye;facebook;fast forward;fastforward;fbi;fidel;finn;firefox;fishies;flash;florida;freeman;freemason;friesland;frogout;fuckfacebook;gaben;garfield;gaston;generikb;getinmybelly;getinthebox;gimper;github;giygas;gnomechild;gonzo;grayhat;halflife;halflife3;halo;handicapped;hap;hatty;hebrew;heisenburg;helix;hipsterwhale;hitler;honeycomb;hydro;iceland;ie;illuminati;imgur;imperial japan;imperialjapan;instagram;isaac;isis;isreal;itchyfeetleech;ivysaur;james bond;java;jew;jewnose;jimmies;kappa;kenny;kingdomoffrance;kingjoffrey;kirby;kitty;klingon;knightstemplar;knowyourmeme;kyle;ladle;lenny;lgbt;libertyy;liechtenstien;linux;love;luigi;macedonia;malta;mario;mars;maryland;masterball;mastercheif;mcdonalds;meatboy;meatwad;megamilk;mike tyson;mlg;moldova;mortalkombat;mr burns;mr.bean;mr.popo;n64;nasa;nazi;nick;nickelodeon;nipple;northbrabant;nosmoking;notch;nsa;obey;osu;ouch;pandaexpress;pedo;pedobear;peka;pepe;pepsi;pewdiepie;pi;pig;piggy;pika;pinkfloyd;pinkstylist;piratebay;pizza;playstation;poop;potato;quantum leap;rageface;rewind;rockstar;rolfharris;rss;satan;serbia;shell;shine;shrek;sinistar;sir;skull;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;snafu;snapchat;soccer;soliare;solomid;somalia;space;spawn;spiderman;spongegar;spore;spy;squirtle;stalinjr;starbucks;starrynight;stitch;stupid;summit1g;superman;taco;teamfortress;tintin;transformer;transformers;triforce;trollface;tubbymcfatfuck;turkey;twitch;twitter;ukip;uppercase;uruguay;utorrent;voyager;wakawaka;wewlad;white  light;windows;wwf;wykop;yinyang;ylilauta;yourmom;youtube;zoella;zoidberg").split(";");
