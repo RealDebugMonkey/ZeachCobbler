@@ -1,13 +1,18 @@
 # ZeachCobbler
-Custom Agario modifications. Currently only works in Chrome via Tampermonkey.
+## What is Zeach Cobbler?
+ZeachCobbler is a mod for the web game Agario ( http://agar.io ) It included several unique features found in no other mods. Please note that the Agario community at large considers many of the features contained in this mod hacks or cheats as it could be argued that they give you an unfair advantage over others.
 
-**Note: For Chrome Only. Does not work with Firefox+Greasemonkey.**
+Zeach Cobbler also includes a bot we like to call the "grazer" which helps with the grunt work of collecting food pellets in the early game. 
 
 ## Install instructions:
+**Note: Zeach Cobbler is currently for Chrome Only. It does not work with Firefox+Greasemonkey.**
+
 1) Install TamperMonkey addon for Chrome 
 * https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
+
 2) Visit the raw version of the script 
 * https://github.com/RealDebugMonkey/ZeachCobbler/raw/master/ZeachCobbler.user.js
+
 3) Click 'Install' on the script install confirmation page
 
 ##Key Reference
@@ -59,6 +64,9 @@ Custom Agario modifications. Currently only works in Chrome via Tampermonkey.
 18. 'Highest score' tracker
 19. Acid mode support
  
+
+## What's up with the name?
+It was chosen on a whim. And I like Peach Cobbler.
 
 # Contributers and Used code
 * Angal - For the original Server select UI (now unused)
