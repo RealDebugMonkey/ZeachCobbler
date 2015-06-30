@@ -178,6 +178,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         Tiny_Color = "#CC66FF",
         myColor ="#3371FF",
         virusColor ="#666666";
+    var lastMouseCoords = { x: 0, y: 0 };
+    var ghostBlobs = [];
 
 
     var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
@@ -291,6 +293,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function sendMouseUpdate(ws, mouseX2,mouseY2) {
+        lastMouseCoords = {x: mouseX2, y: mouseY2};
 
         if (ws != null && ws.readyState == ws.OPEN) {
             var z0 = new ArrayBuffer(21);
@@ -329,7 +332,18 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function distanceFromCellZero(blob) {
-        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) : 11180;
+        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) :
+            Math.sqrt((zeach.mapRight - zeach.mapLeft) * (zeach.mapRight - zeach.mapLeft) + (zeach.mapBottom - zeach.mapTop) * (zeach.mapBottom - zeach.mapTop));
+    }
+
+    function getViewport(interpolated) {
+        var x =  _.sum(_.pluck(zeach.myPoints, interpolated ? "x" : "nx")) / zeach.myPoints.length;
+        var y =  _.sum(_.pluck(zeach.myPoints, interpolated ? "y" : "ny")) / zeach.myPoints.length;
+        var totalRadius =  _.sum(_.pluck(zeach.myPoints, interpolated ? "size" : "nSize"));
+        var zoomFactor = Math.pow(Math.min(64.0 / totalRadius, 1), 0.4);
+        var deltaX = 1024 / zoomFactor;
+        var deltaY = 600 / zoomFactor;
+        return { x: x, y: y, dx: deltaX, dy: deltaY };
     }
 
     function getMouseCoordsAsPseudoBlob(){
@@ -453,7 +467,342 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
     }
 
+    function dasMouseSpeedFunction(cx, cy, radius, nx, ny) {
+        this.cx = cx; this.cy = cy; this.radius = radius; this.nx = nx; this.ny = ny;
+        this.value = function(x, y) {
+            x -= this.cx; y -= this.cy;
+            var lensq = x*x + y*y;
+            var len = Math.sqrt(lensq);
+
+            var val = x * this.nx + y * this.ny;
+            if (len > this.radius) {
+                return {
+                    v: val / len,
+                    dx: y * (this.nx * y - this.ny * x) / (lensq * len),
+                    dy: x * (this.ny * x - this.nx * y) / (lensq * len),
+                };
+            } else {
+                return {v: val / this.radius, dx: this.nx, dy: this.ny};
+            }
+        }
+    }
+
+    function dasBorderFunction(l, t, r, b, w) {
+        this.l = l; this.t = t; this.r = r; this.b = b; this.w = w;
+        this.value = function(x, y) {
+            var v = 0, dx = 0, dy = 0;
+            if (x < this.l) {
+                v += this.l - x;
+                dx = -this.w;
+            } else if (x > this.r) {
+                v += x - this.r;
+                dx = this.w;
+            }
+
+            if (y < this.t) {
+                v += this.t - y;
+                dy = -this.w;
+            } else if (y > this.b) {
+                v += y - this.b;
+                dy = this.w;
+            }
+
+            return {v: v * this.w, dx: dx, dy: dy};
+        }
+    }
+
+    function dasSumFunction(sumfuncs) {
+        this.sumfuncs = sumfuncs;
+        this.value = function(x, y) {
+            return sumfuncs.map(function(func) {
+                return func.value(x, y);
+            }).reduce(function (acc, val) {
+                acc.v += val.v; acc.dx += val.dx; acc.dy += val.dy;
+                return acc;
+            });
+        }
+    }
+
+    function gradient_ascend(func, step, iters, x, y) {
+        var max_step = step;
+
+        var last = func.value(x, y);
+
+        while(iters > 0) {
+            iters -= 1;
+
+            x += last.dx * step;
+            y += last.dy * step;
+            var tmp = func.value(x, y);
+            if (tmp.v < last.v) {
+                step /= 2;
+            } else {
+                step = Math.min(2 * step, max_step);
+            }
+            //console.log([x, y, tmp[0], step]);
+
+            last.v = tmp.v;
+            last.dx = (last.dx + tmp.dx)/2.0;
+            last.dy = (last.dy + tmp.dy)/2.0;
+        }
+
+        return {x: x, y: y, v: last.v};
+    }
+
+    function augmentBlobArray(blobArray) {
+
+        blobArray = blobArray.slice();
+
+        var curTimestamp = Date.now();
+
+        // Outdated blob id set
+        var ghostSet = [];
+
+        blobArray.forEach(function (element) {
+            ghostSet[element.id] = true;
+            element.lastTimestamp = curTimestamp;
+        });
+
+        var viewport = getViewport(false);
+
+        ghostBlobs = _.filter(ghostBlobs, function (element) {
+            return !ghostSet[element.id] && // a fresher blob with the same id doesn't exist in blobArray already
+                (curTimestamp - element.lastTimestamp < 10000) && // last seen no more than 10 seconds ago
+                (
+                 (Math.abs(viewport.x - element.nx) > (viewport.dx + element.nSize) * 0.9) ||
+                 (Math.abs(viewport.y - element.ny) > (viewport.dy + element.nSize) * 0.9)
+                ); // outside of firmly visible area, otherwise there's no need to remember it
+        });
+
+        ghostBlobs.forEach(function (element) {
+            blobArray.push(element);
+        });
+
+        ghostBlobs = blobArray;
+
+        return blobArray;
+    }
     function findFoodToEat(cell, blobArray){
+        blobArray = augmentBlobArray(blobArray);
+
+        zeach.myPoints.forEach(function(cell) {
+            cell.gr_is_mine = true;
+        });
+
+        var accs = zeach.myPoints.map(function (cell) {
+
+            var per_food = [], per_threat = [];
+            var acc = {
+                fx: 0,
+                fy: 0,
+                x: cell.nx,
+                y: cell.ny,
+                size : cell.nSize,
+                per_food: per_food,
+                per_threat: per_threat,
+                cumulatives: [ { x: 0, y: 0}, { x: 0, y: 0} ],
+            };
+            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
+
+            // Avoid walls too
+            var wallArray = [];
+            wallArray.push({id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -3, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -4, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -5, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30});
+            wallArray.forEach(function(el) {
+                // Calculate repulsion vector
+                var vec = { id: el.id, gr_type: true, x: cell.nx - el.nx, y: cell.ny - el.ny };
+                var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+                // Normalize it to unit length
+                vec.x /= dist;
+                vec.y /= dist;
+
+                // Walls have pseudo-size to generate repulsion, but we can move farther.
+                dist += cell.nSize / 2.0;
+
+                dist = Math.max(dist, 0.01);
+
+                // Walls. Hate them muchly.
+                dist /= 10;
+
+                // The more we're split and the more we're to lose, the more we should be afraid.
+                dist /= cell.nSize * Math.sqrt(zeach.myPoints.length);
+
+                // The farther they're from us the less repulsive/attractive they are.
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                    return;
+                }
+
+                // Save element-produced force for visualization
+                per_threat.push(vec);
+
+                // Sum forces from all threats
+                acc.fx += vec.x;
+                acc.fy += vec.y;
+            });
+
+            blobArray.forEach(function(el) {
+                var vec = { id: el.id, x: cell.nx - el.nx, y: cell.ny - el.ny };
+
+                if(el.gr_is_mine) {
+                    return; //our cell, ignore
+                } else if( !el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
+                //if(!el.isVirus && (getMass(el.nSize) <= 9)) {
+                    //vec.gr_type = null; //edible
+                } else if (!el.isVirus && (getMass(el.nSize) * 3 < (getMass(cell.nSize) * 4))) {
+                    return; //not edible ignorable
+                    // TODO: shouldn't really be so clear-cut. Must generate minor repulsion/attraction depending on size.
+                } else {
+                    vec.gr_type = true; //threat
+                }
+
+                // Calculate repulsion vector
+                var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+                // Normalize it to unit length
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(el.nSize > cell.nSize) {
+                    if(el.isVirus) {
+                        // Viruses are only a threat if they're smaller than us
+                        return;
+                    }
+
+                    // Distance till consuming
+                    dist -= el.nSize;
+                    dist += cell.nSize /　3.0;
+                    dist -= 11;
+
+                    dist = Math.max(dist, 0.01);
+
+                    // Prioritize targets by size
+                    if(!vec.gr_type) {
+                        //Non-threat
+                        dist /= el.nSize;
+                    } else {
+                        var ratio = getMass(el.nSize) / getMass(cell.nSize);
+                        // Cells that 1 to 8 times bigger are the most dangerous.
+                        // Prioritize them by a truncated parabola up to 6 times.
+
+                        // when we are fractured into small parts, we might underestimate
+                        // how cells a lot bigger than us can be interested in us as a conglomerate of mass.
+                        // So calculate threat index for our total mass too.
+                        var ratio2 = getMass(el.nSize) / totalMass;
+                        if(ratio2 < 4.5 && ratio > 4.5) {
+                            ratio2 = 4.5;
+                        }
+
+                        ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
+                        ratio2 = Math.min(5, Math.max(0, - (ratio2 - 1) * (ratio2 - 8))) + 1;
+                        ratio = Math.max(ratio, ratio2);
+
+                        // The more we're split and the more we're to lose, the more we should be afraid.
+                        dist /= ratio * cell.nSize * Math.sqrt(zeach.myPoints.length);
+                    }
+
+                } else {
+                    // Distance till consuming
+                    dist += el.nSize * 1 / 3;
+                    dist -= cell.nSize;
+                    dist -= 11;
+
+                    if(el.isVirus) {
+                        if(zeach.myPoints.length >= 16 ) {
+                            // Can't split anymore so viruses are actually a good food!
+                            delete vec.gr_type; //vec.gr_type = null;
+                        } else {
+                            // Hate them a bit less than same-sized blobs.
+                            dist *= 2;
+                        }
+                    }
+
+                    dist = Math.max(dist, 0.01);
+
+                    // Prioritize targets by size
+                    dist /= el.nSize;
+                }
+
+                if(!vec.gr_type) {
+                    //Not a threat. Make it attractive.
+                    dist = -dist;
+                }
+
+                // The farther they're from us the less repulsive/attractive they are.
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                    return;
+                }
+
+                // Save element-produced force for visualization
+                (vec.gr_type ? per_threat : per_food).push(vec);
+
+                // Sum forces per target type
+                var cumul = acc.cumulatives[!vec.gr_type ? 1 : 0];
+                cumul.x += vec.x;
+                cumul.y += vec.y;
+            });
+
+            // Sum forces from all sources
+            acc.fx += _.sum(_.pluck(acc.cumulatives, "x"));
+            acc.fy += _.sum(_.pluck(acc.cumulatives, "y"));
+
+            // Save resulting info for visualization
+            cell.grazeInfo = acc;
+            return acc;
+        });
+
+        var funcs = accs.map(function(acc) {
+            return new dasMouseSpeedFunction(acc.x, acc.y, 200, acc.fx, acc.fy);
+        });
+
+        // Pick gradient ascent step size for better convergence
+        // so that coord jumps don't exceed ~50 units
+        var step = _.sum(accs.map(function(acc) {
+            return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
+        }));
+        step = 50 / step;
+        if(!isFinite(step)) {
+            step = 50;
+        }
+
+        var viewport = getViewport(false);
+        funcs.push(
+            new dasBorderFunction(
+                viewport.x - viewport.dx,
+                viewport.y - viewport.dy,
+                viewport.x + viewport.dx,
+                viewport.y + viewport.dy,
+                -1000
+            )
+        );
+
+        var func = new dasSumFunction(funcs);
+
+        var results = accs.map(function(acc) {
+            return gradient_ascend(func, step, 100, acc.x, acc.y);
+        });
+
+        var coords = _.max(results, "v");
+
+        var ans = {
+            id: -5,
+            x: Math.min(zeach.mapRight - cell.nSize/2, Math.max(zeach.mapLeft + cell.nSize/2, coords.x)),
+            y: Math.min(zeach.mapBottom - cell.nSize/2, Math.max(zeach.mapTop + cell.nSize/2, coords.y)),
+        };
+
+        return ans;
+    }
+
+
+    function findFoodToEat_old(cell, blobArray){
         var edibles = [];
         var densityResults = [];
         var threats = getThreats(blobArray, getMass(cell.size));
@@ -484,12 +833,13 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
         return zeach.allNodes[target[0].id];
     }
+
     function avoidThreats(threats, cell){
         // Avoid walls too
-        threats.push({x: cell.x, y: -1, size: 1});
-        threats.push({x: cell.x, y: 11181, size: 1});
-        threats.push({y: cell.y, x: -1, size: 1});
-        threats.push({y: cell.y, x: 11181, size: 1});
+        threats.push({x: cell.x, y: zeach.mapTop - 1, size: 1});
+        threats.push({x: cell.x, y: zeach.mapBottom + 1, size: 1});
+        threats.push({y: cell.y, x: zeach.mapLeft - 1, size: 1});
+        threats.push({y: cell.y, x: zeach.mapRight + 1, size: 1});
 
         var direction = threats.reduce(function(acc, el) {
             // Calculate repulsion vector
@@ -549,6 +899,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         if (showVisualCues && isPlayerAlive()) {
             drawMapBorders(ctx);
             drawGrazingLines(ctx);
+            drawTrailTail(ctx);
             drawSplitGuide(ctx, getSelectedBlob());
             drawMiniMap();
         }
@@ -740,6 +1091,128 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         }
         var oldLineWidth = ctx.lineWidth;
         var oldColor = ctx.color;
+        var oldGlobalAlpha = ctx.globalAlpha;
+
+        zeach.myPoints.forEach(function(playerBlob) {
+            if(!playerBlob.grazeInfo) {
+                return;
+            }
+            var grazeInfo = playerBlob.grazeInfo;
+
+            var nullVec = { x: 0, y: 0 };
+            var cumulatives = grazeInfo.cumulatives;
+            var maxSize = 0.001;
+
+            // Render threat forces
+            grazeInfo.per_threat.forEach(function (grazeVec){
+                var element = zeach.allNodes[grazeVec.id];
+
+                if(!element) return; //Wall or dead or something
+
+                //drawLine(ctx,element, playerBlob, "red" );
+                //drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "red" );
+                drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "red" );
+
+                var grazeVecLen = Math.sqrt(grazeVec.x * grazeVec.x + grazeVec.y * grazeVec.y);
+
+                ctx.globalAlpha = 0.5 / zeach.myPoints.length;
+                ctx.beginPath();
+                ctx.arc(element.x, element.y, grazeVecLen / maxSize / 20, 0, 2 * Math.PI, false);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            });
+
+            if(zeach.myPoints.length <= 1) {
+                // If we're not fragmented, render fancy food forces
+                grazeInfo.per_food.forEach(function (grazeVec){
+                    var element = zeach.allNodes[grazeVec.id];
+
+                    if(!element) return; //Wall or dead or something
+
+                    //drawLine(ctx,element, playerBlob, "white" );
+                    drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "green" );
+                    //drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "green" );
+                });
+            }
+
+            // Prepare to render cumulatives
+            maxSize *= grazeInfo.per_threat.length + grazeInfo.per_food.length;
+            maxSize /= 10;
+
+            ctx.lineWidth = 10;
+
+            // Render summary force without special forces, like walls
+            drawLine(ctx,playerBlob,
+                {
+                    x: playerBlob.x + (cumulatives[0].x + cumulatives[1].x) / maxSize,
+                    y: playerBlob.y + (cumulatives[0].y + cumulatives[1].y) / maxSize,
+                }, "gray"
+            );
+
+            // Render foods and threats force cumulatives
+            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[1].x / maxSize, y: playerBlob.y + cumulatives[1].y / maxSize }, "green" );
+            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[0].x / maxSize, y: playerBlob.y + cumulatives[0].y / maxSize }, "red" );
+
+            // Render summary force with special forces, like walls
+            ctx.lineWidth = 5;
+            drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeInfo.fx) / maxSize, y: playerBlob.y + (grazeInfo.fy) / maxSize }, "orange" );
+            ctx.lineWidth = 1;
+            drawLine(ctx,playerBlob, {x: playerBlob.x + 300 * (grazeInfo.fx) / maxSize, y: playerBlob.y + 300 * (grazeInfo.fy) / maxSize }, "orange" );
+        });
+
+        var viewport = getViewport(true);
+
+        // Render sent mouse coords as a small circle
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(lastMouseCoords.x, lastMouseCoords.y, 0.01 * viewport.dx, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Render viewport borders, useful for blob lookout and 10-sec-memoization debugging
+        ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
+        ctx.lineWidth = 5;
+
+        ctx.beginPath();
+        ctx.moveTo(viewport.x - viewport.dx, viewport.y - viewport.dy);
+        ctx.lineTo(viewport.x + viewport.dx, viewport.y - viewport.dy);
+        ctx.lineTo(viewport.x + viewport.dx, viewport.y + viewport.dy);
+        ctx.lineTo(viewport.x - viewport.dx, viewport.y + viewport.dy);
+        ctx.lineTo(viewport.x - viewport.dx, viewport.y - viewport.dy);
+        ctx.stroke();
+
+        ctx.globalAlpha = oldGlobalAlpha;
+        ctx.lineWidth = oldLineWidth;
+        ctx.color = oldColor;
+    }
+
+    function drawTrailTail(ctx) {
+        // Render trailing tail that indicates real movement,
+        // based on the difference between client-interpolated and real coords.
+        var trailScale = 5;
+        zeach.myPoints.forEach(function(playerBlob) {
+            var d = { x: playerBlob.nx - playerBlob.x, y: playerBlob.ny - playerBlob.y };
+            drawLine(ctx,playerBlob, {x: playerBlob.x - d.x * trailScale, y: playerBlob.y - d.y * trailScale }, myColor );
+            //drawLine(ctx,{x: playerBlob.ox, y: playerBlob.oy }, {x: playerBlob.nx, y: playerBlob.ny }, "green" );
+        });
+    }
+
+    function drawGrazingLines_old(ctx) {
+        if(!isGrazing || !visualizeGrazing ||  !isPlayerAlive())
+        {
+            //console.log("returning early");
+            return;
+        }
+        var oldLineWidth = ctx.lineWidth;
+        var oldColor = ctx.color;
         zeach.allItems.forEach(function (element){
             if(element.isSafeTarget === true)
                 drawLine(ctx,element, getSelectedBlob(), "white" );
@@ -760,6 +1233,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         ctx.color = oldColor;
 
     }
+
 // =============
 
 
@@ -1678,6 +2152,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             if(l) {
                 if(h) {
                     /*new*//*mikey*//*remap*/OnCellEaten(l,h);
+                    // Remove from 10-sec-remembered cells list by id
+                    _.remove(ghostBlobs, {id: h.id});
+
                     h.S();
                     h.p = h.x;
                     h.q = h.y;
