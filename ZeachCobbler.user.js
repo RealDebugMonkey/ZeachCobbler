@@ -436,34 +436,45 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             return;
         }
 
-        if(null == throttledResetGrazingTargetId){
-            throttledResetGrazingTargetId = _.throttle(function (){
-                grazingTargetID = null;
-                //console.log(~~(Date.now()/1000));
-            }, 200);
-        }
-
-        // with target fixation on, target remains until it's eaten by someone or
-        // otherwise disappears. With it off target is constantly recalculated
-        // at the expense of CPU
-        if(!grazingTargetFixation){
-            throttledResetGrazingTargetId();
-        }
-
         var target;
-        if(!zeach.allNodes.hasOwnProperty(grazingTargetID))
-        {
-            var target = findFoodToEat(getSelectedBlob(), zeach.allItems);
-            if(-1 == target){
-                isGrazing = false;
-                return;
+
+        switch(isGrazing) {
+            case 1: {
+                if(null == throttledResetGrazingTargetId){
+                    throttledResetGrazingTargetId = _.throttle(function (){
+                        grazingTargetID = null;
+                        //console.log(~~(Date.now()/1000));
+                    }, 200);
+                }
+
+                // with target fixation on, target remains until it's eaten by someone or
+                // otherwise disappears. With it off target is constantly recalculated
+                // at the expense of CPU
+                if(!grazingTargetFixation){
+                    throttledResetGrazingTargetId();
+                }
+
+                if(!zeach.allNodes.hasOwnProperty(grazingTargetID))
+                {
+                    var target = findFoodToEat_old(getSelectedBlob(), zeach.allItems);
+                    if(-1 == target){
+                        isGrazing = false;
+                        return;
+                    }
+                    grazingTargetID = target.id;
+                }
+                else
+                {
+                    target = zeach.allNodes[grazingTargetID];
+                }
+                break;
             }
-            grazingTargetID = target.id;
+            case 2: {
+                target = findFoodToEat();
+                break;
+            }
         }
-        else
-        {
-            target = zeach.allNodes[grazingTargetID];
-        }
+
         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
     }
 
@@ -582,8 +593,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
         return blobArray;
     }
-    function findFoodToEat(cell, blobArray){
-        blobArray = augmentBlobArray(blobArray);
+    function findFoodToEat() {
+        blobArray = augmentBlobArray(zeach.allItems);
 
         zeach.myPoints.forEach(function(cell) {
             cell.gr_is_mine = true;
@@ -898,7 +909,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function drawRescaledItems(ctx) {
         if (showVisualCues && isPlayerAlive()) {
             drawMapBorders(ctx);
-            drawGrazingLines(ctx);
+            if(1 == isGrazing) {
+                drawGrazingLines_old(ctx);
+            } else {
+                drawGrazingLines(ctx);
+            }
             drawTrailTail(ctx);
             drawSplitGuide(ctx, getSelectedBlob());
             drawMiniMap();
@@ -1015,7 +1030,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             debugStrings.push("v " + _version_);
             debugStrings.push("Server: " + serverIP);
             debugStrings.push("D - toggle debug display");
-            debugStrings.push("G - grazing: " + (isGrazing ? "On" : "Off"));
+            debugStrings.push("G - grazing: " + (isGrazing ? (1 == isGrazing) ? "Old" : "New" : "Off"));
         }
         if(2 <= displayDebugInfo) {
             debugStrings.push("M - suspend mouse: " + (suspendMouseUpdates ? "On" : "Off"));
@@ -1555,7 +1570,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         }
         else if('G'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazingTargetID = null;
-            isGrazing = !isGrazing;
+            isGrazing = (2 == isGrazing) ? false : 2;
+        }
+        else if('H'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            grazingTargetID = null;
+            isGrazing = (1 == isGrazing) ? false : 1;
         }
         else if('M'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             suspendMouseUpdates = !suspendMouseUpdates;
@@ -1570,14 +1589,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             fireAtVirusNearestToBlob(getSelectedBlob(),zeach.allItems);
         }
-        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && isGrazing && grazingTargetFixation)
+        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing) && grazingTargetFixation)
         {
             console.log("Retarget requested");
             var pseudoBlob = getMouseCoordsAsPseudoBlob();
 
             pseudoBlob.size = getSelectedBlob().size;
             //pseudoBlob.scoreboard = scoreboard;
-            var target = findFoodToEat(pseudoBlob,zeach.allItems);
+            var target = findFoodToEat_old(pseudoBlob,zeach.allItems);
             if(-1 == target){
                 isGrazing = false;
                 return;
