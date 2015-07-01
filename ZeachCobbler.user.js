@@ -128,8 +128,9 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 var _version_ = GM_info.script.version;
-var debugMonkeyReleaseMessage = "<h3>New Grazer!</h3><p>Thanks to Albel727 the grazer has recieved a complete" +
-    "overhaul! Fear not fans of the old grazer, you can still press 'H' to use the old grazer." +
+var debugMonkeyReleaseMessage = "<h3>New Grazer!</h3><p>Thanks to Albel727 the grazer has recieved a complete " +
+    "overhaul! Fear not fans of the old grazer, you can still press 'H' to use the old grazer.</p>" +
+    "<p>And yes, I do know the stats chart is spilling out of the div. I'll get it right eventually." +
     "</p><br><br>debugmonkey</p><br><br>PS. ZeachCobbler also supports " +
     "the new AgarioMod *name skins. Try playing as *Zeach or *Pikachu to check it out.";
 //if (window.top != window.self)  //-- Don't run on frames or iframes
@@ -1114,7 +1115,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             //console.log("returning early");
             return;
         }
-        drawTrailTail(ctx);
         var oldLineWidth = ctx.lineWidth;
         var oldColor = ctx.color;
         var oldGlobalAlpha = ctx.globalAlpha;
@@ -1682,7 +1682,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         pa = true;
         Ca();
         setInterval(Ca, 18E4);
-        /*new*///C = qa = document.getElementById("canvas2");
+        /*new*///C = qa = document.getElementById("canvas");
         /*new*/C = qa = document.getElementById("canvas2");
         f = C.getContext("2d");
         /*new*//*remap*/ C.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
@@ -3948,7 +3948,7 @@ function AppendTopN(n, p, list) {
     var a = GetTopN(n,p);
     for (var i = 0; i < a.length; ++i){
         var text = a[i].name + ' (' + (p == 'gains' ? '+' : '-') + a[i].mass + ' mass)';
-        list.append('<li style="font-size: 20px; "><div style="width: 20px; height: 20px; border-radius: 50%; margin-right:5px; background-color: ' + a[i].color + '; display: inline-block;"></div>' + text + '</li>');
+        list.append('<li style="font-size: 16px; "><div style="width: 16px; height: 16px; border-radius: 50%; margin-right:5px; background-color: ' + a[i].color + '; display: inline-block;"></div>' + text + '</li>');
     };
     return a.length > 0;
 }
@@ -3972,36 +3972,36 @@ function DrawStats(game_over) {
     var seconds = (time - stats.birthday)/1000;
 
     var list = jQuery('<ul>');
-    list.append('<li style="font-size: 20px; ">Game time: ' + secondsToHms(seconds) + '</li>');
-    list.append('<li style="font-size: 20px; ">High score: ' + ~~(stats.high_score/100) + '</li>');
+    list.append('<li style="font-size: 16px; ">Game time: ' + secondsToHms(seconds) + '</li>');
+    list.append('<li style="font-size: 16px; ">High score: ' + ~~(stats.high_score/100) + '</li>');
     if (stats.top_slot == Number.POSITIVE_INFINITY){
-        list.append('<li style="font-size: 20px; ">You didn\'t make the leaderboard</li>');
+        list.append('<li style="font-size: 16px; ">You didn\'t make the leaderboard</li>');
     }
     else{
-        list.append('<li style="font-size: 20px; ">Leaderboard max: ' + stats.top_slot + '</li>');
+        list.append('<li style="font-size: 16px; ">Leaderboard max: ' + stats.top_slot + '</li>');
     }
-    list.append('<li style="font-size: 20px; padding-top: 15px">' + stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 20px; ">' + stats.cells.num + " cells eaten (" + ~~(stats.cells.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 20px; ">' + stats.w.num + " masses eaten (" + ~~(stats.w.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 20px; ">' + stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass/100) + ' mass)</li>');
-    jQuery('#statArea').append('<h1>Game Summary</h1>');
+    list.append('<li style="font-size: 16px; padding-top: 15px">' + stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass/100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.cells.num + " cells eaten (" + ~~(stats.cells.mass/100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.w.num + " masses eaten (" + ~~(stats.w.mass/100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass/100) + ' mass)</li>');
+    jQuery('#statArea').append('<h2>Game Summary</h2>');
     jQuery('#statArea').append(list);
 
     DrawPie(stats.pellets.mass, stats.w.mass, stats.cells.mass, stats.viruses.mass);
 
-    jQuery('#gainArea').append('<h2>Top Gains</h2>');
+    jQuery('#gainArea').append('<h3>Top Gains</h3>');
     list = jQuery('<ol>');
     if (AppendTopN(5, 'gains', list))
         jQuery('#gainArea').append(list);
     else
-        jQuery('#gainArea').append('<ul><li style="font-size: 20px; ">You have not eaten anybody</li></ul>');
+        jQuery('#gainArea').append('<ul><li style="font-size: 16px; ">You have not eaten anybody</li></ul>');
 
-    jQuery('#lossArea').append('<h2>Top Losses</h2>');
+    jQuery('#lossArea').append('<h3>Top Losses</h3>');
     list = jQuery('<ol>');
     if (AppendTopN(5, 'losses', list))
         jQuery('#lossArea').append(list);
     else
-        jQuery('#lossArea').append('<ul><li style="font-size: 20px; ">Nobody has eaten you</li></ul>');
+        jQuery('#lossArea').append('<ul><li style="font-size: 16px; ">Nobody has eaten you</li></ul>');
 
     if (stats.time_of_death !== null){
         jQuery('#chartArea').width(700).height(240);
@@ -4014,7 +4014,9 @@ function DrawStats(game_over) {
         stat_chart.render();
     }
     else {
-        jQuery('#chartArea').width(700).height(0);
+        jQuery('#chartArea').width(700).height(240);
+        jQuery('#chartArea')[0].width = 700;
+        jQuery('#chartArea')[0].height= 240;
     }
 }
 
@@ -4244,7 +4246,7 @@ var col1 = $("#col1");
 AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
 AppendCheckboxP(col1, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
 AppendCheckboxP(col1, 'option2', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
-AppendCheckboxP(col1, 'option3', ' Draw Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
+AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
 AppendCheckboxP(col1, 'option4', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
 //AppendCheckboxP(col1, 'option3', ' Left Mouse Button Fires', false, setLeftMouseButtonFires);
 col1.append('<BR><label>SFX<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></label>');
