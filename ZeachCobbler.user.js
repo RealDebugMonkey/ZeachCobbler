@@ -13,12 +13,13 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.20.0
+// @version      0.21.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.20.0 - Version leap due to updated grazer
+// @changes     0.21.0 - Changed way script is loaded.
+//              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
 //              0.15.0 - Fixed Minimap (Zeach broke it)
 //                     - Fixed Borders(Zeach broke them too)
