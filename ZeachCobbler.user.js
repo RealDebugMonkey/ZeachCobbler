@@ -211,8 +211,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         "autoRespawn": false,
         "respawnWithGrazer" : false,
         _visualizeGrazing : GM_getValue('visualizeGrazing', true),
-        set _visualizeGrazing(val)       {this._visualizeGrazing = val; GM_setValue('visualizeGrazing', val);},
-        get _visualizeGrazing()          {return this._visualizeGrazing;},
+        set visualizeGrazing(val)       {this._visualizeGrazing = val; GM_setValue('visualizeGrazing', val);},
+        get visualizeGrazing()          {return this._visualizeGrazing;},
         "displayMiniMap" : true,
         "clickToShoot" : false,
     };
