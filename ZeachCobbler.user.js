@@ -3,6 +3,7 @@
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
+// @contributer  albel727 - Vastly improved grazer
 // @contributer  The White Light -- You rock the maths.
 // @contributer  Angal - For the UI additions and server select code
 // @contributer  Gjum - Bug fixes
@@ -12,12 +13,14 @@
 // @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 // @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 // @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.15.3
+// @version      0.20.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.15.0 - Fixed Minimap (Zeach broke it)
+// @changes     0.20.0 - Version leap due to updated grazer
+//                     - Fixes for new client behavior
+//              0.15.0 - Fixed Minimap (Zeach broke it)
 //                     - Fixed Borders(Zeach broke them too)
 //                     - Lite Brite mode added (and some UI issues fixed)
 //                   2 - Lite Brite, SFX, and BGM settings all saved
@@ -125,10 +128,10 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 var _version_ = GM_info.script.version;
-var debugMonkeyReleaseMessage = "<h3>Another Quick Note</h3><p>This still isn't a polished release.<br>" +
-    "I was having so much fun with lite-brite mode that I decided to push.<br>" +
-    "Click on the extended options tab then go into spectate mode or play to check it out." +
-    "<br><br>Stay safe out there.<br><br>debugmonkey</p><br><br>PS. ZeachCobbler also supports " +
+var debugMonkeyReleaseMessage = "<h3>New Grazer!</h3><p>Thanks to Albel727 the grazer has recieved a complete " +
+    "overhaul! Fear not fans of the old grazer, you can still press 'H' to use the old grazer.</p>" +
+    "<p>And yes, I do know the stats chart is spilling out of the div. I'll get it right eventually." +
+    "</p><br><br>debugmonkey</p><br><br>PS. ZeachCobbler also supports " +
     "the new AgarioMod *name skins. Try playing as *Zeach or *Pikachu to check it out.";
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -149,13 +152,13 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
 
     // Configurable options we want to persist
-    var visualizeGrazing = GM_getValue('visualizeGrazing', true);
+
     var rightClickFires = GM_getValue('rightClickFires', false);
     var minimapScale = GM_getValue('minimapScale', 48);
     var displayDebugInfo = 1;   // Has multiple levels
     var autoRespawn = false;
     var grazeOnAutoRespawn = false;
-    var isLiteBrite = GM_getValue('isLiteBrite', false);
+
 
     // Game State & Info
     var highScore = 0;
@@ -178,6 +181,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         Tiny_Color = "#CC66FF",
         myColor ="#3371FF",
         virusColor ="#666666";
+    var lastMouseCoords = { x: 0, y: 0 };
+    var ghostBlobs = [];
 
 
     var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
@@ -189,20 +194,25 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
     var cobbler = {
         _isAcid : false,
-        set isAcid(val)         {_isAcid = val; setAcid(val);},
+        set isAcid(val)         {this._isAcid = val; setAcid(val);},
         get isAcid()            {return this._isAcid},
         _isLiteBrite : GM_getValue('isLiteBrite', false),
-        set isLiteBrite(val)    {_isLiteBrite = val; GM_setValue('isLiteBrite', val);},
+        set isLiteBrite(val)    {this._isLiteBrite = val; GM_setValue('isLiteBrite', val);},
         get isLiteBrite()       { return this._isLiteBrite;},
         _sfxVol : GM_getValue('sfxVol', 0.5),
-        set sfxVol(val)         {_sfxVol = val; GM_setValue('sfxVol', val);},
+        set sfxVol(val)         {this._sfxVol = val; GM_setValue('sfxVol', val);},
         get sfxVol()            { return this._sfxVol;},
         _bgmVol : GM_getValue('bgmVol', 0.5),
-        set bgmVol(val)         {_bgmVol = val; GM_setValue('bgmVol', val);},
+        set bgmVol(val)         {this._bgmVol = val; GM_setValue('bgmVol', val);},
         get bgmVol()            { return this._bgmVol;},
+        _drawTail : GM_getValue('drawTail', false),
+        set drawTail(val)       {this._drawTail = val; GM_setValue('drawTail', val);},
+        get drawTail()          {return this._drawTail;},
         "autoRespawn": false,
         "respawnWithGrazer" : false,
-        "visualizeGrazer" : true,
+        _visualizeGrazing : GM_getValue('visualizeGrazing', true),
+        set visualizeGrazing(val)       {this._visualizeGrazing = val; GM_setValue('visualizeGrazing', val);},
+        get visualizeGrazing()          {return this._visualizeGrazing;},
         "displayMiniMap" : true,
         "clickToShoot" : false,
     };
@@ -283,7 +293,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function GetGmValues(){
         console.log("GM nick: " + GM_getValue('nick', "none set"));
         console.log("GM rightClickFires: " + GM_getValue('rightClickFires', "none set"));
-        console.log("GM visualizeGrazing: " + GM_getValue('visualizeGrazing', "none set"));
     }
 
     function isPlayerAlive(){
@@ -291,6 +300,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function sendMouseUpdate(ws, mouseX2,mouseY2) {
+        lastMouseCoords = {x: mouseX2, y: mouseY2};
 
         if (ws != null && ws.readyState == ws.OPEN) {
             var z0 = new ArrayBuffer(21);
@@ -329,7 +339,18 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function distanceFromCellZero(blob) {
-        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) : 11180;
+        return isPlayerAlive() ? lineDistance(blob, getSelectedBlob()) :
+            Math.sqrt((zeach.mapRight - zeach.mapLeft) * (zeach.mapRight - zeach.mapLeft) + (zeach.mapBottom - zeach.mapTop) * (zeach.mapBottom - zeach.mapTop));
+    }
+
+    function getViewport(interpolated) {
+        var x =  _.sum(_.pluck(zeach.myPoints, interpolated ? "x" : "nx")) / zeach.myPoints.length;
+        var y =  _.sum(_.pluck(zeach.myPoints, interpolated ? "y" : "ny")) / zeach.myPoints.length;
+        var totalRadius =  _.sum(_.pluck(zeach.myPoints, interpolated ? "size" : "nSize"));
+        var zoomFactor = Math.pow(Math.min(64.0 / totalRadius, 1), 0.4);
+        var deltaX = 1024 / zoomFactor;
+        var deltaY = 600 / zoomFactor;
+        return { x: x, y: y, dx: deltaX, dy: deltaY };
     }
 
     function getMouseCoordsAsPseudoBlob(){
@@ -422,38 +443,384 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             return;
         }
 
-        if(null == throttledResetGrazingTargetId){
-            throttledResetGrazingTargetId = _.throttle(function (){
-                grazingTargetID = null;
-                //console.log(~~(Date.now()/1000));
-            }, 200);
-        }
-
-        // with target fixation on, target remains until it's eaten by someone or
-        // otherwise disappears. With it off target is constantly recalculated
-        // at the expense of CPU
-        if(!grazingTargetFixation){
-            throttledResetGrazingTargetId();
-        }
-
         var target;
-        if(!zeach.allNodes.hasOwnProperty(grazingTargetID))
-        {
-            var target = findFoodToEat(getSelectedBlob(), zeach.allItems);
-            if(-1 == target){
-                isGrazing = false;
-                return;
+
+        switch(isGrazing) {
+            case 1: {
+                if(null == throttledResetGrazingTargetId){
+                    throttledResetGrazingTargetId = _.throttle(function (){
+                        grazingTargetID = null;
+                        //console.log(~~(Date.now()/1000));
+                    }, 200);
+                }
+
+                // with target fixation on, target remains until it's eaten by someone or
+                // otherwise disappears. With it off target is constantly recalculated
+                // at the expense of CPU
+                if(!grazingTargetFixation){
+                    throttledResetGrazingTargetId();
+                }
+
+                if(!zeach.allNodes.hasOwnProperty(grazingTargetID))
+                {
+                    var target = findFoodToEat_old(getSelectedBlob(), zeach.allItems);
+                    if(-1 == target){
+                        isGrazing = false;
+                        return;
+                    }
+                    grazingTargetID = target.id;
+                }
+                else
+                {
+                    target = zeach.allNodes[grazingTargetID];
+                }
+                break;
             }
-            grazingTargetID = target.id;
+            case 2: {
+                target = findFoodToEat();
+                break;
+            }
         }
-        else
-        {
-            target = zeach.allNodes[grazingTargetID];
-        }
+
         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
     }
 
-    function findFoodToEat(cell, blobArray){
+    function dasMouseSpeedFunction(cx, cy, radius, nx, ny) {
+        this.cx = cx; this.cy = cy; this.radius = radius; this.nx = nx; this.ny = ny;
+        this.value = function(x, y) {
+            x -= this.cx; y -= this.cy;
+            var lensq = x*x + y*y;
+            var len = Math.sqrt(lensq);
+
+            var val = x * this.nx + y * this.ny;
+            if (len > this.radius) {
+                return {
+                    v: val / len,
+                    dx: y * (this.nx * y - this.ny * x) / (lensq * len),
+                    dy: x * (this.ny * x - this.nx * y) / (lensq * len),
+                };
+            } else {
+                return {v: val / this.radius, dx: this.nx, dy: this.ny};
+            }
+        }
+    }
+
+    function dasBorderFunction(l, t, r, b, w) {
+        this.l = l; this.t = t; this.r = r; this.b = b; this.w = w;
+        this.value = function(x, y) {
+            var v = 0, dx = 0, dy = 0;
+            if (x < this.l) {
+                v += this.l - x;
+                dx = -this.w;
+            } else if (x > this.r) {
+                v += x - this.r;
+                dx = this.w;
+            }
+
+            if (y < this.t) {
+                v += this.t - y;
+                dy = -this.w;
+            } else if (y > this.b) {
+                v += y - this.b;
+                dy = this.w;
+            }
+
+            return {v: v * this.w, dx: dx, dy: dy};
+        }
+    }
+
+    function dasSumFunction(sumfuncs) {
+        this.sumfuncs = sumfuncs;
+        this.value = function(x, y) {
+            return sumfuncs.map(function(func) {
+                return func.value(x, y);
+            }).reduce(function (acc, val) {
+                acc.v += val.v; acc.dx += val.dx; acc.dy += val.dy;
+                return acc;
+            });
+        }
+    }
+
+    function gradient_ascend(func, step, iters, x, y) {
+        var max_step = step;
+
+        var last = func.value(x, y);
+
+        while(iters > 0) {
+            iters -= 1;
+
+            x += last.dx * step;
+            y += last.dy * step;
+            var tmp = func.value(x, y);
+            if (tmp.v < last.v) {
+                step /= 2;
+            } else {
+                step = Math.min(2 * step, max_step);
+            }
+            //console.log([x, y, tmp[0], step]);
+
+            last.v = tmp.v;
+            last.dx = (last.dx + tmp.dx)/2.0;
+            last.dy = (last.dy + tmp.dy)/2.0;
+        }
+
+        return {x: x, y: y, v: last.v};
+    }
+
+    function augmentBlobArray(blobArray) {
+
+        blobArray = blobArray.slice();
+
+        var curTimestamp = Date.now();
+
+        // Outdated blob id set
+        var ghostSet = [];
+
+        blobArray.forEach(function (element) {
+            ghostSet[element.id] = true;
+            element.lastTimestamp = curTimestamp;
+        });
+
+        var viewport = getViewport(false);
+
+        ghostBlobs = _.filter(ghostBlobs, function (element) {
+            return !ghostSet[element.id] && // a fresher blob with the same id doesn't exist in blobArray already
+                (curTimestamp - element.lastTimestamp < 10000) && // last seen no more than 10 seconds ago
+                (
+                    (Math.abs(viewport.x - element.nx) > (viewport.dx + element.nSize) * 0.9) ||
+                    (Math.abs(viewport.y - element.ny) > (viewport.dy + element.nSize) * 0.9)
+                ); // outside of firmly visible area, otherwise there's no need to remember it
+        });
+
+        ghostBlobs.forEach(function (element) {
+            blobArray.push(element);
+        });
+
+        ghostBlobs = blobArray;
+
+        return blobArray;
+    }
+    function findFoodToEat() {
+        blobArray = augmentBlobArray(zeach.allItems);
+
+        zeach.myPoints.forEach(function(cell) {
+            cell.gr_is_mine = true;
+        });
+
+        var accs = zeach.myPoints.map(function (cell) {
+
+            var per_food = [], per_threat = [];
+            var acc = {
+                fx: 0,
+                fy: 0,
+                x: cell.nx,
+                y: cell.ny,
+                size : cell.nSize,
+                per_food: per_food,
+                per_threat: per_threat,
+                cumulatives: [ { x: 0, y: 0}, { x: 0, y: 0} ],
+            };
+            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
+
+            // Avoid walls too
+            var wallArray = [];
+            wallArray.push({id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -3, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -4, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30});
+            wallArray.push({id: -5, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30});
+            wallArray.forEach(function(el) {
+                // Calculate repulsion vector
+                var vec = { id: el.id, gr_type: true, x: cell.nx - el.nx, y: cell.ny - el.ny };
+                var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+                // Normalize it to unit length
+                vec.x /= dist;
+                vec.y /= dist;
+
+                // Walls have pseudo-size to generate repulsion, but we can move farther.
+                dist += cell.nSize / 2.0;
+
+                dist = Math.max(dist, 0.01);
+
+                // Walls. Hate them muchly.
+                dist /= 10;
+
+                // The more we're split and the more we're to lose, the more we should be afraid.
+                dist /= cell.nSize * Math.sqrt(zeach.myPoints.length);
+
+                // The farther they're from us the less repulsive/attractive they are.
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                    return;
+                }
+
+                // Save element-produced force for visualization
+                per_threat.push(vec);
+
+                // Sum forces from all threats
+                acc.fx += vec.x;
+                acc.fy += vec.y;
+            });
+
+            blobArray.forEach(function(el) {
+                var vec = { id: el.id, x: cell.nx - el.nx, y: cell.ny - el.ny };
+
+                if(el.gr_is_mine) {
+                    return; //our cell, ignore
+                } else if( !el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
+                    //if(!el.isVirus && (getMass(el.nSize) <= 9)) {
+                    //vec.gr_type = null; //edible
+                } else if (!el.isVirus && (getMass(el.nSize) * 3 < (getMass(cell.nSize) * 4))) {
+                    return; //not edible ignorable
+                    // TODO: shouldn't really be so clear-cut. Must generate minor repulsion/attraction depending on size.
+                } else {
+                    vec.gr_type = true; //threat
+                }
+
+                // Calculate repulsion vector
+                var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+
+                // Normalize it to unit length
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(el.nSize > cell.nSize) {
+                    if(el.isVirus) {
+                        // Viruses are only a threat if they're smaller than us
+                        return;
+                    }
+
+                    // Distance till consuming
+                    dist -= el.nSize;
+                    dist += cell.nSize /　3.0;
+                    dist -= 11;
+
+                    dist = Math.max(dist, 0.01);
+
+                    // Prioritize targets by size
+                    if(!vec.gr_type) {
+                        //Non-threat
+                        dist /= el.nSize;
+                    } else {
+                        var ratio = getMass(el.nSize) / getMass(cell.nSize);
+                        // Cells that 1 to 8 times bigger are the most dangerous.
+                        // Prioritize them by a truncated parabola up to 6 times.
+
+                        // when we are fractured into small parts, we might underestimate
+                        // how cells a lot bigger than us can be interested in us as a conglomerate of mass.
+                        // So calculate threat index for our total mass too.
+                        var ratio2 = getMass(el.nSize) / totalMass;
+                        if(ratio2 < 4.5 && ratio > 4.5) {
+                            ratio2 = 4.5;
+                        }
+
+                        ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
+                        ratio2 = Math.min(5, Math.max(0, - (ratio2 - 1) * (ratio2 - 8))) + 1;
+                        ratio = Math.max(ratio, ratio2);
+
+                        // The more we're split and the more we're to lose, the more we should be afraid.
+                        dist /= ratio * cell.nSize * Math.sqrt(zeach.myPoints.length);
+                    }
+
+                } else {
+                    // Distance till consuming
+                    dist += el.nSize * 1 / 3;
+                    dist -= cell.nSize;
+                    dist -= 11;
+
+                    if(el.isVirus) {
+                        if(zeach.myPoints.length >= 16 ) {
+                            // Can't split anymore so viruses are actually a good food!
+                            delete vec.gr_type; //vec.gr_type = null;
+                        } else {
+                            // Hate them a bit less than same-sized blobs.
+                            dist *= 2;
+                        }
+                    }
+
+                    dist = Math.max(dist, 0.01);
+
+                    // Prioritize targets by size
+                    dist /= el.nSize;
+                }
+
+                if(!vec.gr_type) {
+                    //Not a threat. Make it attractive.
+                    dist = -dist;
+                }
+
+                // The farther they're from us the less repulsive/attractive they are.
+                vec.x /= dist;
+                vec.y /= dist;
+
+                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                    return;
+                }
+
+                // Save element-produced force for visualization
+                (vec.gr_type ? per_threat : per_food).push(vec);
+
+                // Sum forces per target type
+                var cumul = acc.cumulatives[!vec.gr_type ? 1 : 0];
+                cumul.x += vec.x;
+                cumul.y += vec.y;
+            });
+
+            // Sum forces from all sources
+            acc.fx += _.sum(_.pluck(acc.cumulatives, "x"));
+            acc.fy += _.sum(_.pluck(acc.cumulatives, "y"));
+
+            // Save resulting info for visualization
+            cell.grazeInfo = acc;
+            return acc;
+        });
+
+        var funcs = accs.map(function(acc) {
+            return new dasMouseSpeedFunction(acc.x, acc.y, 200, acc.fx, acc.fy);
+        });
+
+        // Pick gradient ascent step size for better convergence
+        // so that coord jumps don't exceed ~50 units
+        var step = _.sum(accs.map(function(acc) {
+            return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
+        }));
+        step = 50 / step;
+        if(!isFinite(step)) {
+            step = 50;
+        }
+
+        var viewport = getViewport(false);
+        funcs.push(
+            new dasBorderFunction(
+                viewport.x - viewport.dx,
+                viewport.y - viewport.dy,
+                viewport.x + viewport.dx,
+                viewport.y + viewport.dy,
+                -1000
+            )
+        );
+
+        var func = new dasSumFunction(funcs);
+
+        var results = accs.map(function(acc) {
+            return gradient_ascend(func, step, 100, acc.x, acc.y);
+        });
+
+        var coords = _.max(results, "v");
+
+        var ans = {
+            id: -5,
+            x: coords.x,
+            y: coords.y,
+        };
+
+        return ans;
+    }
+
+
+    function findFoodToEat_old(cell, blobArray){
         var edibles = [];
         var densityResults = [];
         var threats = getThreats(blobArray, getMass(cell.size));
@@ -484,12 +851,13 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
         return zeach.allNodes[target[0].id];
     }
+
     function avoidThreats(threats, cell){
         // Avoid walls too
-        threats.push({x: cell.x, y: -1, size: 1});
-        threats.push({x: cell.x, y: 11181, size: 1});
-        threats.push({y: cell.y, x: -1, size: 1});
-        threats.push({y: cell.y, x: 11181, size: 1});
+        threats.push({x: cell.x, y: zeach.mapTop - 1, size: 1});
+        threats.push({x: cell.x, y: zeach.mapBottom + 1, size: 1});
+        threats.push({y: cell.y, x: zeach.mapLeft - 1, size: 1});
+        threats.push({y: cell.y, x: zeach.mapRight + 1, size: 1});
 
         var direction = threats.reduce(function(acc, el) {
             // Calculate repulsion vector
@@ -548,7 +916,16 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function drawRescaledItems(ctx) {
         if (showVisualCues && isPlayerAlive()) {
             drawMapBorders(ctx);
-            drawGrazingLines(ctx);
+            if(1 == isGrazing) {
+                drawGrazingLines_old(ctx);
+            } else {
+                drawGrazingLines(ctx);
+            }
+            if(cobbler.drawTail){
+                drawTrailTail(ctx);
+            }
+
+
             drawSplitGuide(ctx, getSelectedBlob());
             drawMiniMap();
         }
@@ -664,14 +1041,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             debugStrings.push("v " + _version_);
             debugStrings.push("Server: " + serverIP);
             debugStrings.push("D - toggle debug display");
-            debugStrings.push("G - grazing: " + (isGrazing ? "On" : "Off"));
+            debugStrings.push("G - grazing: " + (isGrazing ? (1 == isGrazing) ? "Old" : "New" : "Off"));
         }
         if(2 <= displayDebugInfo) {
             debugStrings.push("M - suspend mouse: " + (suspendMouseUpdates ? "On" : "Off"));
             debugStrings.push("P - grazing target fixation :" + (grazingTargetFixation ? "On" : "Off"));
             if(grazingTargetFixation){ debugStrings.push("  (T) to retarget");}
             debugStrings.push("O - right click: " + (rightClickFires ? "Fires @ virus" : "Default"))
-            debugStrings.push("V - visualize grazing: " + (visualizeGrazing ? "On" : "Off"))
+            debugStrings.push("V - visualize grazing: " + (cobbler.visualizeGrazing ? "On" : "Off"))
             debugStrings.push("Z - zoom: " + zoomFactor.toString());
             if (isPlayerAlive()) {
                 debugStrings.push("Location: " + Math.floor(getSelectedBlob().x) + ", " + Math.floor(getSelectedBlob().y));
@@ -733,7 +1110,129 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function drawGrazingLines(ctx) {
-        if(!isGrazing || !visualizeGrazing ||  !isPlayerAlive())
+        if(!isGrazing || !cobbler.visualizeGrazing ||  !isPlayerAlive())
+        {
+            //console.log("returning early");
+            return;
+        }
+        var oldLineWidth = ctx.lineWidth;
+        var oldColor = ctx.color;
+        var oldGlobalAlpha = ctx.globalAlpha;
+
+        zeach.myPoints.forEach(function(playerBlob) {
+            if(!playerBlob.grazeInfo) {
+                return;
+            }
+            var grazeInfo = playerBlob.grazeInfo;
+
+            var nullVec = { x: 0, y: 0 };
+            var cumulatives = grazeInfo.cumulatives;
+            var maxSize = 0.001;
+
+            // Render threat forces
+            grazeInfo.per_threat.forEach(function (grazeVec){
+                var element = zeach.allNodes[grazeVec.id];
+
+                if(!element) return; //Wall or dead or something
+
+                //drawLine(ctx,element, playerBlob, "red" );
+                //drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "red" );
+                drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "red" );
+
+                var grazeVecLen = Math.sqrt(grazeVec.x * grazeVec.x + grazeVec.y * grazeVec.y);
+
+                ctx.globalAlpha = 0.5 / zeach.myPoints.length;
+                ctx.beginPath();
+                ctx.arc(element.x, element.y, grazeVecLen / maxSize / 20, 0, 2 * Math.PI, false);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            });
+
+            if(zeach.myPoints.length <= 1) {
+                // If we're not fragmented, render fancy food forces
+                grazeInfo.per_food.forEach(function (grazeVec){
+                    var element = zeach.allNodes[grazeVec.id];
+
+                    if(!element) return; //Wall or dead or something
+
+                    //drawLine(ctx,element, playerBlob, "white" );
+                    drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "green" );
+                    //drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "green" );
+                });
+            }
+
+            // Prepare to render cumulatives
+            maxSize *= grazeInfo.per_threat.length + grazeInfo.per_food.length;
+            maxSize /= 10;
+
+            ctx.lineWidth = 10;
+
+            // Render summary force without special forces, like walls
+            drawLine(ctx,playerBlob,
+                {
+                    x: playerBlob.x + (cumulatives[0].x + cumulatives[1].x) / maxSize,
+                    y: playerBlob.y + (cumulatives[0].y + cumulatives[1].y) / maxSize,
+                }, "gray"
+            );
+
+            // Render foods and threats force cumulatives
+            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[1].x / maxSize, y: playerBlob.y + cumulatives[1].y / maxSize }, "green" );
+            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[0].x / maxSize, y: playerBlob.y + cumulatives[0].y / maxSize }, "red" );
+
+            // Render summary force with special forces, like walls
+            ctx.lineWidth = 5;
+            drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeInfo.fx) / maxSize, y: playerBlob.y + (grazeInfo.fy) / maxSize }, "orange" );
+            ctx.lineWidth = 1;
+            drawLine(ctx,playerBlob, {x: playerBlob.x + 300 * (grazeInfo.fx) / maxSize, y: playerBlob.y + 300 * (grazeInfo.fy) / maxSize }, "orange" );
+        });
+
+        var viewport = getViewport(true);
+
+        // Render sent mouse coords as a small circle
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(lastMouseCoords.x, lastMouseCoords.y, 0.01 * viewport.dx, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Render viewport borders, useful for blob lookout and 10-sec-memoization debugging
+        ctx.strokeStyle = zeach.isNightMode ? '#FFFFFF' : '#000000';
+        ctx.lineWidth = 5;
+
+        ctx.beginPath();
+        ctx.moveTo(viewport.x - viewport.dx, viewport.y - viewport.dy);
+        ctx.lineTo(viewport.x + viewport.dx, viewport.y - viewport.dy);
+        ctx.lineTo(viewport.x + viewport.dx, viewport.y + viewport.dy);
+        ctx.lineTo(viewport.x - viewport.dx, viewport.y + viewport.dy);
+        ctx.lineTo(viewport.x - viewport.dx, viewport.y - viewport.dy);
+        ctx.stroke();
+
+        ctx.globalAlpha = oldGlobalAlpha;
+        ctx.lineWidth = oldLineWidth;
+        ctx.color = oldColor;
+    }
+
+    function drawTrailTail(ctx) {
+        // Render trailing tail that indicates real movement,
+        // based on the difference between client-interpolated and real coords.
+        var trailScale = 5;
+        zeach.myPoints.forEach(function(playerBlob) {
+            var d = { x: playerBlob.nx - playerBlob.x, y: playerBlob.ny - playerBlob.y };
+            drawLine(ctx,playerBlob, {x: playerBlob.x - d.x * trailScale, y: playerBlob.y - d.y * trailScale }, myColor );
+            //drawLine(ctx,{x: playerBlob.ox, y: playerBlob.oy }, {x: playerBlob.nx, y: playerBlob.ny }, "green" );
+        });
+    }
+
+    function drawGrazingLines_old(ctx) {
+        if(!isGrazing || !cobbler.visualizeGrazing ||  !isPlayerAlive())
         {
             //console.log("returning early");
             return;
@@ -760,6 +1259,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         ctx.color = oldColor;
 
     }
+
 // =============
 
 
@@ -804,9 +1304,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         // schedules all shots needed spaced evenly apart by of 'msDelayBetweenShots'
         for ( ; shotsFired < shotsNeeded; shotsFired++){
             window.setTimeout(function () {
-                    sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
-                    zeach.fireFunction(21);
-                }, msDelayBetweenShots *(shotsFired+1));
+                sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
+                zeach.fireFunction(21);
+            }, msDelayBetweenShots *(shotsFired+1));
         }
         window.setTimeout(function () { suspendMouseUpdates = false;}, msDelayBetweenShots *(shotsFired+1));
     }
@@ -1081,7 +1581,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         }
         else if('G'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazingTargetID = null;
-            isGrazing = !isGrazing;
+            isGrazing = (2 == isGrazing) ? false : 2;
+        }
+        else if('H'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            grazingTargetID = null;
+            isGrazing = (1 == isGrazing) ? false : 1;
         }
         else if('M'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             suspendMouseUpdates = !suspendMouseUpdates;
@@ -1096,14 +1600,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             fireAtVirusNearestToBlob(getSelectedBlob(),zeach.allItems);
         }
-        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && isGrazing && grazingTargetFixation)
+        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing) && grazingTargetFixation)
         {
             console.log("Retarget requested");
             var pseudoBlob = getMouseCoordsAsPseudoBlob();
 
             pseudoBlob.size = getSelectedBlob().size;
             //pseudoBlob.scoreboard = scoreboard;
-            var target = findFoodToEat(pseudoBlob,zeach.allItems);
+            var target = findFoodToEat_old(pseudoBlob,zeach.allItems);
             if(-1 == target){
                 isGrazing = false;
                 return;
@@ -1111,8 +1615,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             grazingTargetID = target.id;
         }
         else if('V'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            visualizeGrazing = !visualizeGrazing;
-            GM_setValue('visualizeGrazing', visualizeGrazing);
+            cobbler.visualizeGrazing = !cobbler.visualizeGrazing;
         }
 
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
@@ -1179,7 +1682,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         pa = true;
         Ca();
         setInterval(Ca, 18E4);
-        C = qa = document.getElementById("canvas");
+        /*new*///C = qa = document.getElementById("canvas");
+        /*new*/C = qa = document.getElementById("canvas2");
         f = C.getContext("2d");
         /*new*//*remap*/ C.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         C.onmousedown = function (a) {
@@ -1678,6 +2182,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             if(l) {
                 if(h) {
                     /*new*//*mikey*//*remap*/OnCellEaten(l,h);
+                    /*new*/// Remove from 10-sec-remembered cells list by id
+                    /*new*/_.remove(ghostBlobs, {id: h.id});
+
                     h.S();
                     h.p = h.x;
                     h.q = h.y;
@@ -2566,7 +3073,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 ZM: "EU-London",
                 ZW: "EU-London"
             };
-            g.connect = La;
+            /*new*/// Hack to kill an established websocket
+            /*new*///g.connect = La;
+            /*new*/g.connect2 = g.connect;g.connect = La;setTimeout(function(){try {g.connect2("Killing_original_websocket","");}catch(err){}} ,5000);
             var ea = 500;
             var Pa = -1;
             var Qa = -1;
@@ -2840,10 +3349,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
 
                         /*new*///if (!b) {
-                                a.stroke();
+                        a.stroke();
                         /*new*///}
                         /*new*/if(!cobbler.isLiteBrite)
                             a.fill();
+
 
 
                         /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
@@ -3121,27 +3631,27 @@ jQuery("#helloDialog").css('left','230px');
 jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; height:673px; background-color: #FFFFFF; ' +
     'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
     '<ul class="nav nav-pills" role="tablist">' +
-        '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
-        '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
-        '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Extended Options</a></li>' +
+    '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
+    '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
+    '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Extended Options</a></li>' +
         //'<li role="presentation"><a href="#page3" role="tab" data-toggle="tab">IP Connect</a></li>' +
     '</ul>'+
 
     '<div id="bigbox" class="tab-content">' +
-        '<div id="page0" role="tabpanel" class="tab-pane active">'+ debugMonkeyReleaseMessage +'</div>' +
+    '<div id="page0" role="tabpanel" class="tab-pane active">'+ debugMonkeyReleaseMessage +'</div>' +
 
-        '<div id="page1" role="tabpanel" class="tab-pane">' +
-            '<div id="statArea" style="vertical-align:top; width:350px; display:inline-block;"></div>' +
-            '<div id="pieArea" style="vertical-align: top; width:350px; height:250px; display:inline-block; vertical-align:top"></div>' +
-            '<div id="gainArea" style="width:350px; display:inline-block; vertical-align:top"></div><div id="lossArea" style="width:350px; display:inline-block;"></div>' +
-            '<div id="chartArea" style="width:700px; height:200px; display:inline-block; vertical-align:top"></div></div>' +
-        '<div id="page2" role="tabpanel" class="tab-pane">' +
-            '<div class="row">' +
-                '<div class="col-sm-1"></div><div id="col1" class="col-sm-3"><h3>Options</h3></div>' +
-                '<div class="col-sm-1"></div><div id="col2" class="col-sm-3"></div>' +
-                '<div class="col-sm-1"></div><div id="col3" class="col-sm-3"></div>' +
-            '</div>' +
-        '</div>'+
+    '<div id="page1" role="tabpanel" class="tab-pane">' +
+    '<div id="statArea" style="vertical-align:top; width:350px; display:inline-block;"></div>' +
+    '<div id="pieArea" style="vertical-align: top; width:350px; height:250px; display:inline-block; vertical-align:top"></div>' +
+    '<div id="gainArea" style="width:350px; display:inline-block; vertical-align:top"></div><div id="lossArea" style="width:350px; display:inline-block;"></div>' +
+    '<div id="chartArea" style="width:700px; height:200px; display:inline-block; vertical-align:top"></div></div>' +
+    '<div id="page2" role="tabpanel" class="tab-pane">' +
+    '<div class="row">' +
+    '<div class="col-sm-1"></div><div id="col1" class="col-sm-3"><h3>Options</h3></div>' +
+    '<div class="col-sm-1"></div><div id="col2" class="col-sm-3"></div>' +
+    '<div class="col-sm-1"></div><div id="col3" class="col-sm-3"></div>' +
+    '</div>' +
+    '</div>'+
         //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
     '</div>' +
     '</div>');
@@ -3438,7 +3948,7 @@ function AppendTopN(n, p, list) {
     var a = GetTopN(n,p);
     for (var i = 0; i < a.length; ++i){
         var text = a[i].name + ' (' + (p == 'gains' ? '+' : '-') + a[i].mass + ' mass)';
-        list.append('<li style="font-size: 20px; "><div style="width: 20px; height: 20px; border-radius: 50%; margin-right:5px; background-color: ' + a[i].color + '; display: inline-block;"></div>' + text + '</li>');
+        list.append('<li style="font-size: 16px; "><div style="width: 16px; height: 16px; border-radius: 50%; margin-right:5px; background-color: ' + a[i].color + '; display: inline-block;"></div>' + text + '</li>');
     };
     return a.length > 0;
 }
@@ -3462,36 +3972,36 @@ function DrawStats(game_over) {
     var seconds = (time - stats.birthday)/1000;
 
     var list = jQuery('<ul>');
-    list.append('<li style="font-size: 20px; ">Game time: ' + secondsToHms(seconds) + '</li>');
-    list.append('<li style="font-size: 20px; ">High score: ' + ~~(stats.high_score/100) + '</li>');
+    list.append('<li style="font-size: 16px; ">Game time: ' + secondsToHms(seconds) + '</li>');
+    list.append('<li style="font-size: 16px; ">High score: ' + ~~(stats.high_score/100) + '</li>');
     if (stats.top_slot == Number.POSITIVE_INFINITY){
-        list.append('<li style="font-size: 20px; ">You didn\'t make the leaderboard</li>');
+        list.append('<li style="font-size: 16px; ">You didn\'t make the leaderboard</li>');
     }
     else{
-        list.append('<li style="font-size: 20px; ">Leaderboard max: ' + stats.top_slot + '</li>');
+        list.append('<li style="font-size: 16px; ">Leaderboard max: ' + stats.top_slot + '</li>');
     }
-    list.append('<li style="font-size: 20px; padding-top: 15px">' + stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 20px; ">' + stats.cells.num + " cells eaten (" + ~~(stats.cells.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 20px; ">' + stats.w.num + " masses eaten (" + ~~(stats.w.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 20px; ">' + stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass/100) + ' mass)</li>');
-    jQuery('#statArea').append('<h1>Game Summary</h1>');
+    list.append('<li style="font-size: 16px; padding-top: 15px">' + stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass/100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.cells.num + " cells eaten (" + ~~(stats.cells.mass/100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.w.num + " masses eaten (" + ~~(stats.w.mass/100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass/100) + ' mass)</li>');
+    jQuery('#statArea').append('<h2>Game Summary</h2>');
     jQuery('#statArea').append(list);
 
     DrawPie(stats.pellets.mass, stats.w.mass, stats.cells.mass, stats.viruses.mass);
 
-    jQuery('#gainArea').append('<h2>Top Gains</h2>');
+    jQuery('#gainArea').append('<h3>Top Gains</h3>');
     list = jQuery('<ol>');
     if (AppendTopN(5, 'gains', list))
         jQuery('#gainArea').append(list);
     else
-        jQuery('#gainArea').append('<ul><li style="font-size: 20px; ">You have not eaten anybody</li></ul>');
+        jQuery('#gainArea').append('<ul><li style="font-size: 16px; ">You have not eaten anybody</li></ul>');
 
-    jQuery('#lossArea').append('<h2>Top Losses</h2>');
+    jQuery('#lossArea').append('<h3>Top Losses</h3>');
     list = jQuery('<ol>');
     if (AppendTopN(5, 'losses', list))
         jQuery('#lossArea').append(list);
     else
-        jQuery('#lossArea').append('<ul><li style="font-size: 20px; ">Nobody has eaten you</li></ul>');
+        jQuery('#lossArea').append('<ul><li style="font-size: 16px; ">Nobody has eaten you</li></ul>');
 
     if (stats.time_of_death !== null){
         jQuery('#chartArea').width(700).height(240);
@@ -3504,7 +4014,9 @@ function DrawStats(game_over) {
         stat_chart.render();
     }
     else {
-        jQuery('#chartArea').width(700).height(0);
+        jQuery('#chartArea').width(700).height(240);
+        jQuery('#chartArea')[0].width = 700;
+        jQuery('#chartArea')[0].height= 240;
     }
 }
 
@@ -3694,9 +4206,9 @@ volSFX = function (vol) {
 };
 
 var tracks = ['http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Waltz.mp3',
-              'http://incompetech.com/music/royalty-free/mp3-preview2/Frozen%20Star.mp3',
-              'http://incompetech.com/music/royalty-free/mp3-preview2/Groove%20Grove.mp3',
-              'http://incompetech.com/music/royalty-free/mp3-preview2/Dreamy%20Flashback.mp3'];
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Frozen%20Star.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Groove%20Grove.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Dreamy%20Flashback.mp3'];
 /*sfx*/
 var nodeAudio = document.createElement("audio");
 nodeAudio.id = 'audiotemplate';
@@ -3732,10 +4244,18 @@ uiOnLoadTweaks();
 
 var col1 = $("#col1");
 AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
-AppendCheckboxP(col1, 'option1', ' Acid Mode', false, setAcid);
-AppendCheckboxP(col1, 'option2', ' Lite Brite', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
+AppendCheckboxP(col1, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
+AppendCheckboxP(col1, 'option2', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
+AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
+AppendCheckboxP(col1, 'option4', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
 //AppendCheckboxP(col1, 'option3', ' Left Mouse Button Fires', false, setLeftMouseButtonFires);
 col1.append('<BR><label>SFX<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></label>');
 col1.append('<BR><label>BGM<input type="range" id="bgm" value=' + window.cobbler.bgmVol + ' step=".1" min="0" max="1" oninput="volBGM(this.value);"></label>');
+
+// hack to remove original canvas and replace it with our own
+try {
+    $("#canvas").remove();
+    $("body").prepend('<canvas id="canvas2" width="800" height="600"></canvas>');
+}catch(err){}
 
 var agariomodsSkins = ("0chan;18-25;1up;360nati0n;8ball;UmguwJ0;aa9skillz;ace;adamzonetopmarks;advertisingmz;agariomods.com;al sahim;alaska;albania;alchestbreach;alexelcapo;algeria;am3nlc;amoodiesqueezie;amway921wot;amyleethirty3;anarchy;android;angrybirdsnest;angryjoeshow;animebromii;anonymous;antvenom;aperture;apple;arcadego;assassinscreed;atari;athenewins;authenticgames;avatar;aviatorgaming;awesome;awwmuffin;aypierre;baka;balenaproductions;bandaid;bane;baseball;bashurverse;basketball;bateson87;batman;battlefield;bdoubleo100;beats;bebopvox;belarus;belgium;bender;benderchat;bereghostgames;bert;bestcodcomedy;bielarus;bitcoin;bjacau1;bjacau2;black widow;blackiegonth;blitzwinger;blobfish;bluexephos;bluh;blunty3000;bobross;bobsaget;bodil30;bodil40;bohemianeagle;boo;boogie2988;borg;bowserbikejustdance;bp;breakfast;breizh;brksedu;buckballs;burgundy;butters;buzzbean11;bystaxx;byzantium;calfreezy;callofduty;captainsparklez;casaldenerd;catalonia;catalunya;catman;cavemanfilms;celopand;chaboyyhd;chaika;chaosxsilencer;chaoticmonki;charlie615119;charmander;chechenya;checkpointplus;cheese;chickfila;chimneyswift11;chocolate;chrisandthemike;chrisarchieprods;chrome;chucknorris;chuggaaconroy;cicciogamer89;cinnamontoastken;cirno;cj;ckaikd0021;clanlec;clashofclansstrats;cling on;cobanermani456;coca cola;codqg;coisadenerd;cokacola;colombia;colombiaa;commanderkrieger;communitygame;concrafter;consolesejogosbrasil;controless ;converse;cookie;coolifegame;coookie;cornella;cornellà;coruja;craftbattleduty;creeper;creepydoll;criken2;criousgamers;cristian4games;csfb;cuba;cubex55;cyberman65;cypriengaming;cyprus;czech;czechia;czechrepublic;d7297ut;d7oomy999;dagelijkshaadee;daithidenogla;darduinmymenlon;darksideofmoon;darksydephil;darkzerotv;dashiegames;day9tv;deadloxmc;deadpool;deal with it;deathly hallows;deathstar;debitorlp;deigamer;demon;derp;desu;dhole;diabl0x9;dickbutt;dilleron;dilleronplay;direwolf20;dissidiuswastaken;dnb;dnermc;doge;doggie;dolan;domo;domokun;donald;dong;donut;doraemon;dotacinema;douglby;dpjsc08;dreamcast;drift0r;drunken;dspgaming;dusdavidgames;dykgaming;ea;easports;easportsfootball;eatmydiction1;eavision;ebin;eeoneguy;egg;egoraptor;eguri89games;egypt;eksi;electrokitty;electronicartsde;elementanimation;elezwarface;eligorko;elrubiusomg;enzoknol;eowjdfudshrghk;epicface;ethoslab;exetrizegamer;expand;eye;facebook;fantabobgames;fast forward;fastforward;favijtv;fazeclan;fbi;fer0m0nas;fernanfloo;fgteev;fidel;fiji;finn;fir4sgamer;firefox;fishies;flash;florida;fnatic;fnaticc;foe;folagor03;forcesc2strategy;forocoches;frankieonpcin1080p;freeman;freemason;friesland;frigiel;frogout;fuckfacebook;fullhdvideos4me;funkyblackcat;gaben;gabenn;gagatunfeed;gamebombru;gamefails;gamegrumps;gamehelper;gameloft;gamenewsofficial;gameplayrj;gamerspawn;games;gameshqmedia;gamespot;gamestarde;gametrailers;gametube;gamexplain;garenavietnam;garfield;gassymexican;gaston;geilkind;generikb;germanletsfail;getinmybelly;getinthebox;ghostrobo;giancarloparimango11;gimper;gimperr;github;giygas;gizzy14gazza;gnomechild;gocalibergaming;godsoncoc;gogomantv;gokoutv;goldglovetv;gommehd;gona89;gonzo;gonzossm;grammar nazi;grayhat;grima;gronkh;grumpy;gtamissions;gtaseriesvideos;guccinoheya;guilhermegamer;guilhermeoss;gurren lagann;h2odelirious;haatfilms;hagrid;halflife;halflife3;halo;handicapped;hap;hassanalhajry;hatty;hawaii;hawkeye;hdluh;hdstarcraft;heartrockerchannel;hebrew;heisenburg;helix;helldogmadness;hikakingames;hikeplays;hipsterwhale;hispachan;hitler;homestuck;honeycomb;hosokawa;hue;huskymudkipz;huskystarcraft;hydro;iballisticsquid;iceland;ie;igameplay1337;ignentertainment;ihascupquake;illuminati;illuminatiii;ilvostrocarodexter;imaqtpie;imgur;immortalhdfilms;imperial japan;imperialists;imperialjapan;imvuinc;insanegaz;insidegaming;insidersnetwork;instagram;instalok;inthelittlewood;ipodmail;iron man;isaac;isamuxpompa;isis;isreal;itchyfeetleech;itsjerryandharry;itsonbtv;iulitm;ivysaur;izuniy;jackfrags;jacksepticeye;jahovaswitniss;jahrein;jaidefinichon;james bond;jamesnintendonerd;jamonymow;java;jellyyt;jeromeasf;jew;jewnose;jibanyan;jimmies;jjayjoker;joeygraceffagames;johnsju;jontronshow;josemicod5;joueurdugrenier;juegagerman;jumpinthepack;jupiter;kalmar union;kame;kappa;karamba728;kenny;keralis;kiloomobile;kingdomoffrance;kingjoffrey;kinnpatuhikaru;kirby;kitty;kjragaming;klingon;knekrogamer;knights templar;knightstemplar;knowyourmeme;kootra;kripparrian;ksiolajidebt;ksiolajidebthd;kuplinovplay;kurdistan;kwebbelkop;kyle;kyokushin4;kyrsp33dy;ladle;laggerfeed;lazuritnyignom;ldshadowlady;le snake;lenny;letsplay;letsplayshik;letstaddl;level5ch;levelcapgaming;lgbt;liberland;libertyy;liechtenstien;lifesimmer;linux;lisbug;littlelizardgaming;llessur;loadingreadyrun;loki;lolchampseries;lonniedos;love;lpmitkev;luigi;luke4316;m3rkmus1c;macedonia;machinimarealm;machinimarespawn;magdalenamariamonika;mahalovideogames;malena010102;malta;mario;mario11168;markipliergame;mars;maryland;masterball;mastercheif;mateiformiga;matroix;matthdgamer;matthewpatrick13;mattshea;maxmoefoegames;mcdonalds;meatboy;meatwad;meatwagon22;megamilk;messyourself;mickey;mike tyson;mike;miles923;minecraftblow;minecraftfinest;minecraftuniverse;miniladdd;miniminter;minnesotaburns;minnie;mkiceandfire;mlg;mm7games;mmohut;mmoxreview;mod3rnst3pny;moldova;morealia;mortalkombat;mr burns;mr.bean;mr.popo;mrchesterccj;mrdalekjd;mredxwx;mrlev12;mrlololoshka;mrvertez;mrwoofless;multirawen;munchingorange;n64;naga;namcobandaigameseu;nasa;natusvinceretv;nauru;nazi;nbgi;needforspeed;nepenthez;nextgentactics;nextgenwalkthroughs;ngtzombies;nick fury;nick;nickelodeon;niichts;nintendo;nintendocaprisun;nintendowiimovies;nipple;nislt;nobodyepic;node;noobfromua;northbrabant;northernlion;norunine;nosmoking;notch;nsa;obama;obey;officialclashofclans;officialnerdcubed;oficialmundocanibal;olafvids;omfgcata;onlyvgvids;opticnade;osu;ouch;outsidexbox;p3rvduxa;packattack04082;palau;paluten;pandaexpress;paulsoaresjr;pauseunpause;pazudoraya;pdkfilms;peanutbuttergamer;pedo;pedobear;peinto1008;peka;penguin;penguinz0;pepe;pepsi;perpetuumworld;pewdiepie;pi;pietsmittie;pig;piggy;pika;pimpnite;pinkfloyd;pinkstylist;pirate;piratebay;pizza;pizzaa;plagasrz;plantsvszombies;playclashofclans;playcomedyclub;playscopetrailers;playstation;playstation3gaminghd;pockysweets;poketlwewt;pooh;poop;popularmmos;potato;prestonplayz;protatomonster;prowrestlingshibatar;pt;pur3pamaj;quantum leap;question;rageface;rajmangaminghd;retard smile;rewind;rewinside;rezendeevil;reziplaygamesagain;rfm767;riffer333;robbaz;rockalone2k;rockbandprincess1;rockstar;rockstargames;rojov13;rolfharris;roomba;roosterteeth;roviomobile;rspproductionz;rss;rusgametactics;ryukyu;s.h.e.i.l.d;sah4rshow;samoa;sara12031986;sarazarlp;satan;saudi arabia;scream;screwattack;seal;seananners;serbia;serbiangamesbl;sethbling;sharingan;shell;shine;shofu;shrek;shufflelp;shurikworld;shuuya007;sinistar;siphano13;sir;skillgaming;skinspotlights;skkf;skull;skydoesminecraft;skylandersgame;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;smikesmike05;smoothmcgroove;smoove7182954;smoshgames;snafu;snapchat;snoop dogg;soccer;soliare;solomid;somalia;sp4zie;space ace;space;sparklesproduction;sparkofphoenix;spawn;speedyw03;speirstheamazinghd;spiderman;spongegar;spore;spqr;spy;squareenix;squirtle;ssohpkc;sssniperwolf;ssundee;stalinjr;stampylonghead;star wars rebel;starbucks;starchild;starrynight;staxxcraft;stitch;stupid;summit1g;sunface;superevgexa;superman;superskarmory;swiftor;swimmingbird941;syria;t3ddygames;tackle4826;taco;taltigolt;tasselfoot;tazercraft;tbnrfrags;tctngaming;teamfortress;teamgarrymoviethai;teammojang;terrorgamesbionic;tetraninja;tgn;the8bittheater;thealvaro845;theatlanticcraft;thebajancanadian;thebraindit;thecraftanos;thedanirep;thedeluxe4;thediamondminecart;theescapistmagazine;thefantasio974;thegaminglemon;thegrefg;thejoves;thejwittz;themasterov;themaxmurai;themediacows;themrsark;thepolishpenguinpl;theradbrad;therelaxingend;therpgminx;therunawayguys;thesims;theskylanderboy;thesw1tcher;thesyndicateproject;theuselessmouth;thewillyrex;thnxcya;thor;tintin;tmartn;tmartn2;tobygames;tomo0723sw;tonga;topbestappsforkids;totalhalibut;touchgameplay;transformer;transformers;trickshotting;triforce;trollarchoffice;trollface;trumpsc;tubbymcfatfuck;turkey;tv;tvddotty;tvongamenet;twitch;twitter;twosyncfifa;typicalgamer;uberdanger;uberhaxornova;ubisoft;uguu;ukip;ungespielt;uppercase;uruguay;utorrent;vanossgaming;vatican;venomextreme;venturiantale;videogamedunkey;videogames;vietnam;vikkstar123;vikkstar123hd;vintagebeef;virus;vladnext3;voat;voyager;vsauce3;w1ldc4t43;wakawaka;wales;walrus;wazowski;wewlad;white  light;whiteboy7thst;whoyourenemy;wiiriketopray;willyrex;windows;wingsofredemption;wit my woes;woodysgamertag;worldgamingshows;worldoftanks;worldofwarcraft;wowcrendor;wqlfy;wroetoshaw;wwf;wykop;xalexby11;xbox;xboxviewtv;xbulletgtx;xcalizorz;xcvii007r1;xjawz;xmandzio;xpertthief;xrpmx13;xsk;yamimash;yarikpawgames;ycm;yfrosta;yinyang;ylilauta;ylilautaa;yoba;yobaa;yobaaa;yogscast2;yogscastlalna;yogscastsips;yogscastsjin;yoteslaya;youalwayswin;yourheroes;yourmom;youtube;zackscottgames;zangado;zazinombies;zeecrazyatheist;zeon;zerkaahd;zerkaaplays;zexyzek;zimbabwe;zng;zoella;zoidberg;zombey;zoomingames").split(";");
