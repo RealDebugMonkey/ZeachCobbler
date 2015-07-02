@@ -4,12 +4,14 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.22.0
+// @version      0.22.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.22.0 - Added hybrid grazer option & fixed music
+//                   1 - music restored, viruses excluded from relocated names
+//                     - Hybrid grazer goes back to old grazer if it loses enough mass
 //              0.21.0 - Changed way script is loaded.
 //              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
@@ -421,9 +423,15 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
         var target;
 
-        // switch over to new grazer once we pass the threshhold
-        if(1 === isGrazing && cobbler.grazerHybridSwitch && _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass)) > cobbler.grazerHybridSwitchMass){
-            isGrazing = 2;
+        if(cobbler.grazerHybridSwitch){
+            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
+            // switch over to new grazer once we pass the threshhold
+            if(1 === isGrazing && totalMass > cobbler.grazerHybridSwitchMass){
+                isGrazing = 2; // We gained enough much mass. Use new grazer.
+            }else if(2 === isGrazing && totalMass < cobbler.grazerHybridSwitchMass ){
+                isGrazing = 1; // We lost too much mass. Use old grazer.
+            }
+
         }
 
         switch(isGrazing) {
@@ -1442,7 +1450,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
 // ======================   Draw Functions    ==================================================================
     function shouldRelocateName(){
-        if(cobbler.namesUnderBlobs) {
+        if(cobbler.namesUnderBlobs && !this.isVirus) {
             return true;
         }
         return ((isExtendedSkin(this.name)|| isSpecialSkin(this.name) || /*isBitDoSkin(this.name)||*/ isAMConnectSkin(this.name)));
@@ -4157,10 +4165,10 @@ var volSFX = function (vol) {
     window.cobbler.sfxVol = vol;
 };
 
-var tracks = [//'http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Waltz.mp3',
-    //'http://incompetech.com/music/royalty-free/mp3-preview2/Frozen%20Star.mp3',
-    //'http://incompetech.com/music/royalty-free/mp3-preview2/Groove%20Grove.mp3',
-    //'http://incompetech.com/music/royalty-free/mp3-preview2/Dreamy%20Flashback.mp3',
+var tracks = ['http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Waltz.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Frozen%20Star.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Groove%20Grove.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Dreamy%20Flashback.mp3',
     'http://incompetech.com/music/royalty-free/mp3-preview2/Impact%20Lento.mp3',
     'http://incompetech.com/music/royalty-free/mp3-preview2/Wizardtorium.mp3'];
 /*sfx*/
