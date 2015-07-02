@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.22.1
+// @version      0.22.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -12,6 +12,7 @@
 // @changes     0.22.0 - Added hybrid grazer option & fixed music
 //                   1 - music restored, viruses excluded from relocated names
 //                     - Hybrid grazer goes back to old grazer if it loses enough mass
+//                   2 - Hybrid grazer checkbox fix
 //              0.21.0 - Changed way script is loaded.
 //              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
@@ -247,6 +248,10 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             'ny'        : 'F',
             'setName'   : 'Z',
             'nSize'     : 'n',
+            'ox'        : 'p',
+            'oy'        : 'q',
+            'oSize'     : 'o',
+            'destroy'   : 'S',
         };
         _.forEach(pointPropMap, function(newPropName,oldPropName){
             Object.defineProperty(objPrototype, oldPropName, {
@@ -1625,9 +1630,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             zoomFactor = (zoomFactor == 10 ? 11 : 10);
         }
-        else if('8'.charCodeAt(0) === d.keyCode && isPlayerAlive()) { // SELF DESTRUCT
-            zeach.fireFunction(20);
-        }
+        //else if('8'.charCodeAt(0) === d.keyCode && isPlayerAlive()) { // SELF DESTRUCT
+        //    zeach.fireFunction(20);
+        //}
     }
 
     function onAfterUpdatePacket() {
@@ -1678,7 +1683,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     window.setLeftMouseButtonFires = function (val){
         rightClickFires = val;
     };
-
 
 // ======================   Start main    ==================================================================
 
@@ -2513,12 +2517,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         var a = q / k;
         var b = r / k;
         var c = -0.5 + (-t + a / 2) % 50;
+
         for(; c < a; c += 50) {
             f.beginPath();
             f.moveTo(c, 0);
             f.lineTo(c, b);
             f.stroke();
         }
+
         c = -0.5 + (-u + b / 2) % 50;
         for(; c < b; c += 50) {
             f.beginPath();
@@ -4206,7 +4212,6 @@ uiOnLoadTweaks();
 var col1 = $("#col1");
     AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
     AppendCheckboxP(col1, 'option4', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
-    AppendCheckboxP(col1, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
     AppendCheckboxP(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
     AppendCheckboxP(col1, 'option7', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
     col1.append("<h3>Stats</h3>");
@@ -4223,6 +4228,7 @@ var col2 = $("#col2");
     $('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
     $('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
     col2.append('<h3>Grazer</h3>');
+    AppendCheckboxP(col2, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
     col2.append('<h4>Hybrid Grazer</h4>' +
         '<div id="hybrid-group" class="input-group"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
         '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +'></div>' +
@@ -4235,7 +4241,7 @@ var col2 = $("#col2");
             }
             cobbler.grazerHybridSwitch = !!this.checked;
         });
-    if(!cobbler.grazerHybridSwitch){ $('#hybrid-textbox').attr({disabled:"disabled"})}
+    if(cobbler.grazerHybridSwitch){$('#hybrid-checkbox').prop('checked', true);}else{ $('#hybrid-textbox').attr({disabled:"disabled"})}
         $('#hybrid-textbox').on('input propertychange paste', function() {
             var newval = parseInt(this.value);
             if(!_.isNaN(newval)) {
