@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.22.2
+// @version      0.22.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -13,6 +13,7 @@
 //                   1 - music restored, viruses excluded from relocated names
 //                     - Hybrid grazer goes back to old grazer if it loses enough mass
 //                   2 - Hybrid grazer checkbox fix
+//                   3 - volume fix
 //              0.21.0 - Changed way script is loaded.
 //              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
@@ -4111,9 +4112,9 @@ for (i=0;i<ssfxlist.length;i++) {
     ssfxs.push(newsfx);
 }
 function sfx_play(id) {
-    if (window.cobbler.sfxVol==0) return;
+    if (document.getElementById("sfx").value==0) return;
     var event = ssfxs[id];
-    event.volume = window.cobbler.sfxVol;
+    event.volume = document.getElementById("sfx").value;
     event.play();
 }
 
@@ -4139,35 +4140,36 @@ for (i=0;i<sfxlist.length;i++) {
     sfxs[sfxlist[i]] = newsfx;
 }
 function sfx_event(id) {
-    if (window.cobbler.sfxVol==0) return;
+    if (document.getElementById("sfx").value==0) return;
     var event = jQuery.clone(sfxs[id]);
-    event.volume = window.cobbler.sfxVol;
+    event.volume = document.getElementById("sfx").value;
     event.play();
 }
 
 var StartBGM = function () {
-    if (window.cobbler.bgmVol==0) return;
+    if (document.getElementById("bgm").value==0) return;
     if (bgmusic.src == ""){
         bgmusic.src = _.sample(tracks, 1);
         bgmusic.load()
     }
-    bgmusic.volume = window.cobbler.bgmVol;
+    bgmusic.volume = document.getElementById("bgm").value;
     bgmusic.play();
 };
 
 var StopBGM = function () {
-    if (document.getElementById("bgm").value==0) return;
     bgmusic.pause();
+    if (document.getElementById("bgm").value==0) return;
     bgmusic.src = _.sample(tracks, 1);
     bgmusic.load()
 };
 
-var volBGM = function (vol) {
+volBGM = function (vol) {
+    console.log(vol.toString() + " - " + document.getElementById("bgm").value)
     bgmusic.volume = document.getElementById("bgm").value;
-    window.cobbler.bgmVol = vol;
+    window.cobbler.bgmVol = document.getElementById("bgm").value;
 };
 
-var volSFX = function (vol) {
+volSFX = function (vol) {
     window.cobbler.sfxVol = vol;
 };
 
