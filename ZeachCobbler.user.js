@@ -3,22 +3,14 @@
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
-// @contributer  albel727 - Vastly improved grazer
-// @contributer  The White Light -- You rock the maths.
-// @contributer  Angal - For the UI additions and server select code
-// @contributer  Gjum - Bug fixes
-// @contributer  Agariomods.com (and Electronoob) for the innovative imgur style skins
-// @contributer  Agariomods.com again for maintaining the best extended repo out there.
-// @codefrom     http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
-// @codefrom     mikeyk730 stats screen - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
-// @codefrom     debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
-// @codefrom     minimap derived from Gamer Lio's bot code -- https://github.com/leomwu/agario-bot
-// @version      0.21.0
+// @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
+// @version      0.22.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.21.0 - Changed way script is loaded.
+// @changes     0.22.0 - Added hybrid grazer option & fixed music
+//              0.21.0 - Changed way script is loaded.
 //              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
 //              0.15.0 - Fixed Minimap (Zeach broke it)
@@ -49,79 +41,6 @@
 //                   3 - onDestroy bugfix
 //                   4 - update with mikeyk730's latest changes
 //                   5 - skins should now display in experimental
-//              0.10.0 - Mikey's stats screen added
-//                     - Minimap added - idea and code from Gamerlio's bot
-//                     - Our own blobs are no longer considered threats in grazing mode
-//                   1 - updated agariomods.com skins
-//                     - minimap viruses now green
-//                     - recent server box moved so you can (hopefully) see top 3 players on server
-//                     - bug fixes to minimap
-//                     - added match tag for https://agar.io
-//                     - minimap now disappears when you press C
-//                   2 - moved last servers window again
-//                   3 - more window movement
-//              0.09.0 - Fixed script break caused by recent changes
-//                   1 - Shots display next to mass restored
-//                     - Added possible fix for times we might somehow (?!) miss player spawning.
-//                   2 - Press 'A' to toggle acid mode
-//                   3 - Name still moved for bitdo skins even with visual assist turned off
-//                   4 - Changed repos (again)
-//                   5 - O/P keys didn't match documentation. Changed keys to match documentation.
-//                       O now enables/disables virus firing via mouse, P is for target fixation toggle
-//                   6 - Fixed issue where TTR displays when you have only 1 blob. (works around issue in official code
-//                       caused by ID not being removed from own IDs)
-//              0.08.0 - Fixed bug in handling of agariomods.com skins
-//                     - Press 'C' to toggle display of Zeachy powers.
-//                     - New GM_xmlhttpRequest permission required to check that bit.do skins point to imgur.com
-//                   1 - tiny bit of refactoring
-//                     - tab key allows you to switch which of your blobs calculations are based on
-//                     - split guide easier to see now
-//                     - WARNING! Press '8' to self destruct (in spectacular fashion when you have large mass)
-//              0.07.0 - AgarioMods.com extended skins support
-//                   1 - Added new "Extended skins" section
-//                     - Extended skins and bit.do skins get name placed underneath the cell
-//              0.06.0 - Fixed team colors
-//                     - Added server select
-//              0.05.0 - Custom skins returned
-//                     - Agariomods.com style imgur skin support
-//                     - Bit.do skin syntax: `Username
-//                   1 - Bit.do fix and skin transparency
-//                   2 - Nick, Right-click-to-fire, and visualization settings should now be saved between sessions.
-//                     - Grazing visualization lines added
-//                     - V - toggle grazing visualization
-//                   3 - Fixed a bug in the TTR code that caused everything to show a 30 second TTR
-//              0.04.0 - P to toggle right-click mouse fire
-//                     - O to toggle grazing target fixation (less CPU intensive grazing)
-//                     - T will change target when fixation is on.
-//                     - Debug display now has 3 levels of info
-//              0.03.0 - E - Virus popper for virus closest to cursor
-//                     - R - Virus popper for virus closest to cell zero
-//                   1 - Virus nearest to cell zero is highlighted in red
-//                   2 - M - disable mouse input
-//                     - mouse left click also functions as 'E'
-//                   3 - Scroll wheel *should* toggle zoom (untested)
-//                   4 - Mouse scroll wheel  tweak
-//                   5 - Reversed scroll wheel direction processing logic
-//                     - smaller debug text
-//                     - display mod version in debug text.
-//                     - names scaled down slightly to 1.25 times
-//              0.02.0 - Multi-cell TTR added (Experimental)
-//                     - Virus shot counters added
-//                     - Names scaled up 1.5 times
-//                     - Shots available added next to mass with tweaked formula set to start at 35 mass
-//                     - Mass line sized up 2 times
-//                     - Percent added to your cell when you split
-//                     - Percent size added to enemy cells
-//               0.01  - Initial rewrite
-//                     - Grazer
-//                     - High Score
-//                     - Time alive
-//                     - Map borders
-//                     - split kill range guide
-//                     - Auto display mass
-//                     - Auto set dark mode
-//                     - Color display based on size
-//                     - X/Y coordinate display
 // @require      https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -129,7 +48,6 @@
 // @run-at       document-start
 // ==/UserScript==
 var _version_ = GM_info.script.version;
-
 
 // The node to be monitored
 var target = document.head;
@@ -241,6 +159,31 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         _debugLevel:            GM_getValue('debugLevel', 1),
         set debugLevel(val)     {this._debugLevel = val; GM_setValue('debugLevel', val);},
         get debugLevel()        {return this._debugLevel;},
+
+        _imgurSkins:            GM_getValue('imgurSkins', true),
+        set imgurSkins(val)     {this._imgurSkins = val; GM_setValue('imgurSkins', val);},
+        get imgurSkins()        {return this._imgurSkins;},
+
+        _amExtendedSkins:            GM_getValue('amExtendedSkins', true),
+        set amExtendedSkins(val)     {this._amExtendedSkins = val; GM_setValue('amExtendedSkins', val);},
+        get amExtendedSkins()        {return this._amExtendedSkins;},
+
+        _amConnectSkins:            GM_getValue('amConnectSkins', true),
+        set amConnectSkins(val)     {this._amConnectSkins = val; GM_setValue('amConnectSkins', val);},
+        get amConnectSkins()        {return this._amConnectSkins;},
+
+        _namesUnderBlobs:            GM_getValue('namesUnderBlobs', false),
+        set namesUnderBlobs(val)     {this._namesUnderBlobs = val; GM_setValue('namesUnderBlobs', val);},
+        get namesUnderBlobs()        {return this._namesUnderBlobs;},
+
+        _grazerHybridSwitch:            GM_getValue('grazerHybridSwitch', false),
+        set grazerHybridSwitch(val)     {this._grazerHybridSwitch = val; GM_setValue('grazerHybridSwitch', val);},
+        get grazerHybridSwitch()        {return this._grazerHybridSwitch;},
+
+        _grazerHybridSwitchMass:            GM_getValue('grazerHybridSwitchMass', 300),
+        set grazerHybridSwitchMass(val)     {this._grazerHybridSwitchMass = val; GM_setValue('grazerHybridSwitchMass', val);},
+        get grazerHybridSwitchMass()        {return this._grazerHybridSwitchMass;},
+
         "autoRespawn": false,
         "respawnWithGrazer" : false,
         _visualizeGrazing : GM_getValue('visualizeGrazing', true),
@@ -477,6 +420,11 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         }
 
         var target;
+
+        // switch over to new grazer once we pass the threshhold
+        if(1 === isGrazing && cobbler.grazerHybridSwitch && _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass)) > cobbler.grazerHybridSwitchMass){
+            isGrazing = 2;
+        }
 
         switch(isGrazing) {
             case 1: {
@@ -1374,28 +1322,31 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         "drunken" : "http://i.imgur.com/JeKNRss.png",
     };
 
-    var bitdoAlreadyChecked = [];
-
-    function isBitdoToImgurRedirect(userName, imgCache) {
-        var bitdoURL = "http://bit.do/"+ userName.slice(1);
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: (bitdoURL + "-"),
-            onload: function(response) {
-                var imgurlink = /href=\"(http:\/\/i\.imgur\.com\/[a-zA-Z0-9.]+)/g.exec(response.responseText);
-                if(null == imgurlink || imgurlink.length < 2 || !_.startsWith(imgurlink[1], "http://i.imgur.com/"))
-                    console.log("No imgur link found");
-                else {
-                    console.log(imgurlink[1] + " is image for  " + userName);
-                    imgCache[userName.toLowerCase()] = new Image;
-                    imgCache[userName.toLowerCase()].src = imgurlink[1];
-                }
-            }
-        });
-        return true;
-    }
+//    var bitdoAlreadyChecked = [];
+//
+//    function isBitdoToImgurRedirect(userName, imgCache) {
+//        var bitdoURL = "http://bit.do/"+ userName.slice(1);
+//        GM_xmlhttpRequest({
+//            method: "GET",
+//            url: (bitdoURL + "-"),
+//            onload: function(response) {
+//                var imgurlink = /href=\"(http:\/\/i\.imgur\.com\/[a-zA-Z0-9.]+)/g.exec(response.responseText);
+//                if(null == imgurlink || imgurlink.length < 2 || !_.startsWith(imgurlink[1], "http://i.imgur.com/"))
+//                    console.log("No imgur link found");
+//                else {
+//                    console.log(imgurlink[1] + " is image for  " + userName);
+//                    imgCache[userName.toLowerCase()] = new Image;
+//                    imgCache[userName.toLowerCase()].src = imgurlink[1];
+//                }
+//            }
+//        });
+//        return true;
+//    }
 
     function isAgarioModsSkin(targetName){
+        if(!cobbler.amExtendedSkins){
+            return false;
+        }
         return _.includes(agariomodsSkins, targetName)
     }
     function isSpecialSkin(targetName){
@@ -1406,15 +1357,21 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function isImgurSkin(targetName){
+        if(!cobbler.imgurSkins){
+            return false;
+        }
         return _.startsWith(targetName, "i/");
     }
     function isAMConnectSkin(targetName){
+        if(!cobbler.amConnectSkins){
+            return false;
+        }
         return _.startsWith(targetName, "*");
     }
 
-    function isBitDoSkin(targetName){
-        return _.startsWith(targetName, "`");
-    }
+    //function isBitDoSkin(targetName){
+    //    return _.startsWith(targetName, "`");
+    //}
 
     function customSkins(cell, defaultSkins, imgCache, showSkins, gameMode) {
         var retval = null;
@@ -1426,7 +1383,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         }
         else if(!cell.isAgitated && showSkins ){
             if(-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
-                isBitDoSkin(userName) || isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
+                /*isBitDoSkin(userName) ||*/ isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
                     if(isSpecialSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
@@ -1445,17 +1402,17 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://connect.agariomods.com/img_" + userNameLowerCase.slice(1) + ".png";
                     }
-                    else if(isBitDoSkin(userNameLowerCase)){
-                        if(-1 != bitdoAlreadyChecked.indexOf(userNameLowerCase))
-                        {
-                            console.log(userNameLowerCase + " already checked");
-                            return null;
-                        }
-                        isBitdoToImgurRedirect(userName, imgCache);
-                        console.log(userName + " added to already checked list");
-                        bitdoAlreadyChecked.push(userNameLowerCase);
-                        return null;
-                    }
+                    //else if(isBitDoSkin(userNameLowerCase)){
+                    //    if(-1 != bitdoAlreadyChecked.indexOf(userNameLowerCase))
+                    //    {
+                    //        console.log(userNameLowerCase + " already checked");
+                    //        return null;
+                    //    }
+                    //    isBitdoToImgurRedirect(userName, imgCache);
+                    //    console.log(userName + " added to already checked list");
+                    //    bitdoAlreadyChecked.push(userNameLowerCase);
+                    //    return null;
+                    //}
                     else if(isImgurSkin(userNameLowerCase)){
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://i.imgur.com/"+ userName.slice(2) +".png";
@@ -1485,7 +1442,10 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
 // ======================   Draw Functions    ==================================================================
     function shouldRelocateName(){
-        return ((isExtendedSkin(this.name)|| isSpecialSkin(this.name) || isBitDoSkin(this.name)|| isAMConnectSkin(this.name)));
+        if(cobbler.namesUnderBlobs) {
+            return true;
+        }
+        return ((isExtendedSkin(this.name)|| isSpecialSkin(this.name) || /*isBitDoSkin(this.name)||*/ isAMConnectSkin(this.name)));
     }
 
     function drawCellName(isMyCell, kbIndex, itemToDraw){
@@ -3391,7 +3351,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
 
 
-                        /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id)|| isBitDoSkin(this.name.toLowerCase()) ) ? 1 : 0.5;
+                        /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id) /*|| isBitDoSkin(this.name.toLowerCase())*/) ? 1 : 0.5;
                         if(!(null == e)) {
                             if(!c) {
                                 a.save();
@@ -3682,9 +3642,9 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '<div id="chartArea" style="width:700px; height:200px; display:inline-block; vertical-align:top"></div></div>' +
     '<div id="page2" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
-    '<div id="col1" class="col-sm-4" style="padding-left: 5%; padding-right: 5%;"><h3>Options</h3></div>' +
-    '<div id="col2" class="col-sm-4" style="padding-left: 5%; padding-right: 5%;"><h3>Modes</h3></div>' +
-    '<div id="col3" class="col-sm-4" style="padding-left: 5%; padding-right: 5%;"></div>' +
+    '<div id="col1" class="col-sm-4" style="padding-left: 5%; padding-right: 1%;"><h3>Options</h3></div>' +
+    '<div id="col2" class="col-sm-4" style="padding-left: 5%; padding-right: 2%;"><h3>Modes</h3></div>' +
+    '<div id="col3" class="col-sm-4" style="padding-left: 0%; padding-right: 5%;"></div>' +
     '</div>' +
     '</div>'+
         //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
@@ -3970,7 +3930,7 @@ function DrawStats(game_over) {
     if (stats.top_slot == Number.POSITIVE_INFINITY){
         list.append('<li style="font-size: 16px; ">You didn\'t make the leaderboard</li>');
     }
-    else{
+    else {
         list.append('<li style="font-size: 16px; ">Leaderboard max: ' + stats.top_slot + '</li>');
     }
     list.append('<li style="font-size: 16px; padding-top: 15px">' + stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass/100) + ' mass)</li>');
@@ -4137,9 +4097,9 @@ for (i=0;i<ssfxlist.length;i++) {
     ssfxs.push(newsfx);
 }
 function sfx_play(id) {
-    if (document.getElementById("sfx").value==0) return;
+    if (window.cobbler.sfxVol==0) return;
     var event = ssfxs[id];
-    event.volume = window.cobbler.bgmVol;
+    event.volume = window.cobbler.sfxVol;
     event.play();
 }
 
@@ -4165,42 +4125,44 @@ for (i=0;i<sfxlist.length;i++) {
     sfxs[sfxlist[i]] = newsfx;
 }
 function sfx_event(id) {
-    if (document.getElementById("sfx").value==0) return;
+    if (window.cobbler.sfxVol==0) return;
     var event = jQuery.clone(sfxs[id]);
-    event.volume = document.getElementById("sfx").value;
+    event.volume = window.cobbler.sfxVol;
     event.play();
 }
 
-StartBGM = function () {
-    if (document.getElementById("bgm").value==0) return;
+var StartBGM = function () {
+    if (window.cobbler.bgmVol==0) return;
     if (bgmusic.src == ""){
         bgmusic.src = _.sample(tracks, 1);
         bgmusic.load()
     }
-    bgmusic.volume = document.getElementById("bgm").value;
+    bgmusic.volume = window.cobbler.bgmVol;
     bgmusic.play();
 };
 
-StopBGM = function () {
+var StopBGM = function () {
     if (document.getElementById("bgm").value==0) return;
     bgmusic.pause();
     bgmusic.src = _.sample(tracks, 1);
     bgmusic.load()
 };
 
-volBGM = function (vol) {
+var volBGM = function (vol) {
     bgmusic.volume = document.getElementById("bgm").value;
     window.cobbler.bgmVol = vol;
 };
 
-volSFX = function (vol) {
+var volSFX = function (vol) {
     window.cobbler.sfxVol = vol;
 };
 
-var tracks = ['http://bit.do/ff7test', 'http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Waltz.mp3',
-    'http://incompetech.com/music/royalty-free/mp3-preview2/Frozen%20Star.mp3',
-    'http://incompetech.com/music/royalty-free/mp3-preview2/Groove%20Grove.mp3',
-    'http://incompetech.com/music/royalty-free/mp3-preview2/Dreamy%20Flashback.mp3'];
+var tracks = [//'http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Waltz.mp3',
+    //'http://incompetech.com/music/royalty-free/mp3-preview2/Frozen%20Star.mp3',
+    //'http://incompetech.com/music/royalty-free/mp3-preview2/Groove%20Grove.mp3',
+    //'http://incompetech.com/music/royalty-free/mp3-preview2/Dreamy%20Flashback.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Impact%20Lento.mp3',
+    'http://incompetech.com/music/royalty-free/mp3-preview2/Wizardtorium.mp3'];
 /*sfx*/
 var nodeAudio = document.createElement("audio");
 nodeAudio.id = 'audiotemplate';
@@ -4237,13 +4199,14 @@ var col1 = $("#col1");
     AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
     AppendCheckboxP(col1, 'option4', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
     AppendCheckboxP(col1, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
-    AppendCheckboxP(col1, 'option6', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
+    AppendCheckboxP(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
+    AppendCheckboxP(col1, 'option7', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
     col1.append("<h3>Stats</h3>");
     AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
     AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
 var col2 = $("#col2");
     AppendCheckboxP(col2, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
-    AppendCheckboxP(col2, 'option2', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
+    AppendCheckboxP(col2, 'litebrite-checkbox', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
     col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
         '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
         '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugLow" autocomplete="off" value=1>Low</label>' +
@@ -4251,12 +4214,45 @@ var col2 = $("#col2");
         '</div>');
     $('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
     $('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
+    col2.append('<h3>Grazer</h3>');
+    col2.append('<h4>Hybrid Grazer</h4>' +
+        '<div id="hybrid-group" class="input-group"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
+        '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +'></div>' +
+        '<p>Starts with old grazer and at specified mass switches to new grazer</p>');
+        $('#hybrid-checkbox').change(function(){
+            if(!!this.checked){
+                $('#hybrid-textbox').removeAttr("disabled");
+            } else {
+                $('#hybrid-textbox').attr({disabled:"disabled"})
+            }
+            cobbler.grazerHybridSwitch = !!this.checked;
+        });
+    if(!cobbler.grazerHybridSwitch){ $('#hybrid-textbox').attr({disabled:"disabled"})}
+        $('#hybrid-textbox').on('input propertychange paste', function() {
+            var newval = parseInt(this.value);
+            if(!_.isNaN(newval)) {
+                $("#hybrid-group").removeClass('has-error');
+                cobbler.grazerHybridSwitchMass = newval;
+            }
+            else{
+                $("#hybrid-group").addClass('has-error');
+            }
+        });
 
-var col3 = $("#col3");
+    var col3 = $("#col3");
     col3.append("<h3>Music/Sound</h3>");
     col3.append('<p>Sound Effects<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></p>');
     col3.append('<p>Music<input type="range" id="bgm" value=' + window.cobbler.bgmVol + ' step=".1" min="0" max="1" oninput="volBGM(this.value);"></p>');
+    col3.append('<h3>Skins Support</h3>');
+    AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function(val){window.cobbler.amConnectSkins = val;});
+    AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function(val){window.cobbler.amExtendedSkins = val;});
+    AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function(val){window.cobbler.imgurSkins = val;});
+    //AppendCheckboxP(col3, 'bitdo-checkbox', ' Bit.do `skins', window.cobbler.bitdoSkins, function(val){window.cobbler.bitdoSkins = val;});
+    $("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
+        "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"});
+    $("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
+        "title": "Leaves blob centers empty except for skins."});
 
-
+    setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
 var agariomodsSkins = ("0chan;18-25;1up;360nati0n;8ball;UmguwJ0;aa9skillz;ace;adamzonetopmarks;advertisingmz;agariomods.com;al sahim;alaska;albania;alchestbreach;alexelcapo;algeria;am3nlc;amoodiesqueezie;amway921wot;amyleethirty3;anarchy;android;angrybirdsnest;angryjoeshow;animebromii;anonymous;antvenom;aperture;apple;arcadego;assassinscreed;atari;athenewins;authenticgames;avatar;aviatorgaming;awesome;awwmuffin;aypierre;baka;balenaproductions;bandaid;bane;baseball;bashurverse;basketball;bateson87;batman;battlefield;bdoubleo100;beats;bebopvox;belarus;belgium;bender;benderchat;bereghostgames;bert;bestcodcomedy;bielarus;bitcoin;bjacau1;bjacau2;black widow;blackiegonth;blitzwinger;blobfish;bluexephos;bluh;blunty3000;bobross;bobsaget;bodil30;bodil40;bohemianeagle;boo;boogie2988;borg;bowserbikejustdance;bp;breakfast;breizh;brksedu;buckballs;burgundy;butters;buzzbean11;bystaxx;byzantium;calfreezy;callofduty;captainsparklez;casaldenerd;catalonia;catalunya;catman;cavemanfilms;celopand;chaboyyhd;chaika;chaosxsilencer;chaoticmonki;charlie615119;charmander;chechenya;checkpointplus;cheese;chickfila;chimneyswift11;chocolate;chrisandthemike;chrisarchieprods;chrome;chucknorris;chuggaaconroy;cicciogamer89;cinnamontoastken;cirno;cj;ckaikd0021;clanlec;clashofclansstrats;cling on;cobanermani456;coca cola;codqg;coisadenerd;cokacola;colombia;colombiaa;commanderkrieger;communitygame;concrafter;consolesejogosbrasil;controless ;converse;cookie;coolifegame;coookie;cornella;cornellà;coruja;craftbattleduty;creeper;creepydoll;criken2;criousgamers;cristian4games;csfb;cuba;cubex55;cyberman65;cypriengaming;cyprus;czech;czechia;czechrepublic;d7297ut;d7oomy999;dagelijkshaadee;daithidenogla;darduinmymenlon;darksideofmoon;darksydephil;darkzerotv;dashiegames;day9tv;deadloxmc;deadpool;deal with it;deathly hallows;deathstar;debitorlp;deigamer;demon;derp;desu;dhole;diabl0x9;dickbutt;dilleron;dilleronplay;direwolf20;dissidiuswastaken;dnb;dnermc;doge;doggie;dolan;domo;domokun;donald;dong;donut;doraemon;dotacinema;douglby;dpjsc08;dreamcast;drift0r;drunken;dspgaming;dusdavidgames;dykgaming;ea;easports;easportsfootball;eatmydiction1;eavision;ebin;eeoneguy;egg;egoraptor;eguri89games;egypt;eksi;electrokitty;electronicartsde;elementanimation;elezwarface;eligorko;elrubiusomg;enzoknol;eowjdfudshrghk;epicface;ethoslab;exetrizegamer;expand;eye;facebook;fantabobgames;fast forward;fastforward;favijtv;fazeclan;fbi;fer0m0nas;fernanfloo;fgteev;fidel;fiji;finn;fir4sgamer;firefox;fishies;flash;florida;fnatic;fnaticc;foe;folagor03;forcesc2strategy;forocoches;frankieonpcin1080p;freeman;freemason;friesland;frigiel;frogout;fuckfacebook;fullhdvideos4me;funkyblackcat;gaben;gabenn;gagatunfeed;gamebombru;gamefails;gamegrumps;gamehelper;gameloft;gamenewsofficial;gameplayrj;gamerspawn;games;gameshqmedia;gamespot;gamestarde;gametrailers;gametube;gamexplain;garenavietnam;garfield;gassymexican;gaston;geilkind;generikb;germanletsfail;getinmybelly;getinthebox;ghostrobo;giancarloparimango11;gimper;gimperr;github;giygas;gizzy14gazza;gnomechild;gocalibergaming;godsoncoc;gogomantv;gokoutv;goldglovetv;gommehd;gona89;gonzo;gonzossm;grammar nazi;grayhat;grima;gronkh;grumpy;gtamissions;gtaseriesvideos;guccinoheya;guilhermegamer;guilhermeoss;gurren lagann;h2odelirious;haatfilms;hagrid;halflife;halflife3;halo;handicapped;hap;hassanalhajry;hatty;hawaii;hawkeye;hdluh;hdstarcraft;heartrockerchannel;hebrew;heisenburg;helix;helldogmadness;hikakingames;hikeplays;hipsterwhale;hispachan;hitler;homestuck;honeycomb;hosokawa;hue;huskymudkipz;huskystarcraft;hydro;iballisticsquid;iceland;ie;igameplay1337;ignentertainment;ihascupquake;illuminati;illuminatiii;ilvostrocarodexter;imaqtpie;imgur;immortalhdfilms;imperial japan;imperialists;imperialjapan;imvuinc;insanegaz;insidegaming;insidersnetwork;instagram;instalok;inthelittlewood;ipodmail;iron man;isaac;isamuxpompa;isis;isreal;itchyfeetleech;itsjerryandharry;itsonbtv;iulitm;ivysaur;izuniy;jackfrags;jacksepticeye;jahovaswitniss;jahrein;jaidefinichon;james bond;jamesnintendonerd;jamonymow;java;jellyyt;jeromeasf;jew;jewnose;jibanyan;jimmies;jjayjoker;joeygraceffagames;johnsju;jontronshow;josemicod5;joueurdugrenier;juegagerman;jumpinthepack;jupiter;kalmar union;kame;kappa;karamba728;kenny;keralis;kiloomobile;kingdomoffrance;kingjoffrey;kinnpatuhikaru;kirby;kitty;kjragaming;klingon;knekrogamer;knights templar;knightstemplar;knowyourmeme;kootra;kripparrian;ksiolajidebt;ksiolajidebthd;kuplinovplay;kurdistan;kwebbelkop;kyle;kyokushin4;kyrsp33dy;ladle;laggerfeed;lazuritnyignom;ldshadowlady;le snake;lenny;letsplay;letsplayshik;letstaddl;level5ch;levelcapgaming;lgbt;liberland;libertyy;liechtenstien;lifesimmer;linux;lisbug;littlelizardgaming;llessur;loadingreadyrun;loki;lolchampseries;lonniedos;love;lpmitkev;luigi;luke4316;m3rkmus1c;macedonia;machinimarealm;machinimarespawn;magdalenamariamonika;mahalovideogames;malena010102;malta;mario;mario11168;markipliergame;mars;maryland;masterball;mastercheif;mateiformiga;matroix;matthdgamer;matthewpatrick13;mattshea;maxmoefoegames;mcdonalds;meatboy;meatwad;meatwagon22;megamilk;messyourself;mickey;mike tyson;mike;miles923;minecraftblow;minecraftfinest;minecraftuniverse;miniladdd;miniminter;minnesotaburns;minnie;mkiceandfire;mlg;mm7games;mmohut;mmoxreview;mod3rnst3pny;moldova;morealia;mortalkombat;mr burns;mr.bean;mr.popo;mrchesterccj;mrdalekjd;mredxwx;mrlev12;mrlololoshka;mrvertez;mrwoofless;multirawen;munchingorange;n64;naga;namcobandaigameseu;nasa;natusvinceretv;nauru;nazi;nbgi;needforspeed;nepenthez;nextgentactics;nextgenwalkthroughs;ngtzombies;nick fury;nick;nickelodeon;niichts;nintendo;nintendocaprisun;nintendowiimovies;nipple;nislt;nobodyepic;node;noobfromua;northbrabant;northernlion;norunine;nosmoking;notch;nsa;obama;obey;officialclashofclans;officialnerdcubed;oficialmundocanibal;olafvids;omfgcata;onlyvgvids;opticnade;osu;ouch;outsidexbox;p3rvduxa;packattack04082;palau;paluten;pandaexpress;paulsoaresjr;pauseunpause;pazudoraya;pdkfilms;peanutbuttergamer;pedo;pedobear;peinto1008;peka;penguin;penguinz0;pepe;pepsi;perpetuumworld;pewdiepie;pi;pietsmittie;pig;piggy;pika;pimpnite;pinkfloyd;pinkstylist;pirate;piratebay;pizza;pizzaa;plagasrz;plantsvszombies;playclashofclans;playcomedyclub;playscopetrailers;playstation;playstation3gaminghd;pockysweets;poketlwewt;pooh;poop;popularmmos;potato;prestonplayz;protatomonster;prowrestlingshibatar;pt;pur3pamaj;quantum leap;question;rageface;rajmangaminghd;retard smile;rewind;rewinside;rezendeevil;reziplaygamesagain;rfm767;riffer333;robbaz;rockalone2k;rockbandprincess1;rockstar;rockstargames;rojov13;rolfharris;roomba;roosterteeth;roviomobile;rspproductionz;rss;rusgametactics;ryukyu;s.h.e.i.l.d;sah4rshow;samoa;sara12031986;sarazarlp;satan;saudi arabia;scream;screwattack;seal;seananners;serbia;serbiangamesbl;sethbling;sharingan;shell;shine;shofu;shrek;shufflelp;shurikworld;shuuya007;sinistar;siphano13;sir;skillgaming;skinspotlights;skkf;skull;skydoesminecraft;skylandersgame;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;smikesmike05;smoothmcgroove;smoove7182954;smoshgames;snafu;snapchat;snoop dogg;soccer;soliare;solomid;somalia;sp4zie;space ace;space;sparklesproduction;sparkofphoenix;spawn;speedyw03;speirstheamazinghd;spiderman;spongegar;spore;spqr;spy;squareenix;squirtle;ssohpkc;sssniperwolf;ssundee;stalinjr;stampylonghead;star wars rebel;starbucks;starchild;starrynight;staxxcraft;stitch;stupid;summit1g;sunface;superevgexa;superman;superskarmory;swiftor;swimmingbird941;syria;t3ddygames;tackle4826;taco;taltigolt;tasselfoot;tazercraft;tbnrfrags;tctngaming;teamfortress;teamgarrymoviethai;teammojang;terrorgamesbionic;tetraninja;tgn;the8bittheater;thealvaro845;theatlanticcraft;thebajancanadian;thebraindit;thecraftanos;thedanirep;thedeluxe4;thediamondminecart;theescapistmagazine;thefantasio974;thegaminglemon;thegrefg;thejoves;thejwittz;themasterov;themaxmurai;themediacows;themrsark;thepolishpenguinpl;theradbrad;therelaxingend;therpgminx;therunawayguys;thesims;theskylanderboy;thesw1tcher;thesyndicateproject;theuselessmouth;thewillyrex;thnxcya;thor;tintin;tmartn;tmartn2;tobygames;tomo0723sw;tonga;topbestappsforkids;totalhalibut;touchgameplay;transformer;transformers;trickshotting;triforce;trollarchoffice;trollface;trumpsc;tubbymcfatfuck;turkey;tv;tvddotty;tvongamenet;twitch;twitter;twosyncfifa;typicalgamer;uberdanger;uberhaxornova;ubisoft;uguu;ukip;ungespielt;uppercase;uruguay;utorrent;vanossgaming;vatican;venomextreme;venturiantale;videogamedunkey;videogames;vietnam;vikkstar123;vikkstar123hd;vintagebeef;virus;vladnext3;voat;voyager;vsauce3;w1ldc4t43;wakawaka;wales;walrus;wazowski;wewlad;white  light;whiteboy7thst;whoyourenemy;wiiriketopray;willyrex;windows;wingsofredemption;wit my woes;woodysgamertag;worldgamingshows;worldoftanks;worldofwarcraft;wowcrendor;wqlfy;wroetoshaw;wwf;wykop;xalexby11;xbox;xboxviewtv;xbulletgtx;xcalizorz;xcvii007r1;xjawz;xmandzio;xpertthief;xrpmx13;xsk;yamimash;yarikpawgames;ycm;yfrosta;yinyang;ylilauta;ylilautaa;yoba;yobaa;yobaaa;yogscast2;yogscastlalna;yogscastsips;yogscastsjin;yoteslaya;youalwayswin;yourheroes;yourmom;youtube;zackscottgames;zangado;zazinombies;zeecrazyatheist;zeon;zerkaahd;zerkaaplays;zexyzek;zimbabwe;zng;zoella;zoidberg;zombey;zoomingames").split(";");
 });
