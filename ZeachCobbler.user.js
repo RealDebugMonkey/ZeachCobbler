@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.22.4
+// @version      0.22.5
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -17,6 +17,7 @@
 //                   4 - Blank cell fix
 //                     - Option to remove grid lines
 //                     - Oldest cell now just displays name rather than negative Time To Remerge (TTR)
+//                   5 - Grazer auto-respawn
 //              0.21.0 - Changed way script is loaded.
 //              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
@@ -83,8 +84,8 @@ document.addEventListener("DOMContentLoaded", function() {
 var debugMonkeyReleaseMessage = "<h3>Volume Issues</h3><p>Sorry for those of you that encountered background music that" +
     " you couldn't shut off. I'm constantly making small improvements and changes you might not see or know about" +
     " unless you look at the change notes in the source. Needless to say, I flubbed changes to that area of the code." +
-    " <BR><BR>This release has a fix for missing info on blank cells, an option to remove gridlines, and the oldest cell" +
-    " will no longer display a TTR (Time To Remerge) when split.<br><br>" +
+    " <BR><BR>This release has: <ul><li>A fix for missing info on blank cells</li> <li>an option to remove gridlines</li> <li>The oldest cell" +
+    " will no longer display a TTR (Time To Remerge) when split.</li><li>Grazer auto-respawns (must be in grazer mode at death)</li></ul><br><br>" +
     "If you encounter any issues please drop me a bug report at <a href='https://github.com/RealDebugMonkey/ZeachCobbler/issues'>https://github.com/RealDebugMonkey/ZeachCobbler/issues</a>" +
     "</p><br><br>debugmonkey</p><br><br>PS. ZeachCobbler also supports " +
     "the new AgarioMod *name skins. Try playing as *Zeach or *Pikachu to check it out.";
@@ -144,6 +145,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     //GetGmValues();
 
     var cobbler = {
+        set grazingMode(val)    {isGrazing = val;},
+        get grazingMode()       {return isGrazing},
         _isAcid : false,
         set isAcid(val)         {this._isAcid = val; setAcid(val);},
         get isAcid()            {return this._isAcid},
@@ -186,12 +189,13 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         _grazerHybridSwitchMass:        GM_getValue('grazerHybridSwitchMass', 300),
         set grazerHybridSwitchMass(val) {this._grazerHybridSwitchMass = val; GM_setValue('grazerHybridSwitchMass', val);},
         get grazerHybridSwitchMass()    {return this._grazerHybridSwitchMass;},
-        _gridLines:        GM_getValue('gridLines', true),
-        set gridLines(val) {this._gridLines = val; GM_setValue('gridLines', val);},
-        get gridLines()    {return this._gridLines;},
-
-        "autoRespawn": false,
-        "respawnWithGrazer" : false,
+        _gridLines:          GM_getValue('gridLines', true),
+        set gridLines(val)   {this._gridLines = val; GM_setValue('gridLines', val);},
+        get gridLines()      {return this._gridLines;},
+        _autoRespawn:        GM_getValue('autoRespawn', false),
+        set autoRespawn(val) {this._autoRespawn = val; GM_setValue('autoRespawn', val);},
+        get autoRespawn()    {return this._autoRespawn;},
+//        "respawnWithGrazer" : false,
         _visualizeGrazing : GM_getValue('visualizeGrazing', true),
         set visualizeGrazing(val)       {this._visualizeGrazing = val; GM_setValue('visualizeGrazing', val);},
         get visualizeGrazing()          {return this._visualizeGrazing;},
@@ -428,7 +432,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
     function doGrazing() {
         if(!isPlayerAlive()){
-            isGrazing = false;
+            //isGrazing = false;
             return;
         }
 
@@ -3948,6 +3952,7 @@ function DrawStats(game_over) {
         stats.time_of_death = Date.now();
         sfx_play(1);
         StopBGM();
+        if(window.cobbler.autoRespawn && window.cobbler.grazingMode){setTimeout(function(){jQuery("#playBtn").click();},3000);}
     }
     var time = stats.time_of_death ? stats.time_of_death : Date.now();
     var seconds = (time - stats.birthday)/1000;
@@ -4244,6 +4249,7 @@ var col2 = $("#col2");
     $('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
     $('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
     col2.append('<h3>Grazer</h3>');
+    AppendCheckboxP(col2, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
     AppendCheckboxP(col2, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
     col2.append('<h4>Hybrid Grazer</h4>' +
         '<div id="hybrid-group" class="input-group"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
