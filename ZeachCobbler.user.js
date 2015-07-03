@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.22.5
+// @version      0.22.6
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -18,6 +18,8 @@
 //                     - Option to remove grid lines
 //                     - Oldest cell now just displays name rather than negative Time To Remerge (TTR)
 //                   5 - Grazer auto-respawn
+//                   6 - G and H act equivalently in hybrid-grazer mode
+//                     - if old grazer has no targets it will try to switch into new grazer mode
 //              0.21.0 - Changed way script is loaded.
 //              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
@@ -469,7 +471,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 {
                     var target = findFoodToEat_old(getSelectedBlob(), zeach.allItems);
                     if(-1 == target){
-                        isGrazing = false;
+                        isGrazing = 2;
                         return;
                     }
                     grazingTargetID = target.id;
@@ -1602,10 +1604,18 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             fireAtVirusNearestToCursor();
         }
         else if('G'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            if(cobbler.grazerHybridSwitch && isGrazing){
+                isGrazing = 0;
+                return;
+            }
             grazingTargetID = null;
             isGrazing = (2 == isGrazing) ? false : 2;
         }
         else if('H'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            if(cobbler.grazerHybridSwitch && isGrazing){
+                isGrazing = 0;
+                return;
+            }
             grazingTargetID = null;
             isGrazing = (1 == isGrazing) ? false : 1;
         }
