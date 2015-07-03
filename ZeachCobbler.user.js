@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.22.3
+// @version      0.22.4
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -14,6 +14,9 @@
 //                     - Hybrid grazer goes back to old grazer if it loses enough mass
 //                   2 - Hybrid grazer checkbox fix
 //                   3 - volume fix
+//                   4 - Blank cell fix
+//                     - Option to remove grid lines
+//                     - Oldest cell now just displays name rather than negative Time To Remerge (TTR)
 //              0.21.0 - Changed way script is loaded.
 //              0.20.0 - Version leap due to updated grazer
 //                     - Fixes for new client behavior
@@ -77,9 +80,11 @@ var config = {
 observer.observe(target, config);
 
 document.addEventListener("DOMContentLoaded", function() {
-var debugMonkeyReleaseMessage = "<h3>New Grazer!</h3><p>Thanks to Albel727 the grazer has recieved a complete " +
-    "overhaul! Fear not fans of the old grazer, you can still press 'H' to use the old grazer.</p>" +
-    "<p>And yes, I do know the stats chart is spilling out of the div. I'll get it right eventually.<br><br>" +
+var debugMonkeyReleaseMessage = "<h3>Volume Issues</h3><p>Sorry for those of you that encountered background music that" +
+    " you couldn't shut off. I'm constantly making small improvements and changes you might not see or know about" +
+    " unless you look at the change notes in the source. Needless to say, I flubbed changes to that area of the code." +
+    " <BR><BR>This release has a fix for missing info on blank cells, an option to remove gridlines, and the oldest cell" +
+    " will no longer display a TTR (Time To Remerge) when split.<br><br>" +
     "If you encounter any issues please drop me a bug report at <a href='https://github.com/RealDebugMonkey/ZeachCobbler/issues'>https://github.com/RealDebugMonkey/ZeachCobbler/issues</a>" +
     "</p><br><br>debugmonkey</p><br><br>PS. ZeachCobbler also supports " +
     "the new AgarioMod *name skins. Try playing as *Zeach or *Pikachu to check it out.";
@@ -157,36 +162,33 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         _splitGuide:            GM_getValue('splitGuide', true),
         set splitGuide(val)     {this._splitGuide = val; GM_setValue('splitGuide', val);},
         get splitGuide()        {return this._splitGuide;},
-        _rainbowPellets:            GM_getValue('rainbowPellets', true),
-        set rainbowPellets(val)     {this._rainbowPellets = val; GM_setValue('rainbowPellets', val);},
-        get rainbowPellets()        {return this._rainbowPellets;},
+        _rainbowPellets:        GM_getValue('rainbowPellets', true),
+        set rainbowPellets(val) {this._rainbowPellets = val; GM_setValue('rainbowPellets', val);},
+        get rainbowPellets()    {return this._rainbowPellets;},
         _debugLevel:            GM_getValue('debugLevel', 1),
         set debugLevel(val)     {this._debugLevel = val; GM_setValue('debugLevel', val);},
         get debugLevel()        {return this._debugLevel;},
-
         _imgurSkins:            GM_getValue('imgurSkins', true),
         set imgurSkins(val)     {this._imgurSkins = val; GM_setValue('imgurSkins', val);},
         get imgurSkins()        {return this._imgurSkins;},
-
-        _amExtendedSkins:            GM_getValue('amExtendedSkins', true),
-        set amExtendedSkins(val)     {this._amExtendedSkins = val; GM_setValue('amExtendedSkins', val);},
-        get amExtendedSkins()        {return this._amExtendedSkins;},
-
+        _amExtendedSkins:           GM_getValue('amExtendedSkins', true),
+        set amExtendedSkins(val)    {this._amExtendedSkins = val; GM_setValue('amExtendedSkins', val);},
+        get amExtendedSkins()       {return this._amExtendedSkins;},
         _amConnectSkins:            GM_getValue('amConnectSkins', true),
         set amConnectSkins(val)     {this._amConnectSkins = val; GM_setValue('amConnectSkins', val);},
         get amConnectSkins()        {return this._amConnectSkins;},
-
-        _namesUnderBlobs:            GM_getValue('namesUnderBlobs', false),
-        set namesUnderBlobs(val)     {this._namesUnderBlobs = val; GM_setValue('namesUnderBlobs', val);},
-        get namesUnderBlobs()        {return this._namesUnderBlobs;},
-
+        _namesUnderBlobs:           GM_getValue('namesUnderBlobs', false),
+        set namesUnderBlobs(val)    {this._namesUnderBlobs = val; GM_setValue('namesUnderBlobs', val);},
+        get namesUnderBlobs()       {return this._namesUnderBlobs;},
         _grazerHybridSwitch:            GM_getValue('grazerHybridSwitch', false),
         set grazerHybridSwitch(val)     {this._grazerHybridSwitch = val; GM_setValue('grazerHybridSwitch', val);},
         get grazerHybridSwitch()        {return this._grazerHybridSwitch;},
-
-        _grazerHybridSwitchMass:            GM_getValue('grazerHybridSwitchMass', 300),
-        set grazerHybridSwitchMass(val)     {this._grazerHybridSwitchMass = val; GM_setValue('grazerHybridSwitchMass', val);},
-        get grazerHybridSwitchMass()        {return this._grazerHybridSwitchMass;},
+        _grazerHybridSwitchMass:        GM_getValue('grazerHybridSwitchMass', 300),
+        set grazerHybridSwitchMass(val) {this._grazerHybridSwitchMass = val; GM_setValue('grazerHybridSwitchMass', val);},
+        get grazerHybridSwitchMass()    {return this._grazerHybridSwitchMass;},
+        _gridLines:        GM_getValue('gridLines', true),
+        set gridLines(val) {this._gridLines = val; GM_setValue('gridLines', val);},
+        get gridLines()    {return this._gridLines;},
 
         "autoRespawn": false,
         "respawnWithGrazer" : false,
@@ -265,6 +267,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
 
     // ======================   Utility code    ==================================================================
+    function isFood(blob){
+        return (blob.nSize < 15)
+    }
     function getSelectedBlob(){
         if(!_.contains(zeach.myIDs, selectedBlobID)){
             selectedBlobID = zeach.myPoints[0].id;
@@ -1001,8 +1006,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         if(!showVisualCues){
             return cell.color;
         }
-        if(cobbler.rainbowPellets && cell.size < 15)
-        {
+        if(cobbler.rainbowPellets && isFood(cell)){
             return cell.color;
         }
         var color = cell.color;
@@ -1468,10 +1472,14 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         yBasePos = ~~this.y;
         // Viruses have empty name caches. If this is a virus with an empty name cache
         // then give it a name of the # of shots needed to split it.
-        if(this.isVirus && null == nameCache){
-            var virusSize = this.nSize;
-            var shotsNeeded = getVirusShotsNeededForSplit(virusSize).toString();
-            this.setName(shotsNeeded);
+        if(null == nameCache) {
+            if (this.isVirus) {
+                var virusSize = this.nSize;
+                var shotsNeeded = getVirusShotsNeededForSplit(virusSize).toString();
+                this.setName(shotsNeeded);
+            } else if(!isFood(this)) {
+                this.setName(this.nSize.toString()); // Stupid blank cells. Give them a name.
+            }
         }
 
         if((zeach.hasNickname || isMyCell) && (this.name && (nameCache && (null == itemToDraw || -1 == zeach.textBlobs.indexOf(kbIndex)))) ) {
@@ -1654,9 +1662,13 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function setCellName(cell, d) {
         if (showVisualCues) {
             var pct;
-            if (_.contains(zeach.myIDs, cell.id) && _.size(zeach.myPoints) > 1) {
+            if (_.size(zeach.myPoints) > 1 && _.contains(zeach.myIDs, cell.id)) {
+                var oldestSplitTime = _.min(zeach.myPoints, "splitTime");
+                if(oldestSplitTime.id == cell.id){
+                    d.setValue(cell.name);
+                } else {
                 pct = (cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n);
-                d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
+                d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");}
             } else if (!cell.isVirus && isPlayerAlive()) {
                 pct = ~~((cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n));
                 d.setValue(cell.name + " " + pct.toString() + "%");
@@ -2511,6 +2523,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     function gb() {
         f.fillStyle = la ? "#111111" : "#F2FBFF";
         f.fillRect(0, 0, q, r);
+        /*new*/if(!cobbler.gridLines){return;}
         f.save();
         f.strokeStyle = la ? "#AAAAAA" : "#000000";
         f.globalAlpha = 0.2;
@@ -4216,6 +4229,7 @@ var col1 = $("#col1");
     AppendCheckboxP(col1, 'option4', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
     AppendCheckboxP(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
     AppendCheckboxP(col1, 'option7', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
+    AppendCheckboxP(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gridLines, function(val){window.cobbler.gridLines = val;});
     col1.append("<h3>Stats</h3>");
     AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
     AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
