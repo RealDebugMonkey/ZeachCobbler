@@ -4,13 +4,14 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.24.1
+// @version      0.24.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.24.0 - Switched back to hacky method of loading & added hotkey reference
 //                   1 - Guest play fix
+//                   2 - UI Tweaks and a new message
 //              0.23.0 - Agariomods.com private server support
 //              0.22.0 - Added hybrid grazer option & fixed music
 //                   1 - music restored, viruses excluded from relocated names
@@ -62,11 +63,19 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Game Breaking Changes (Again)</h3><p>" +
-    "This is a quick hack to make things playable again. I realize the stats box is obscuring the ads. " +
-    "<H5>It never has been and never will be my intention to deprive Zeach of any ad revenue</H5> - I will fix the " +
-    "ad display issue As soon as I am able.</p> <h3> FACEBOOK PLAY DOES NOT WORK YET. ONLY GUEST PLAY WORKS</h3>"+
-    "<br><br>debugmonkey</p><br>";
+var debugMonkeyReleaseMessage = "<h3>Game Breaking Changes (Updated)</h3><p>" +
+    "This is a quick hack to make things playable again." +
+    "<h4>Important Facebook Note:</h4> Apparently my mod *does* work with the new Facebook integration.<br> I was seeing " +
+    "an error because Ghostery was blocking 'Facebook Connect.' You will need to allow Facebook Connect in your adblocker " +
+    "and any other ad/tracker blockers you use. Things will look ugly until I get a chance to sync the changes with the " +
+    "stats dialog box. The XP box is being shoved offscreen. Sorry for that"+
+    "<h4>Privacy note</h4>Facebook connect will require your account info, but <b>your email is optional</b> you can decline " +
+    "to share your email by clicking the 'choose what info to provide' link and then unselecting email as in this screen " +
+    "shot: <a href='http://s2.postimg.org/u91rmd1s9/Log_in_with_Facebook_and_Agar_io.png'>" +
+    "<img width='25%' height='25%' src='http://s2.postimg.org/u91rmd1s9/Log_in_with_Facebook_and_Agar_io.png'></a>"+
+    "<br><br>debugmonkey</p><br>Ps. I missed getting a screenshot of the screen with the 'choose what info you provide.' Would appreciate if someone could provide at the " +
+    "<a href='https://github.com/RealDebugMonkey/ZeachCobbler/issues'>bug tracker</a>. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
+    "I can. Only one of me and I gotta keep food on the table before working on this hobby.";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -3642,7 +3651,8 @@ jQuery('body').append('<div id="chart-container" style="display:none; position:a
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
 
 jQuery("#helloContainer").css('left','230px');
-jQuery(".side-container").css('left','230px');
+jQuery(".agario-profile-panel").css({'left': '100%', "top":"-120px", "position":"absolute"});
+jQuery(".agario-promo").hide();
 jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; height:673px; background-color: #FFFFFF; ' +
     'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
     '<ul class="nav nav-pills" role="tablist">' +
