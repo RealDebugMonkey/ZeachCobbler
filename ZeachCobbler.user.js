@@ -4,12 +4,13 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.24.0
+// @version      0.24.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.24.0 - Switched back to hacky method of loading & added hotkey reference
+//                   1 - Guest play fix
 //              0.23.0 - Agariomods.com private server support
 //              0.22.0 - Added hybrid grazer option & fixed music
 //                   1 - music restored, viruses excluded from relocated names
@@ -61,12 +62,10 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Modding difficulties and a 'Thanks'</h3><p>" +
-    "Some recent changes have made modding of the game a little more difficult.</p><p>I'm having to use some ugly tricks to get things" +
-    "loading properly and they may not always work. Just reload to try again if things look wrong.</p>" +
-    "<p>Also, thanks to whoever voted for this mod in the nulled.io poll. I'm curious why this mod was seen as primarily a bot" +
-    "rather than a 'Hack mod'. Is there something missing from the mod that others have? I always thought I had features" +
-    "no other cheat mod has such as TTR timer, virus shot counter, etc. </p><p>What am I missing?</p>"+
+var debugMonkeyReleaseMessage = "<h3>Game Breaking Changes (Again)</h3><p>" +
+    "This is a quick hack to make things playable again. I realize the stats box is obscuring the ads. " +
+    "<H5>It never has been and never will be my intention to deprive Zeach of any ad revenue</H5> - I will fix the " +
+    "ad display issue As soon as I am able.</p> <h3> FACEBOOK PLAY DOES NOT WORK YET. ONLY GUEST PLAY WORKS</h3>"+
     "<br><br>debugmonkey</p><br>";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
@@ -3642,7 +3641,8 @@ var chart_update_interval = 10;
 jQuery('body').append('<div id="chart-container" style="display:none; position:absolute; height:176px; width:300px; left:10px; bottom:44px"></div>');
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
 
-jQuery("#helloDialog").css('left','230px');
+jQuery("#helloContainer").css('left','230px');
+jQuery(".side-container").css('left','230px');
 jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; height:673px; background-color: #FFFFFF; ' +
     'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
     '<ul class="nav nav-pills" role="tablist">' +
@@ -3955,7 +3955,7 @@ function DrawStats(game_over) {
         stats.time_of_death = Date.now();
         sfx_play(1);
         StopBGM();
-        if(window.cobbler.autoRespawn && window.cobbler.grazingMode){setTimeout(function(){jQuery("#playBtn").click();},3000);}
+        if(window.cobbler.autoRespawn && window.cobbler.grazingMode){setTimeout(function(){jQuery(".btn-play-guest").click();},3000);}
     }
     var time = stats.time_of_death ? stats.time_of_death : Date.now();
     var seconds = (time - stats.birthday)/1000;
@@ -4204,7 +4204,7 @@ var tracks = ['http://incompetech.com/music/royalty-free/mp3-preview2/Frost%20Wa
 var nodeAudio = document.createElement("audio");
 nodeAudio.id = 'audiotemplate';
 nodeAudio.preload = "auto";
-jQuery(playBtn).parent().get(0).appendChild(nodeAudio);
+jQuery(".agario-panel").get(0).appendChild(nodeAudio);
 
 
 var bgmusic = $('#audiotemplate').clone()[0];
