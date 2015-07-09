@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.24.2
+// @version      0.24.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -63,18 +63,18 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Game Breaking Changes (Updated)</h3><p>" +
-    "This is a quick hack to make things playable again." +
-    "<h4>Important Facebook Note:</h4> Apparently my mod *does* work with the new Facebook integration.<br> I was seeing " +
-    "an error because Ghostery was blocking 'Facebook Connect.' You will need to allow Facebook Connect in your adblocker " +
-    "and any other ad/tracker blockers you use. Things will look ugly until I get a chance to sync the changes with the " +
-    "stats dialog box. The XP box is being shoved offscreen. Sorry for that"+
-    "<h4>Privacy note</h4>Facebook connect will require your account info, but <b>your email is optional</b> you can decline " +
-    "to share your email by clicking the 'choose what info to provide' link and then unselecting email as in this screen " +
-    "shot: <a href='http://s2.postimg.org/u91rmd1s9/Log_in_with_Facebook_and_Agar_io.png'>" +
-    "<img width='25%' height='25%' src='http://s2.postimg.org/u91rmd1s9/Log_in_with_Facebook_and_Agar_io.png'></a>"+
-    "<br><br>debugmonkey</p><br>Ps. I missed getting a screenshot of the screen with the 'choose what info you provide.' Would appreciate if someone could provide at the " +
-    "<a href='https://github.com/RealDebugMonkey/ZeachCobbler/issues'>bug tracker</a>. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
+var debugMonkeyReleaseMessage = "<h3>Game Breaking Changes (Updated Again)</h3><p>" +
+    "<h4>Important Facebook Notes:</h4><b>This is a quick hack to make things playable again. XP gaining does not work " +
+    "with my mod right now!</b><br>This mod only *somewhat* works with the new Facebook integration.<br> If you use Ghostery " +
+    "you might need to <a 'href=http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a> " +
+    "With the stock Agario client I had to allow Facebook and Doubleclick (for some reason) before 'Play' and XP gaining worked. " +
+    "Again, You can connect and play within my mod, but currently XP gaining is out of order."+
+    "<h4>Privacy note</h4>As a general Public Service Announcement: If you decide to use the Facebook login option, " +
+    "Facebook connect will require your account info, but <b>your email is optional</b> andyou can decline " +
+    "to share your email by clicking the 'choose what info to provide' link and then unselecting email as in these screen shots:" +
+    "<a href='http://i.imgur.com/1K4xGKH.png'><img width='45%' height='45%' src='http://i.imgur.com/1K4xGKH.png'></a>"+
+    "<a href='http://i.imgur.com/1EvFpO3.png'><img width='25%' height='25%' src='http://i.imgur.com/1EvFpO3.png'></a>" +
+    "<br><br>debugmonkey</p><br>PS. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
     "I can. Only one of me and I gotta keep food on the table before working on this hobby.";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
