@@ -4,12 +4,13 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.25.0
+// @version      0.25.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.25.0 - Facebook Update
+//                   1 - Tons of bug fixes
 //              0.24.0 - Switched back to hacky method of loading & added hotkey reference
 //                   1 - Guest play fix
 //                   2 - UI Tweaks and a new message
@@ -64,8 +65,8 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Love ya'll</h3><p>" +
-    "There are bound to be bugs... but this should work in the general case.<br>If you use Ghostery " +
+var debugMonkeyReleaseMessage = "<h3>Love ya'll (with less bugs)</h3><p>" +
+    "There are still bound to be more bugs... but this should work in the general case.<br>If you use Ghostery " +
     "you might need to <a 'href=http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a>. " +
     "With the stock Agario client I had to allow Facebook and Doubleclick (for some reason) before 'Play' and XP gaining worked. " +
     "<h4>Privacy note</h4>As a general Public Service Announcement: If you decide to use the Facebook login option, " +
@@ -219,6 +220,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         get textFunc()      {return ua;},       // CachedCanvas
         get textBlobs()     {return Bb;},       // g_skinNamesB
         get hasNickname()   {return va},        // g_showNames
+        get scale()   {return k},        //
         // Classes
         get CachedCanvas()  {return ua;},       // CachedCanvas
         get Cell()          {return aa},        //
@@ -232,6 +234,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             'setValue'   : 'C',                 //
             'render'     : 'L',                 //
             'setScale'   : 'ea',                //
+            'setSize'    : 'M',                 //
         };
         _.forEach(canvasElementPropMap, function(newPropName,oldPropName){
             Object.defineProperty(objPrototype, oldPropName, {
@@ -244,15 +247,18 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     // Cell
     function restorePointObj(objPrototype){
         var pointPropMap = {
-            'isVirus'   : 'h',  //
-            'nx'        : 'J',  //
-            'ny'        : 'K',  //
-            'setName'   : 'B',  //
-            'nSize'     : 'n',  //
-            'ox'        : 's',  //
-            'oy'        : 't',  //
-            'oSize'     : 'r',  //
-            'destroy'   : 'X',  //
+            'isVirus'     : 'h', //
+            'nx'          : 'J', //
+            'ny'          : 'K', //
+            'setName'     : 'B', //
+            'nSize'       : 'q', //
+            'ox'          : 's', //
+            'oy'          : 't', //
+            'oSize'       : 'r', //
+            'destroy'     : 'X', //
+            'maxNameSize' : 'l', //
+            'massText'    : 'O', //
+            'nameCache'   : 'o', //
         };
         _.forEach(pointPropMap, function(newPropName,oldPropName){
             Object.defineProperty(objPrototype, oldPropName, {
@@ -1424,7 +1430,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     function drawCellName(isMyCell, kbIndex, itemToDraw){
         var yBasePos;
-        var nameCache = this.k;
+        var nameCache = this.nameCache;
         yBasePos = ~~this.y;
         // Viruses have empty name caches. If this is a virus with an empty name cache
         // then give it a name of the # of shots needed to split it.
@@ -1443,8 +1449,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             itemToDraw = nameCache;
             itemToDraw.setValue(this.name);
             setCellName(this, itemToDraw);
-            itemToDraw.H(this.h());
-            var scale = Math.ceil(10 * k) / 10;
+            itemToDraw.setSize(this.maxNameSize());
+            var scale = Math.ceil(10 * zeach.scale) / 10;
             itemToDraw.setScale(scale);
 
             setVirusInfo(this, itemToDraw, scale);
@@ -1466,7 +1472,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function drawCellMass(yBasePos, itemToDraw){
-        return;
         var massValue = (~~(getMass(this.size))).toString();
         // Append shots to mass if visual cues are enabled
         if(showVisualCues && _.contains(zeach.myIDs, this.id)){
@@ -1475,14 +1480,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         if(zeach.isShowMass) {
             var scale;
-            if(itemToDraw || 0 == zeach.myPoints.length && ((!this.isVirus || this.j) && 20 < this.size)) {
-                if(null == this.J) {
-                    this.J = new na(this.h() / 2, "#FFFFFF", true, "#000000");
+            if(itemToDraw || 0 == zeach.myPoints.length && ((!this.isVirus || this.isAgitated) && 20 < this.size)) {
+                if(null == this.massText) {
+                    this.massText = new zeach.CachedCanvas(this.maxNameSize() / 2, "#FFFFFF", true, "#000000");
                 }
-                itemToDraw = this.J;
-                itemToDraw.H(this.h() / 2);
+                itemToDraw = this.massText;
+                itemToDraw.setSize(this.maxNameSize() / 2);
                 itemToDraw.setValue(massValue); // precalculated & possibly appended
-                scale = Math.ceil(10 * k) / 10;
+                scale = Math.ceil(10 * zeach.scale) / 10;
                 itemToDraw.setScale(scale);
 
                 // Tweak : relocated mass is line is bigger than stock
@@ -1632,10 +1637,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 if(oldestSplitTime.id == cell.id){
                     d.setValue(cell.name);
                 } else {
-                    pct = (cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n);
+                    pct = (cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize);
                     d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");}
             } else if (!cell.isVirus && isPlayerAlive()) {
-                pct = ~~((cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n));
+                pct = ~~((cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize));
                 d.setValue(cell.name + " " + pct.toString() + "%");
             }
         }
@@ -1645,13 +1650,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         ctx.setScale(c * 1.25);
         if (showVisualCues) {
             if (cell.isVirus) {
-                cell.k.setValue(getVirusShotsNeededForSplit(cell.n));
+                cell.nameCache.setValue(getVirusShotsNeededForSplit(cell.nSize));
                 var nameSizeMultiplier = 4;
                 ctx.setScale(c * nameSizeMultiplier);
             }
         }
         if (cell.isVirus && !showVisualCues) {
-            cell.k.setValue(" ");
+            cell.nameCache.setValue(" ");
         }
     }
 
@@ -2506,7 +2511,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function vb() {
         g.fillStyle = sa ? "#111111" : "#F2FBFF";
         g.fillRect(0, 0, q, s$$0);
-        console.log(cobbler.gridLines);
         /*new*/if(!cobbler.gridLines){return;}
         g.save();
         g.strokeStyle = sa ? "#AAAAAA" : "#000000";
@@ -3188,7 +3192,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         if (!S() || 240 > Date.now() - Xa) {
                             bb();
                         } else {
-                            console.warn("Skipping draw");
+                            /*new*///console.warn("Skipping draw");
                         }
                         Ab();
                     }
@@ -3747,16 +3751,16 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     b.restore();
                     var d = document.getElementById("favicon");
                     var f = d.cloneNode(true);
+                    /*new*/try{
                     f.setAttribute("href", c.toDataURL("image/png"));
+                    /*new*/}catch(err){}
                     d.parentNode.replaceChild(f, d);
                 };
             }();
-            console.log("running kb1")
-            //kb();
-            //f(function() {
-            //    Za();
-            //});
-            console.log("running kb2")
+            /*new*///kb();
+            /*new*///f(function() {
+            /*new*///    Za();
+            /*new*///});
 
             f(function() {
                 if (d.localStorage.loginCache) {
@@ -3766,7 +3770,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     f(".agario-profile-picture").attr("src", d.localStorage.fbPictureCache);
                 }
             });
-            console.log("running kb3")
 
             d.fbAsyncInit = function() {
                 function a$$0() {
@@ -3792,7 +3795,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 });
                 d.facebookLogin = a$$0;
             };
-            console.log("running kb4")
 
             var Ab = function() {
                 function a$$0(a, c, b, d, e) {
@@ -3834,10 +3836,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             b = X(b);
                         }
                         a$$0(c$$0, this, b || "", +f(this).attr("data-size"), "#5bc0de");
-                    });
+/*new*/             });
                 };
             };
-            console.log("running kb5")
 
             d.createParty = function() {
                 ia(":party");
@@ -3847,7 +3848,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 };
                 N();
             };
-            console.log("running kb6")
 
             d.joinParty = function(a) {
                 f("#helloContainer").attr("data-party-state", "4");
@@ -3874,12 +3874,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 ia("");
                 N();
             };
-            console.log("running kb7")
 
-            //f(function() {
-            //    f(kb);
-            //});
-            d.onload = kb;
+            /*new*///f(function() {
+            /*new*///    f(kb);
+            /*new*///});
+            /*new*/d.onload = kb;
         }
     }
 /*new*/})(unsafeWindow, unsafeWindow.jQuery);
