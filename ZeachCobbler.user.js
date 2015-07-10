@@ -4,12 +4,13 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.24.3
+// @version      0.25.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.24.0 - Switched back to hacky method of loading & added hotkey reference
+// @changes     0.25.0 - Facebook Update
+//              0.24.0 - Switched back to hacky method of loading & added hotkey reference
 //                   1 - Guest play fix
 //                   2 - UI Tweaks and a new message
 //              0.23.0 - Agariomods.com private server support
@@ -63,12 +64,10 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Game Breaking Changes (Updated Again)</h3><p>" +
-    "<h4>Important Facebook Notes:</h4><b>This is a quick hack to make things playable again. XP gaining does not work " +
-    "with my mod right now!</b><br>This mod only *somewhat* works with the new Facebook integration.<br> If you use Ghostery " +
-    "you might need to <a 'href=http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a> " +
+var debugMonkeyReleaseMessage = "<h3>Love ya'll</h3><p>" +
+    "There are bound to be bugs... but this should work in the general case.<br>If you use Ghostery " +
+    "you might need to <a 'href=http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a>. " +
     "With the stock Agario client I had to allow Facebook and Doubleclick (for some reason) before 'Play' and XP gaining worked. " +
-    "Again, You can connect and play within my mod, but currently XP gaining is out of order."+
     "<h4>Privacy note</h4>As a general Public Service Announcement: If you decide to use the Facebook login option, " +
     "Facebook connect will require your account info, but <b>your email is optional</b> andyou can decline " +
     "to share your email by clicking the 'choose what info to provide' link and then unselecting email as in these screen shots:" +
@@ -84,8 +83,12 @@ var debugMonkeyReleaseMessage = "<h3>Game Breaking Changes (Updated Again)</h3><
 $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js");
 $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js");
 
+unsafeWindow.connect2 = unsafeWindow.connect;
+jQuery("#canvas").remove();
+jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canvas>');
 
-(function (g, m) {
+(function(d, f) {
+
 
     // Options that will always be reset on reload
     var zoomFactor = 10;
@@ -129,8 +132,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         .appendTo(jQuery('body'))
         .get(0)
         .getContext("2d");
-
-    //GetGmValues();
 
     var cobbler = {
         set grazingMode(val)    {isGrazing = val;},
@@ -183,7 +184,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         _autoRespawn:        GM_getValue('autoRespawn', false),
         set autoRespawn(val) {this._autoRespawn = val; GM_setValue('autoRespawn', val);},
         get autoRespawn()    {return this._autoRespawn;},
-//        "respawnWithGrazer" : false,
         _visualizeGrazing : GM_getValue('visualizeGrazing', true),
         set visualizeGrazing(val)       {this._visualizeGrazing = val; GM_setValue('visualizeGrazing', val);},
         get visualizeGrazing()          {return this._visualizeGrazing;},
@@ -194,29 +194,34 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
     // ======================   Property & Var Name Restoration  =======================================================
     var zeach = {
-        get ctx()           {return f;},
-        get webSocket()     {return s$$0;},
-        get myIDs()         {return G;},
-        get myPoints()      {return p;},
-        get allNodes()      {return A;},
-        get allItems()      {return v;},
-        get mouseX2()       {return Z;},
-        get mouseY2()       {return $;},
-        get mapTop()        {return ha; },
-        get mapLeft()       {return ia;},
-        get mapBottom()     {return ja;},
-        get mapRight()      {return ka;},
-        get isShowSkins()   {return Sa;},
-        get isNightMode()   {return la;},
-        get isShowMass()    {return Ta;},
-        get gameMode()      {return Q;},
-        get fireFunction()  {return D;},
-        get isColors()      {return Ba;},
-        get defaultSkins()  {return Va;},
-        get imgCache()      {return M;},
-        get textFunc()      {return na;},
-        get textBlobs()     {return kb;},
-        get hasNickname()   {return oa},
+        get connect()       {return Aa},        // Connect
+        get ctx()           {return g;},        // g_context
+        get webSocket()     {return r;},        // g_socket
+        get myIDs()         {return K;},        // g_playerCellIds
+        get myPoints()      {return m;},        // g_playerCells
+        get allNodes()      {return D;},        // g_cellsById
+        get allItems()      {return v;},        // g_cells
+        get mouseX2()       {return fa;},       // g_moveX
+        get mouseY2()       {return ga;},       // g_moveY
+        get mapLeft()       {return oa;},       // g_minX
+        get mapBottom()     {return pa;},       // g_minY
+        get mapRight()      {return qa;},       // g_maxX
+        get mapTop()        {return ra;},       // g_maxY
+        get isShowSkins()   {return fb;},       // g_showSkins
+        // "g_showNames": "va",
+        get isNightMode()   {return sa;},       // ??
+        get isShowMass()    {return gb;},       // ??
+        get gameMode()      {return O;},        // g_mode
+        get fireFunction()  {return G;},        // SendCmd
+        get isColors()      {return Ka;},       // g_noColors
+        get defaultSkins()  {return jb;},       // g_skinNamesA
+        get imgCache()      {return T;},       // ???
+        get textFunc()      {return ua;},       // CachedCanvas
+        get textBlobs()     {return Bb;},       // g_skinNamesB
+        get hasNickname()   {return va},        // g_showNames
+        // Classes
+        get CachedCanvas()  {return ua;},       // CachedCanvas
+        get Cell()          {return aa},        //
         // These never existed before but are useful
         get mapWidth()      {return  ~~(Math.abs(zeach.mapLeft) + zeach.mapRight)},
         get mapHeight()  {return  ~~(Math.abs(zeach.mapTop) + zeach.mapBottom)},
@@ -224,9 +229,9 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
     function restoreCanvasElementObj(objPrototype){
         var canvasElementPropMap = {
-            'setValue'   : 'u',
-            'render'     : 'G',
-            'setScale'   : '$',
+            'setValue'   : 'C',                 //
+            'render'     : 'L',                 //
+            'setScale'   : 'ea',                //
         };
         _.forEach(canvasElementPropMap, function(newPropName,oldPropName){
             Object.defineProperty(objPrototype, oldPropName, {
@@ -236,17 +241,18 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         });
     }
 
+    // Cell
     function restorePointObj(objPrototype){
         var pointPropMap = {
-            'isVirus'   : 'd',
-            'nx'        : 'D',
-            'ny'        : 'F',
-            'setName'   : 'Z',
-            'nSize'     : 'n',
-            'ox'        : 'p',
-            'oy'        : 'q',
-            'oSize'     : 'o',
-            'destroy'   : 'S',
+            'isVirus'   : 'h',  //
+            'nx'        : 'J',  //
+            'ny'        : 'K',  //
+            'setName'   : 'B',  //
+            'nSize'     : 'n',  //
+            'ox'        : 's',  //
+            'oy'        : 't',  //
+            'oSize'     : 'r',  //
+            'destroy'   : 'X',  //
         };
         _.forEach(pointPropMap, function(newPropName,oldPropName){
             Object.defineProperty(objPrototype, oldPropName, {
@@ -255,8 +261,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             });
         });
     }
-    // ======================  UI Responders   ===================================================================
-
 
     // ======================   Utility code    ==================================================================
     function isFood(blob){
@@ -268,12 +272,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             //console.log("Had to select new blob. Its id is " + selectedBlobID);
         }
         return zeach.allNodes[selectedBlobID];
-    }
-
-    //soley used for debugging purposes
-    function GetGmValues(){
-        console.log("GM nick: " + GM_getValue('nick', "none set"));
-        console.log("GM rightClickFires: " + GM_getValue('rightClickFires', "none set"));
     }
 
     function isPlayerAlive(){
@@ -1254,9 +1252,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
     }
 
-// =============
-
-
 // ======================   Virus Popper    ==================================================================
     function findNearestVirus(cell, blobArray){
         var nearestVirus = _.min(_.filter(blobArray, "isVirus", true), function(element) {
@@ -1332,26 +1327,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         "drunken" : "http://i.imgur.com/JeKNRss.png",
     };
 
-//    var bitdoAlreadyChecked = [];
-//
-//    function isBitdoToImgurRedirect(userName, imgCache) {
-//        var bitdoURL = "http://bit.do/"+ userName.slice(1);
-//        GM_xmlhttpRequest({
-//            method: "GET",
-//            url: (bitdoURL + "-"),
-//            onload: function(response) {
-//                var imgurlink = /href=\"(http:\/\/i\.imgur\.com\/[a-zA-Z0-9.]+)/g.exec(response.responseText);
-//                if(null == imgurlink || imgurlink.length < 2 || !_.startsWith(imgurlink[1], "http://i.imgur.com/"))
-//                    console.log("No imgur link found");
-//                else {
-//                    console.log(imgurlink[1] + " is image for  " + userName);
-//                    imgCache[userName.toLowerCase()] = new Image;
-//                    imgCache[userName.toLowerCase()].src = imgurlink[1];
-//                }
-//            }
-//        });
-//        return true;
-//    }
 
     function isAgarioModsSkin(targetName){
         if(!cobbler.amExtendedSkins){
@@ -1393,7 +1368,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
         }
         else if(!cell.isAgitated && showSkins ){
             if(-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
-                /*isBitDoSkin(userName) ||*/ isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
+                    /*isBitDoSkin(userName) ||*/ isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
                     if(isSpecialSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
@@ -1412,17 +1387,6 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://connect.agariomods.com/img_" + userNameLowerCase.slice(1) + ".png";
                     }
-                    //else if(isBitDoSkin(userNameLowerCase)){
-                    //    if(-1 != bitdoAlreadyChecked.indexOf(userNameLowerCase))
-                    //    {
-                    //        console.log(userNameLowerCase + " already checked");
-                    //        return null;
-                    //    }
-                    //    isBitdoToImgurRedirect(userName, imgCache);
-                    //    console.log(userName + " added to already checked list");
-                    //    bitdoAlreadyChecked.push(userNameLowerCase);
-                    //    return null;
-                    //}
                     else if(isImgurSkin(userNameLowerCase)){
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://i.imgur.com/"+ userName.slice(2) +".png";
@@ -1502,6 +1466,7 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
     }
 
     function drawCellMass(yBasePos, itemToDraw){
+        return;
         var massValue = (~~(getMass(this.size))).toString();
         // Append shots to mass if visual cues are enabled
         if(showVisualCues && _.contains(zeach.myIDs, this.id)){
@@ -1667,8 +1632,8 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                 if(oldestSplitTime.id == cell.id){
                     d.setValue(cell.name);
                 } else {
-                pct = (cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n);
-                d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");}
+                    pct = (cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n);
+                    d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");}
             } else if (!cell.isVirus && isPlayerAlive()) {
                 pct = ~~((cell.n * cell.n) * 100 / (getSelectedBlob().n * getSelectedBlob().n));
                 d.setValue(cell.name + " " + pct.toString() + "%");
@@ -1699,167 +1664,158 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
 
 // ======================   Start main    ==================================================================
 
-    function Wa() {
-        pa = true;
-        Ca();
-        setInterval(Ca, 18E4);
-        C = qa = document.getElementById("canvas");
-        f = C.getContext("2d");
-        /*new*//*remap*/ C.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
-        C.onmousedown = function (a) {
-            /*new*/if(isPlayerAlive() && rightClickFires){fireAtVirusNearestToCursor();}
-            /*new*/ return;
-            /*new*/ //event.preventDefault(); // FUTURE: Electronoob mousedrag fix. is this needed?
-            if(Da) {
-                var b = a.clientX - (5 + q / 5 / 2);
-                var c = a.clientY - (5 + q / 5 / 2);
-                if(Math.sqrt(b * b + c * c) <= q / 5 / 2) {
-                    N();
-                    D(17);
+    function kb() {
+        wa = true;
+        La();
+        setInterval(La, 18E4);
+        F = xa = document.getElementById("canvas");
+        g = F.getContext("2d");
+        /*new*//*remap*/ F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        F.onmousedown = function(a) {
+            /*new*/if(isPlayerAlive() && rightClickFires){fireAtVirusNearestToCursor();}return;
+            if (Ma) {
+                var c = a.clientX - (5 + q / 5 / 2);
+                var b = a.clientY - (5 + q / 5 / 2);
+                if (Math.sqrt(c * c + b * b) <= q / 5 / 2) {
+                    U();
+                    G(17);
                     return;
                 }
             }
-            V = a.clientX;
-            W = a.clientY;
-            ra();
-            N();
+            ca = a.clientX;
+            da = a.clientY;
+            ya();
+            U();
         };
-        C.onmousemove = function (a) {
-            V = a.clientX;
-            W = a.clientY;
-            ra();
+        F.onmousemove = function(a) {
+            ca = a.clientX;
+            da = a.clientY;
+            ya();
         };
-        C.onmouseup = function () {};
-        if(/firefox/i.test(navigator.userAgent)) {
-            document.addEventListener("DOMMouseScroll", Ea, false);
+        F.onmouseup = function() {
+        };
+        if (/firefox/i.test(navigator.userAgent)) {
+            document.addEventListener("DOMMouseScroll", Na, false);
         } else {
-            document.body.onmousewheel = Ea;
+            document.body.onmousewheel = Na;
         }
         var a = false;
-        var b = false;
         var c = false;
-        g.onkeydown = function (d) {
-            if(!(32 != d.keyCode)) {
-                if(!a) {
-                    N();
-                    D(17);
+        var b = false;
+        d.onkeydown = function(e) {
+            if (!(32 != e.keyCode)) {
+                if (!a) {
+                    U();
+                    G(17);
                     a = true;
                 }
             }
-            if(!(81 != d.keyCode)) {
-                if(!b) {
-                    D(18);
-                    b = true;
-                }
-            }
-            if(!(87 != d.keyCode)) {
-                if(!c) {
-                    N();
-                    D(21);
+            if (!(81 != e.keyCode)) {
+                if (!c) {
+                    G(18);
                     c = true;
                 }
             }
-            if(27 == d.keyCode) {
-                Fa(true);
+            if (!(87 != e.keyCode)) {
+                if (!b) {
+                    U();
+                    G(21);
+                    b = true;
+                }
             }
-            /*new*/customKeyDownEvents(d);
+            if (27 == e.keyCode) {
+                Oa(true);
+            }
+            /*new*/customKeyDownEvents(e);
         };
-        g.onkeyup = function (d) {
-            if(32 == d.keyCode) {
+        d.onkeyup = function(e) {
+            if (32 == e.keyCode) {
                 a = false;
             }
-            if(87 == d.keyCode) {
-                c = false;
+            if (87 == e.keyCode) {
+                b = false;
             }
-            if(81 == d.keyCode) {
-                if(b) {
-                    D(19);
-                    b = false;
+            if (81 == e.keyCode) {
+                if (c) {
+                    G(19);
+                    c = false;
                 }
             }
         };
-        g.onblur = function () {
-            D(19);
-            c = b = a = false;
+        d.onblur = function() {
+            G(19);
+            b = c = a = false;
         };
-        g.onresize = Ga;
-        if(g.requestAnimationFrame) {
-            g.requestAnimationFrame(Ha);
-        } else {
-            setInterval(sa, 1E3 / 60);
+        d.onresize = Pa;
+        d.requestAnimationFrame(Qa);
+        setInterval(U, 40);
+        if (x) {
+            f("#region").val(x);
         }
-        setInterval(N, 40);
-        if(w) {
-            m("#region")
-                .val(w);
-        }
-        Ia();
-        X(m("#region")
-            .val());
-        if(null == s$$0) {
-            if(w) {
-                Y();
+        Ra();
+        ea(f("#region").val());
+        if (0 == za) {
+            if (x) {
+                N();
             }
         }
-        m("#overlays")
-            .show();
-        Ga();
+        V = true;
+        f("#overlays").show();
+        Pa();
     }
-
-    function Ea(a) {
-        E *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
-        if(1 > E) {
-            E = 1;
+    function Na(a) {
+        H *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
+        if (1 > H) {
+            H = 1;
         }
-        if(E > 4 / k) {
-            E = 4 / k;
+        if (H > 4 / k) {
+            H = 4 / k;
         }
     }
-
-    function Xa() {
-        if(0.4 > k) {
-            O = null;
+    function lb() {
+        if (0.4 > k) {
+            W = null;
         } else {
             var a = Number.POSITIVE_INFINITY;
-            var b = Number.POSITIVE_INFINITY;
-            var c = Number.NEGATIVE_INFINITY;
-            var d = Number.NEGATIVE_INFINITY;
-            var e = 0;
+            var c = Number.POSITIVE_INFINITY;
+            var b = Number.NEGATIVE_INFINITY;
+            var e = Number.NEGATIVE_INFINITY;
             var l = 0;
-            for(; l < v.length; l++) {
-                var h = v[l];
-                if(!!h.I()) {
-                    if(!h.M) {
-                        if(!(20 >= h.size * k)) {
-                            e = Math.max(h.size, e);
+            var p = 0;
+            for (;p < v.length;p++) {
+                var h = v[p];
+                if (!!h.N()) {
+                    if (!h.R) {
+                        if (!(20 >= h.size * k)) {
+                            l = Math.max(h.size, l);
                             a = Math.min(h.x, a);
-                            b = Math.min(h.y, b);
-                            c = Math.max(h.x, c);
-                            d = Math.max(h.y, d);
+                            c = Math.min(h.y, c);
+                            b = Math.max(h.x, b);
+                            e = Math.max(h.y, e);
                         }
                     }
                 }
             }
-            O = Ya.ca({
-                X: a - (e + 100),
-                Y: b - (e + 100),
-                fa: c + (e + 100),
-                ga: d + (e + 100),
-                da: 2,
-                ea: 4
+            W = mb.ja({
+                ca : a - (l + 100),
+                da : c - (l + 100),
+                ma : b + (l + 100),
+                na : e + (l + 100),
+                ka : 2,
+                la : 4
             });
-            l = 0;
-            for(; l < v.length; l++) {
-                if(h = v[l], h.I() && !(20 >= h.size * k)) {
+            p = 0;
+            for (;p < v.length;p++) {
+                if (h = v[p], h.N() && !(20 >= h.size * k)) {
                     a = 0;
-                    for(; a < h.a.length; ++a) {
-                        b = h.a[a].x;
-                        c = h.a[a].y;
-                        if(!(b < t - q / 2 / k)) {
-                            if(!(c < u - r / 2 / k)) {
-                                if(!(b > t + q / 2 / k)) {
-                                    if(!(c > u + r / 2 / k)) {
-                                        O.i(h.a[a]);
+                    for (;a < h.a.length;++a) {
+                        c = h.a[a].x;
+                        b = h.a[a].y;
+                        if (!(c < t - q / 2 / k)) {
+                            if (!(b < u - s$$0 / 2 / k)) {
+                                if (!(c > t + q / 2 / k)) {
+                                    if (!(b > u + s$$0 / 2 / k)) {
+                                        W.m(h.a[a]);
                                     }
                                 }
                             }
@@ -1869,1468 +1825,1594 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
             }
         }
     }
-
-    function ra() {
-        Z = (V - q / 2) / k + t;
-        $ = (W - r / 2) / k + u;
+    function ya() {
+        fa = (ca - q / 2) / k + t;
+        ga = (da - s$$0 / 2) / k + u;
     }
-
-    function Ca() {
-        if(null == aa) {
-            aa = {};
-            m("#region")
-                .children()
-                .each(function () {
-                    var a = m(this);
-                    var b = a.val();
-                    if(b) {
-                        aa[b] = a.text();
-                    }
-                });
+    function La() {
+        if (null == ha) {
+            ha = {};
+            f("#region").children().each(function() {
+                var a = f(this);
+                var c = a.val();
+                if (c) {
+                    ha[c] = a.text();
+                }
+            });
         }
-        m.get(ba + "//m.agar.io/info", function (a) {
-            var b = {};
-            var c;
-            for(c in a.regions) {
-                var d = c.split(":")[0];
-                b[d] = b[d] || 0;
-                b[d] += a.regions[c].numPlayers;
+        f.get("https://m.agar.io/info", function(a) {
+            var c = {};
+            var b;
+            for (b in a.regions) {
+                var e = b.split(":")[0];
+                c[e] = c[e] || 0;
+                c[e] += a.regions[b].numPlayers;
             }
-            for(c in b) {
-                m('#region option[value="' + c + '"]')
-                    .text(aa[c] + " (" + b[c] + " players)");
+            for (b in c) {
+                f('#region option[value="' + b + '"]').text(ha[b] + " (" + c[b] + " players)");
             }
         }, "json");
     }
-
-    function Ja() {
-        m("#adsBottom")
-            .hide();
-        m("#overlays")
-            .hide();
-        Ia();
+    function Sa() {
+        f("#adsBottom").hide();
+        f("#overlays").hide();
+        V = false;
+        Ra();
+        if (d.googletag) {
+            if (d.googletag.pubads) {
+                d.googletag.pubads().clear(d.aa);
+            }
+        }
     }
-
+    function ea(a) {
+        if (a) {
+            if (a != x) {
+                if (f("#region").val() != a) {
+                    f("#region").val(a);
+                }
+                x = d.localStorage.location = a;
+                f(".region-message").hide();
+                f(".region-message." + a).show();
+                f(".btn-needs-server").prop("disabled", false);
+                if (wa) {
+                    N();
+                }
+            }
+        }
+    }
+    function Oa(a) {
+        if (!V) {
+            I = null;
+            nb();
+            if (a) {
+                w = 1;
+            }
+            V = true;
+            f("#overlays").fadeIn(a ? 200 : 3E3);
+            /*new*//*mikey*/OnShowOverlay(a);
+        }
+    }
+    function ia(a) {
+        f("#helloContainer").attr("data-gamemode", a);
+        O = a;
+        f("#gamemode").val(a);
+    }
+    function Ra() {
+        if (f("#region").val()) {
+            d.localStorage.location = f("#region").val();
+        } else {
+            if (d.localStorage.location) {
+                f("#region").val(d.localStorage.location);
+            }
+        }
+        if (f("#region").val()) {
+            f("#locationKnown").append(f("#region"));
+        } else {
+            f("#locationUnknown").append(f("#region"));
+        }
+    }
+    function nb() {
+        if (ja) {
+            ja = false;
+            setTimeout(function() {
+                ja = true;
+            }, 6E4 * Ta);
+            if (d.googletag) {
+                if (d.googletag.pubads) {
+                    d.googletag.pubads().refresh(d.aa);
+                }
+            }
+        }
+    }
     function X(a) {
-        if(a) {
-            if(a != w) {
-                if(m("#region")
-                        .val() != a) {
-                    m("#region")
-                        .val(a);
-                }
-                w = g.localStorage.location = a;
-                m(".region-message")
-                    .hide();
-                m(".region-message." + a)
-                    .show();
-                m(".btn-needs-server")
-                    .prop("disabled", false);
-                if(pa) {
-                    Y();
-                }
-            }
-        }
+        return d.i18n[a] || (d.i18n_dict.en[a] || a);
     }
-
-    function Fa(a) {
-        F = null;
-        Za();
-        m("#overlays")
-            .fadeIn(a ? 200 : 3E3);
-        /*new*//*mikey*/OnShowOverlay(a);
-        if(!a) {
-            m("#adsBottom")
-                .fadeIn(3E3);
-        }
-    }
-
-    function Ia() {
-        if(m("#region")
-                .val()) {
-            g.localStorage.location = m("#region")
-                .val();
-        } else {
-            if(g.localStorage.location) {
-                m("#region")
-                    .val(g.localStorage.location);
-            }
-        }
-        if(m("#region")
-                .val()) {
-            m("#locationKnown")
-                .append(m("#region"));
-        } else {
-            m("#locationUnknown")
-                .append(m("#region"));
-        }
-    }
-
-    function Za() {
-        if(!!ca) {
-            if(!(75 <= P)) {
-                ca = false;
-                setTimeout(function () {
-                    ca = true;
-                }, 6E4 * da);
-                g.googletag.pubads()
-                    .refresh([g.mainAd]);
-            }
-        }
-    }
-
-    function Ka() {
-        console.log("Find " + w + Q);
-        m.ajax(ba + "//m.agar.io/", {
-            error: function () {
-                setTimeout(Ka, 1E3);
+    function Ua() {
+        var a = ++za;
+        console.log("Find " + x + O);
+        f.ajax("https://m.agar.io/", {
+            error : function() {
+                setTimeout(Ua, 1E3);
             },
-            success: function (a) {
-                a = a.split("\n");
-                if(a[2]) {
-                    alert(a[2]);
+            success : function(c) {
+                if (a == za) {
+                    c = c.split("\n");
+                    if (c[2]) {
+                        alert(c[2]);
+                    }
+                    Aa("ws://" + c[0], c[1]);
+                    /*new*/ serverIP = a[0];
                 }
-                La("ws://" + a[0], a[1]);
-                /*new*/ serverIP = a[0];
             },
-            dataType: "text",
-            method: "POST",
-            cache: false,
-            crossDomain: true,
-            data: (w + Q || "?") + "\n154669603"
+            dataType : "text",
+            method : "POST",
+            cache : false,
+            crossDomain : true,
+            data : (x + O || "?") + "\n154669603"
         });
     }
-
-    function Y() {
-        if(pa) {
-            if(w) {
-                m("#connecting")
-                    .show();
-                Ka();
+    function N() {
+        if (wa) {
+            if (x) {
+                f("#connecting").show();
+                Ua();
             }
         }
     }
-
-    function La(a$$0, b) {
-        if(s$$0) {
-            s$$0.onopen = null;
-            s$$0.onmessage = null;
-            s$$0.onclose = null;
+    function Aa(a$$0, c) {
+        if (r) {
+            r.onopen = null;
+            r.onmessage = null;
+            r.onclose = null;
             try {
-                s$$0.close();
-            } catch(c$$0) {}
-            s$$0 = null;
+                r.close();
+            } catch (b$$0) {
+            }
+            r = null;
         }
-        if($a) {
-            var d = a$$0.split(":");
-            a$$0 = d[0] + "s://ip-" + d[1].replace(/\./g, "-")
-                    .replace(/\//g, "") + ".tech.agar.io:" + (+d[2] + 2E3);
+        if (null != J) {
+            var e = J;
+            J = function() {
+                e(c);
+            };
         }
-        G = [];
-        p = [];
-        A = {};
+        if (ob) {
+            var l = a$$0.split(":");
+            a$$0 = l[0] + "s://ip-" + l[1].replace(/\./g, "-").replace(/\//g, "") + ".tech.agar.io:" + (+l[2] + 2E3);
+        }
+        K = [];
+        m = [];
+        D = {};
         v = [];
-        I = [];
-        B = [];
-        x = y = null;
-        J = 0;
-        ta = false;
+        P = [];
+        E = [];
+        y = z = null;
+        Q = 0;
+        ka = false;
         console.log("Connecting to " + a$$0);
-        s$$0 = new WebSocket(a$$0);
-        s$$0.binaryType = "arraybuffer";
-        s$$0.onopen = function () {
+        r = new WebSocket(a$$0);
+        r.binaryType = "arraybuffer";
+        r.onopen = function() {
             var a;
             console.log("socket open");
-            a = K(5);
+            a = L(5);
             a.setUint8(0, 254);
             a.setUint32(1, 4, true);
-            L(a);
-            a = K(5);
+            M(a);
+            a = L(5);
             a.setUint8(0, 255);
             a.setUint32(1, 154669603, true);
-            L(a);
-            a = K(1 + b.length);
+            M(a);
+            a = L(1 + c.length);
             a.setUint8(0, 80);
-            var c = 0;
-            for(; c < b.length; ++c) {
-                a.setUint8(c + 1, b.charCodeAt(c));
+            var b = 0;
+            for (;b < c.length;++b) {
+                a.setUint8(b + 1, c.charCodeAt(b));
             }
-            L(a);
-            Ma();
+            M(a);
+            Va();
         };
-        s$$0.onmessage = ab;
-        s$$0.onclose = bb;
-        s$$0.onerror = function () {
+        r.onmessage = pb;
+        r.onclose = qb;
+        r.onerror = function() {
             console.log("socket error");
         };
     }
-
-    function K(a) {
+    function L(a) {
         return new DataView(new ArrayBuffer(a));
     }
-
-    function L(a) {
-        s$$0.send(a.buffer);
+    function M(a) {
+        r.send(a.buffer);
     }
-
-    function bb() {
-        if(ta) {
-            ea = 500;
+    function qb() {
+        if (ka) {
+            la = 500;
         }
         console.log("socket close");
-        setTimeout(Y, ea);
-        ea *= 2;
+        setTimeout(N, la);
+        la *= 2;
     }
-
-    function ab(a) {
-        cb(new DataView(a.data));
+    function pb(a) {
+        rb(new DataView(a.data));
     }
-
-    function cb(a) {
-        function b$$0() {
-            var b = "";
-            for(;;) {
-                var d = a.getUint16(c, true);
-                c += 2;
-                if(0 == d) {
+    function rb(a) {
+        function c$$0() {
+            var c = "";
+            for (;;) {
+                var e = a.getUint16(b, true);
+                b += 2;
+                if (0 == e) {
                     break;
                 }
-                b += String.fromCharCode(d);
+                c += String.fromCharCode(e);
             }
-            return b;
+            return c;
         }
-        var c = 0;
-        if(240 == a.getUint8(c)) {
-            c += 5;
+        var b = 0;
+        if (240 == a.getUint8(b)) {
+            b += 5;
         }
-        switch(a.getUint8(c++)) {
+        switch(a.getUint8(b++)) {
             case 16:
-                db(a, c);
+                sb(a, b);
                 /*new*/onAfterUpdatePacket();
                 break;
             case 17:
-                R = a.getFloat32(c, true);
-                c += 4;
-                S = a.getFloat32(c, true);
-                c += 4;
-                T = a.getFloat32(c, true);
-                c += 4;
+                Y = a.getFloat32(b, true);
+                b += 4;
+                Z = a.getFloat32(b, true);
+                b += 4;
+                $ = a.getFloat32(b, true);
+                b += 4;
                 break;
             case 20:
-                p = [];
-                G = [];
+                m = [];
+                K = [];
                 break;
             case 21:
-                ua = a.getInt16(c, true);
-                c += 2;
-                va = a.getInt16(c, true);
-                c += 2;
-                if(!wa) {
-                    wa = true;
-                    fa = ua;
-                    ga = va;
+                Ba = a.getInt16(b, true);
+                b += 2;
+                Ca = a.getInt16(b, true);
+                b += 2;
+                if (!Da) {
+                    Da = true;
+                    ma = Ba;
+                    na = Ca;
                 }
                 break;
             case 32:
                 /*new*/onBeforeNewPointPacket();
-                G.push(a.getUint32(c, true));
-                c += 4;
+                K.push(a.getUint32(b, true));
+                b += 4;
                 break;
             case 49:
-                if(null != y) {
+                if (null != z) {
                     break;
                 }
-                var d$$0 = a.getUint32(c, true);
-                c = c + 4;
-                B = [];
-                var e = 0;
-                for(; e < d$$0; ++e) {
-                    var l = a.getUint32(c, true);
-                    c = c + 4;
-                    B.push({
-                        id: l,
-                        name: b$$0()
+                var e$$0 = a.getUint32(b, true);
+                b = b + 4;
+                E = [];
+                var l = 0;
+                for (;l < e$$0;++l) {
+                    var p = a.getUint32(b, true);
+                    b = b + 4;
+                    E.push({
+                        id : p,
+                        name : c$$0()
                     });
                 }
-                Na();
+                Wa();
                 break;
             case 50:
-                y = [];
-                d$$0 = a.getUint32(c, true);
-                c += 4;
-                e = 0;
-                for(; e < d$$0; ++e) {
-                    y.push(a.getFloat32(c, true));
-                    c += 4;
+                z = [];
+                e$$0 = a.getUint32(b, true);
+                b += 4;
+                l = 0;
+                for (;l < e$$0;++l) {
+                    z.push(a.getFloat32(b, true));
+                    b += 4;
                 }
-                Na();
+                Wa();
                 break;
             case 64:
-                ha = a.getFloat64(c, true);
-                c += 8;
-                ia = a.getFloat64(c, true);
-                c += 8;
-                ja = a.getFloat64(c, true);
-                c += 8;
-                ka = a.getFloat64(c, true);
-                c += 8;
-                R = (ja + ha) / 2;
-                S = (ka + ia) / 2;
-                T = 1;
-                if(0 == p.length) {
-                    t = R;
-                    u = S;
-                    k = T;
-                };
+                oa = a.getFloat64(b, true);
+                b += 8;
+                pa = a.getFloat64(b, true);
+                b += 8;
+                qa = a.getFloat64(b, true);
+                b += 8;
+                ra = a.getFloat64(b, true);
+                b += 8;
+                Y = (qa + oa) / 2;
+                Z = (ra + pa) / 2;
+                $ = 1;
+                if (0 == m.length) {
+                    t = Y;
+                    u = Z;
+                    k = $;
+                }
+                break;
+            case 81:
+                var h = a.getUint32(b, true);
+                b = b + 4;
+                var d = a.getUint32(b, true);
+                b = b + 4;
+                var f = a.getUint32(b, true);
+                b = b + 4;
+                setTimeout(function() {
+                    R({
+                        e : h,
+                        f : d,
+                        d : f
+                    });
+                }, 1200);
         }
     }
-
-    function db(a, b) {
-        H = +new Date;
-        ta = true;
-        m("#connecting")
-            .hide();
-        var c = Math.random();
-        xa = false;
-        var d = a.getUint16(b, true);
-        b += 2;
-        var e = 0;
-        for(; e < d; ++e) {
-            var l = A[a.getUint32(b, true)];
-            var h = A[a.getUint32(b + 4, true)];
-            b += 8;
-            if(l) {
-                if(h) {
-                    /*new*//*mikey*//*remap*/OnCellEaten(l,h);
+    function sb(a, c) {
+        Xa = A = Date.now();
+        if (!ka) {
+            ka = true;
+            f("#connecting").hide();
+            Ya();
+            if (J) {
+                J();
+                J = null;
+            }
+        }
+        var b = Math.random();
+        Ea = false;
+        var e = a.getUint16(c, true);
+        c += 2;
+        var l = 0;
+        for (;l < e;++l) {
+            var p = D[a.getUint32(c, true)];
+            var h = D[a.getUint32(c + 4, true)];
+            c += 8;
+            if (p) {
+                if (h) {
+                    /*new*//*mikey*//*remap*/OnCellEaten(p,h);
                     /*new*/// Remove from 10-sec-remembered cells list by id
-                    /*new*/_.remove(ghostBlobs, {id: h.id});
-
-                    h.S();
-                    h.p = h.x;
-                    h.q = h.y;
-                    h.o = h.size;
-                    h.D = l.x;
-                    h.F = l.y;
-                    h.n = h.size;
-                    h.L = H;
+                    /*new*//*remap*/_.remove(ghostBlobs, {id: h.id});
+                    h.X();
+                    h.s = h.x;
+                    h.t = h.y;
+                    h.r = h.size;
+                    h.J = p.x;
+                    h.K = p.y;
+                    h.q = h.size;
+                    h.Q = A;
                 }
             }
         }
-        e = 0;
-        for(;;) {
-            d = a.getUint32(b, true);
-            b += 4;
-            if(0 == d) {
+        l = 0;
+        for (;;) {
+            e = a.getUint32(c, true);
+            c += 4;
+            if (0 == e) {
                 break;
             }
-            ++e;
-            var f;
-            l = a.getInt16(b, true);
-            b += 2;
-            h = a.getInt16(b, true);
-            b += 2;
-            f = a.getInt16(b, true);
-            b += 2;
-            var g = a.getUint8(b++);
-            var k = a.getUint8(b++);
-            var q = a.getUint8(b++);
-            g = (g << 16 | k << 8 | q)
-                .toString(16);
-            for(; 6 > g.length;) {
+            ++l;
+            var d;
+            p = a.getInt16(c, true);
+            c += 2;
+            h = a.getInt16(c, true);
+            c += 2;
+            d = a.getInt16(c, true);
+            c += 2;
+            var g = a.getUint8(c++);
+            var k = a.getUint8(c++);
+            var q = a.getUint8(c++);
+            g = (g << 16 | k << 8 | q).toString(16);
+            for (;6 > g.length;) {
                 g = "0" + g;
             }
             g = "#" + g;
-            k = a.getUint8(b++);
+            k = a.getUint8(c++);
             q = !!(k & 1);
             var s = !!(k & 16);
-            if(k & 2) {
-                b += 4;
+            if (k & 2) {
+                c += 4;
             }
-            if(k & 4) {
-                b += 8;
+            if (k & 4) {
+                c += 8;
             }
-            if(k & 8) {
-                b += 16;
+            if (k & 8) {
+                c += 16;
             }
             var r;
             var n = "";
-            for(;;) {
-                r = a.getUint16(b, true);
-                b += 2;
-                if(0 == r) {
+            for (;;) {
+                r = a.getUint16(c, true);
+                c += 2;
+                if (0 == r) {
                     break;
                 }
                 n += String.fromCharCode(r);
             }
             r = n;
             n = null;
-            if(A.hasOwnProperty(d)) {
-                n = A[d];
-                n.K();
-                n.p = n.x;
-                n.q = n.y;
-                n.o = n.size;
+            if (D.hasOwnProperty(e)) {
+                n = D[e];
+                n.P();
+                n.s = n.x;
+                n.t = n.y;
+                n.r = n.size;
                 n.color = g;
             } else {
-                n = new Oa(d, l, h, f, g, r);
+                n = new aa(e, p, h, d, g, r);
                 v.push(n);
-                A[d] = n;
-                n.ka = l;
-                n.la = h;
+                D[e] = n;
+                n.sa = p;
+                n.ta = h;
             }
-            n.d = q;
-            n.j = s;
-            n.D = l;
-            n.F = h;
-            n.n = f;
-            n.ja = c;
-            n.L = H;
-            n.W = k;
-            if(r) {
-                n.Z(r);
+            n.h = q;
+            n.n = s;
+            n.J = p;
+            n.K = h;
+            n.q = d;
+            n.qa = b;
+            n.Q = A;
+            n.ba = k;
+            if (r) {
+                n.B(r);
             }
-            if(-1 != G.indexOf(d)) {
-                if(-1 == p.indexOf(n)) {
-                    document.getElementById("overlays")
-                        .style.display = "none";
-                    p.push(n);
-                    if(1 == p.length) {
+            if (-1 != K.indexOf(e)) {
+                if (-1 == m.indexOf(n)) {
+                    document.getElementById("overlays").style.display = "none";
+                    m.push(n);
+                    if (1 == m.length) {
                         /*new*//*mikey*/OnGameStart(zeach.myPoints);
                         t = n.x;
                         u = n.y;
+                        Za();
                     }
                 }
             }
         }
-        c = a.getUint32(b, true);
-        b += 4;
-        e = 0;
-        for(; e < c; e++) {
-            d = a.getUint32(b, true);
-            b += 4;
-            n = A[d];
-            if(null != n) {
-                n.S();
+        b = a.getUint32(c, true);
+        c += 4;
+        l = 0;
+        for (;l < b;l++) {
+            e = a.getUint32(c, true);
+            c += 4;
+            n = D[e];
+            if (null != n) {
+                n.X();
             }
         }
-        if(xa) {
-            if(0 == p.length) {
-                Fa(false);
+        if (Ea) {
+            if (0 == m.length) {
+                Oa(false);
             }
         }
     }
-
-    function N() {
+    function U() {
         /*new*/if(isGrazing){ doGrazing(); return; }
         /*new*/if(suspendMouseUpdates){return;}
         var a;
-        if(ya()) {
-            a = V - q / 2;
-            var b = W - r / 2;
-            if(!(64 > a * a + b * b)) {
-                if(!(0.01 > Math.abs(Pa - Z) && 0.01 > Math.abs(Qa - $))) {
-                    Pa = Z;
-                    Qa = $;
-                    a = K(21);
+        if (S()) {
+            a = ca - q / 2;
+            var c = da - s$$0 / 2;
+            if (!(64 > a * a + c * c)) {
+                if (!(0.01 > Math.abs($a - fa) && 0.01 > Math.abs(ab - ga))) {
+                    $a = fa;
+                    ab = ga;
+                    a = L(21);
                     a.setUint8(0, 16);
-                    a.setFloat64(1, Z, true);
-                    a.setFloat64(9, $, true);
+                    a.setFloat64(1, fa, true);
+                    a.setFloat64(9, ga, true);
                     a.setUint32(17, 0, true);
-                    L(a);
+                    M(a);
                 }
             }
         }
     }
-
-    function Ma() {
-        if(ya() && null != F) {
-            var a = K(1 + 2 * F.length);
+    function Ya() {
+        if (S() && null != I) {
+            var a = L(1 + 2 * I.length);
             a.setUint8(0, 0);
-            var b = 0;
-            for(; b < F.length; ++b) {
-                a.setUint16(1 + 2 * b, F.charCodeAt(b), true);
+            var c = 0;
+            for (;c < I.length;++c) {
+                a.setUint16(1 + 2 * c, I.charCodeAt(c), true);
             }
-            L(a);
+            M(a);
         }
     }
-
-    function ya() {
-        return null != s$$0 && s$$0.readyState == s$$0.OPEN;
+    function S() {
+        return null != r && r.readyState == r.OPEN;
     }
-
-    function D(a) {
-        if(ya()) {
-            var b = K(1);
-            b.setUint8(0, a);
-            L(b);
+    function G(a) {
+        if (S()) {
+            var c = L(1);
+            c.setUint8(0, a);
+            M(c);
         }
     }
-
-    function Ha() {
-        sa();
-        g.requestAnimationFrame(Ha);
+    function Va() {
+        if (S() && null != B) {
+            var a = L(1 + B.length);
+            a.setUint8(0, 81);
+            var c = 0;
+            for (;c < B.length;++c) {
+                a.setUint8(c + 1, B.charCodeAt(c));
+            }
+            M(a);
+        }
     }
-
-    function Ga() {
-        q = g.innerWidth;
-        r = g.innerHeight;
-        qa.width = C.width = q;
-        qa.height = C.height = r;
-        var a = m("#helloDialog");
+    function Pa() {
+        q = d.innerWidth;
+        s$$0 = d.innerHeight;
+        xa.width = F.width = q;
+        xa.height = F.height = s$$0;
+        var a = f("#helloContainer");
         a.css("transform", "none");
-        var b = a.height();
-        var c = g.innerHeight;
-        if(b > c / 1.1) {
-            a.css("transform", "translate(-50%, -50%) scale(" + c / b / 1.1 + ")");
+        var c = a.height();
+        var b = d.innerHeight;
+        if (c > b / 1.1) {
+            a.css("transform", "translate(-50%, -50%) scale(" + b / c / 1.1 + ")");
         } else {
             a.css("transform", "translate(-50%, -50%)");
         }
-        sa();
+        bb();
     }
-
-    function Ra() {
+    function cb() {
         var a;
-        a = 1 * Math.max(r / 1080, q / 1920);
-        return a *= E;
+        a = 1 * Math.max(s$$0 / 1080, q / 1920);
+        return a *= H;
     }
-
-    function eb() {
-        if(0 != p.length) {
+    function tb() {
+        if (0 != m.length) {
             var a = 0;
-            var b = 0;
-            for(; b < p.length; b++) {
-                a += p[b].size;
+            var c = 0;
+            for (;c < m.length;c++) {
+                a += m[c].size;
             }
-            a = Math.pow(Math.min(64 / a, 1), 0.4) * Ra();
+            a = Math.pow(Math.min(64 / a, 1), 0.4) * cb();
             //k = (9 * k + a) / 10;
             /*new*//*remap*/k = (9 * k + a) / zoomFactor;
         }
     }
-
-    function sa() {
+    function bb() {
         var a$$0;
-        var b$$0 = Date.now();
-        ++fb;
-        H = b$$0;
-        if(0 < p.length) {
-            eb();
-            var c = a$$0 = 0;
-            var d = 0;
-            for(; d < p.length; d++) {
-                p[d].K();
-                a$$0 += p[d].x / p.length;
-                c += p[d].y / p.length;
+        var c$$0 = Date.now();
+        ++ub;
+        A = c$$0;
+        if (0 < m.length) {
+            tb();
+            var b = a$$0 = 0;
+            var e = 0;
+            for (;e < m.length;e++) {
+                m[e].P();
+                a$$0 += m[e].x / m.length;
+                b += m[e].y / m.length;
             }
-            R = a$$0;
-            S = c;
-            T = k;
+            Y = a$$0;
+            Z = b;
+            $ = k;
             t = (t + a$$0) / 2;
-            u = (u + c) / 2;
+            u = (u + b) / 2;
         } else {
-            t = (29 * t + R) / 30;
-            u = (29 * u + S) / 30;
-            k = (9 * k + T * Ra()) / 10;
+            t = (29 * t + Y) / 30;
+            u = (29 * u + Z) / 30;
+            k = (9 * k + $ * cb()) / 10;
         }
-        Xa();
-        ra();
-        if(!za) {
-            f.clearRect(0, 0, q, r);
+        lb();
+        ya();
+        if (!Fa) {
+            g.clearRect(0, 0, q, s$$0);
         }
-        if(za) {
-            f.fillStyle = la ? "#111111" : "#F2FBFF";
-            f.globalAlpha = 0.05;
-            f.fillRect(0, 0, q, r);
-            f.globalAlpha = 1;
+        if (Fa) {
+            g.fillStyle = sa ? "#111111" : "#F2FBFF";
+            g.globalAlpha = 0.05;
+            g.fillRect(0, 0, q, s$$0);
+            g.globalAlpha = 1;
         } else {
-            gb();
+            vb();
         }
-        v.sort(function (a, b) {
-            return a.size == b.size ? a.id - b.id : a.size - b.size;
+        v.sort(function(a, c) {
+            return a.size == c.size ? a.id - c.id : a.size - c.size;
         });
-        f.save();
-        f.translate(q / 2, r / 2);
-        f.scale(k, k);
-        f.translate(-t, -u);
-        d = 0;
-        for(; d < I.length; d++) {
-            I[d].T(f);
+        g.save();
+        g.translate(q / 2, s$$0 / 2);
+        g.scale(k, k);
+        g.translate(-t, -u);
+        e = 0;
+        for (;e < P.length;e++) {
+            P[e].w(g);
         }
-        d = 0;
-        for(; d < v.length; d++) {
-            v[d].T(f);
+        e = 0;
+        for (;e < v.length;e++) {
+            v[e].w(g);
         }
         /*new*/drawRescaledItems(zeach.ctx);
-        if(wa) {
-            fa = (3 * fa + ua) / 4;
-            ga = (3 * ga + va) / 4;
-            f.save();
-            f.strokeStyle = "#FFAAAA";
-            f.lineWidth = 10;
-            f.lineCap = "round";
-            f.lineJoin = "round";
-            f.globalAlpha = 0.5;
-            f.beginPath();
-            d = 0;
-            for(; d < p.length; d++) {
-                f.moveTo(p[d].x, p[d].y);
-                f.lineTo(fa, ga);
+        if (Da) {
+            ma = (3 * ma + Ba) / 4;
+            na = (3 * na + Ca) / 4;
+            g.save();
+            g.strokeStyle = "#FFAAAA";
+            g.lineWidth = 10;
+            g.lineCap = "round";
+            g.lineJoin = "round";
+            g.globalAlpha = 0.5;
+            g.beginPath();
+            e = 0;
+            for (;e < m.length;e++) {
+                g.moveTo(m[e].x, m[e].y);
+                g.lineTo(ma, na);
             }
-            f.stroke();
-            f.restore();
+            g.stroke();
+            g.restore();
         }
-        f.restore();
-        if(x) {
-            if(x.width) {
-                f.drawImage(x, q - x.width - 10, 10);
+        g.restore();
+        if (y) {
+            if (y.width) {
+                g.drawImage(y, q - y.width - 10, 10);
             }
         }
         /*new*//*mikey*/OnDraw(zeach.ctx);
-        J = Math.max(J, hb());
+        Q = Math.max(Q, wb());
         /*new*//*remap*/ var extras = " " + getScoreBoardExtrasString(J);
-        if(0 != J) {
-            if(null == ma) {
-                ma = new na(24, "#FFFFFF");
+        if (0 != Q) {
+            if (null == ta) {
+                ta = new ua(24, "#FFFFFF");
             }
-            ma.u("Score: " + ~~(J / 100));
-            /*new*/ /*remap*/ ma.setValue("Score: " + ~~(J / 100) + extras);
-            c = ma.G();
-            a$$0 = c.width;
-            f.globalAlpha = 0.2;
-            f.fillStyle = "#000000";
-            f.fillRect(10, r - 10 - 24 - 10, a$$0 + 10, 34);
-            f.globalAlpha = 1;
-            f.drawImage(c, 15, r - 10 - 24 - 5);
-            /*new*//*mikey*//*remap*/(zeach.myPoints&&zeach.myPoints[0]&&OnUpdateMass(hb()));
+            ta.C(X("score") + ": " + ~~(Q / 100));
+            /*new*/ /*remap*/ ta.setValue("Score: " + ~~(Q / 100) + extras);
+            b = ta.L();
+            a$$0 = b.width;
+            g.globalAlpha = 0.2;
+            g.fillStyle = "#000000";
+            g.fillRect(10, s$$0 - 10 - 24 - 10, a$$0 + 10, 34);
+            g.globalAlpha = 1;
+            g.drawImage(b, 15, s$$0 - 10 - 24 - 5);
+            /*new*//*mikey*//*remap*/(zeach.myPoints&&zeach.myPoints[0]&&OnUpdateMass(wb()));
         }
-        ib();
-        b$$0 = Date.now() - b$$0;
-        if(b$$0 > 1E3 / 60) {
-            z -= 0.01;
+        xb();
+        c$$0 = Date.now() - c$$0;
+        if (c$$0 > 1E3 / 60) {
+            C -= 0.01;
         } else {
-            if(b$$0 < 1E3 / 65) {
-                z += 0.01;
+            if (c$$0 < 1E3 / 65) {
+                C += 0.01;
             }
         }
-        if(0.4 > z) {
-            z = 0.4;
+        if (0.4 > C) {
+            C = 0.4;
         }
-        if(1 < z) {
-            z = 1;
+        if (1 < C) {
+            C = 1;
         }
-        /*new*//*remap*/displayDebugText(zeach.ctx,zeach.textFunc); // second param is same as above 'new ??(24,  "#FFFFFF");'
+        c$$0 = A - db;
+        if (!S() || V) {
+            w += c$$0 / 2E3;
+            if (1 < w) {
+                w = 1;
+            }
+        } else {
+            w -= c$$0 / 300;
+            if (0 > w) {
+                w = 0;
+            }
+        }
+        if (0 < w) {
+            g.fillStyle = "#000000";
+            g.globalAlpha = 0.5 * w;
+            g.fillRect(0, 0, q, s$$0);
+            g.globalAlpha = 1;
+        }
+        db = A;
+        /*new*/displayDebugText(zeach.ctx,zeach.textFunc);
     }
-
-    function gb() {
-        f.fillStyle = la ? "#111111" : "#F2FBFF";
-        f.fillRect(0, 0, q, r);
+    function vb() {
+        g.fillStyle = sa ? "#111111" : "#F2FBFF";
+        g.fillRect(0, 0, q, s$$0);
+        console.log(cobbler.gridLines);
         /*new*/if(!cobbler.gridLines){return;}
-        f.save();
-        f.strokeStyle = la ? "#AAAAAA" : "#000000";
-        f.globalAlpha = 0.2;
-        f.scale(k, k);
+        g.save();
+        g.strokeStyle = sa ? "#AAAAAA" : "#000000";
+        g.globalAlpha = 0.2 * k;
         var a = q / k;
-        var b = r / k;
-        var c = -0.5 + (-t + a / 2) % 50;
-
-        for(; c < a; c += 50) {
-            f.beginPath();
-            f.moveTo(c, 0);
-            f.lineTo(c, b);
-            f.stroke();
+        var c = s$$0 / k;
+        var b = (-t + a / 2) % 50;
+        for (;b < a;b += 50) {
+            g.beginPath();
+            g.moveTo(b * k - 0.5, 0);
+            g.lineTo(b * k - 0.5, c * k);
+            g.stroke();
         }
-
-        c = -0.5 + (-u + b / 2) % 50;
-        for(; c < b; c += 50) {
-            f.beginPath();
-            f.moveTo(0, c);
-            f.lineTo(a, c);
-            f.stroke();
+        b = (-u + c / 2) % 50;
+        for (;b < c;b += 50) {
+            g.beginPath();
+            g.moveTo(0, b * k - 0.5);
+            g.lineTo(a * k, b * k - 0.5);
+            g.stroke();
         }
-        f.restore();
+        g.restore();
     }
-
-    function ib() {
-        if(Da && Aa.width) {
+    function xb() {
+        if (Ma && Ga.width) {
             var a = q / 5;
-            f.drawImage(Aa, 5, 5, a, a);
+            g.drawImage(Ga, 5, 5, a, a);
         }
     }
-
-    function hb() {
+    function wb() {
         var a = 0;
-        var b = 0;
-        for(; b < p.length; b++) {
-            a += p[b].n * p[b].n;
+        var c = 0;
+        for (;c < m.length;c++) {
+            a += m[c].q * m[c].q;
         }
         return a;
     }
-
-    function Na() {
-        x = null;
-        if(null != y || 0 != B.length) {
-            if(null != y || oa) {
-                x = document.createElement("canvas");
-                var a = x.getContext("2d");
-                var b = 60;
-                b = null == y ? b + 24 * B.length : b + 180;
-                var c = Math.min(200, 0.3 * q) / 200;
-                x.width = 200 * c;
-                x.height = b * c;
-                a.scale(c, c);
+    function Wa() {
+        y = null;
+        if (null != z || 0 != E.length) {
+            if (null != z || va) {
+                y = document.createElement("canvas");
+                var a = y.getContext("2d");
+                var c = 60;
+                c = null == z ? c + 24 * E.length : c + 180;
+                var b = Math.min(200, 0.3 * q) / 200;
+                y.width = 200 * b;
+                y.height = c * b;
+                a.scale(b, b);
                 a.globalAlpha = 0.4;
                 a.fillStyle = "#000000";
-                a.fillRect(0, 0, 200, b);
+                a.fillRect(0, 0, 200, c);
                 a.globalAlpha = 1;
                 a.fillStyle = "#FFFFFF";
-                c = null;
-                c = "Leaderboard";
+                b = null;
+                b = X("leaderboard");
                 a.font = "30px Ubuntu";
-                a.fillText(c, 100 - a.measureText(c)
-                        .width / 2, 40);
-                if(null == y) {
+                a.fillText(b, 100 - a.measureText(b).width / 2, 40);
+                if (null == z) {
                     a.font = "20px Ubuntu";
-                    b = 0;
-                    for(; b < B.length; ++b) {
-                        c = B[b].name || "An unnamed cell";
-                        if(!oa) {
-                            c = "An unnamed cell";
+                    c = 0;
+                    for (;c < E.length;++c) {
+                        b = E[c].name || X("unnamed_cell");
+                        if (!va) {
+                            b = X("unnamed_cell");
                         }
-                        if(-1 != G.indexOf(B[b].id)) {
-                            if(p[0].name) {
-                                c = p[0].name;
+                        if (-1 != K.indexOf(E[c].id)) {
+                            if (m[0].name) {
+                                b = m[0].name;
                             }
                             a.fillStyle = "#FFAAAA";
-                            /*new*//*mikey*/OnLeaderboard(b+1);
+                            /*new*//*mikey*//*remap*/OnLeaderboard(c+1);
                         } else {
                             a.fillStyle = "#FFFFFF";
                         }
-                        c = b + 1 + ". " + c;
-                        a.fillText(c, 100 - a.measureText(c)
-                                .width / 2, 70 + 24 * b);
+                        b = c + 1 + ". " + b;
+                        a.fillText(b, 100 - a.measureText(b).width / 2, 70 + 24 * c);
                     }
                 } else {
-                    b = c = 0;
-                    for(; b < y.length; ++b) {
-                        var d = c + y[b] * Math.PI * 2;
-                        a.fillStyle = jb[b + 1];
+                    c = b = 0;
+                    for (;c < z.length;++c) {
+                        var e = b + z[c] * Math.PI * 2;
+                        a.fillStyle = yb[c + 1];
                         a.beginPath();
                         a.moveTo(100, 140);
-                        a.arc(100, 140, 80, c, d, false);
+                        a.arc(100, 140, 80, b, e, false);
                         a.fill();
-                        c = d;
+                        b = e;
                     }
                 }
             }
         }
     }
-
-    function Oa(a, b, c, d, e, l) {
+    function Ha(a, c, b, e, l) {
+        this.V = a;
+        this.x = c;
+        this.y = b;
+        this.i = e;
+        this.b = l;
+    }
+    function aa(a, c, b, e, l, p) {
         this.id = a;
-        this.p = this.x = b;
-        this.q = this.y = c;
-        this.o = this.size = d;
-        this.color = e;
+        this.s = this.x = c;
+        this.t = this.y = b;
+        this.r = this.size = e;
+        this.color = l;
         this.a = [];
-        this.l = [];
-        this.R();
-        this.Z(l);
+        this.W();
+        this.B(p);
         /*new*/this.splitTime = Date.now();
     }
-
-
-    function na(a, b, c, d) {
-        if(a) {
-            this.r = a;
+    function ua(a, c, b, e) {
+        if (a) {
+            this.u = a;
         }
-        if(b) {
-            this.N = b;
+        if (c) {
+            this.S = c;
         }
-        this.P = !!c;
-        if(d) {
-            this.s = d;
+        this.U = !!b;
+        if (e) {
+            this.v = e;
         }
     }
-    var ba = g.location.protocol;
-    var $a = "https:" == ba;
-    if(g.location.ancestorOrigins && (g.location.ancestorOrigins.length && "https://apps.facebook.com" != g.location.ancestorOrigins[0])) {
-        g.top.location = "http://agar.io/";
-    } else {
-        var qa;
-        var f;
-        var C;
+    function R(a, c) {
+        var b$$0 = "1" == f("#helloContainer").attr("data-has-account-data");
+        f("#helloContainer").attr("data-has-account-data", "1");
+        if (null == c && d.localStorage.loginCache) {
+            var e = JSON.parse(d.localStorage.loginCache);
+            e.f = a.f;
+            e.d = a.d;
+            e.e = a.e;
+            d.localStorage.loginCache = JSON.stringify(e);
+        }
+        if (b$$0) {
+            var l = +f("#agario-exp-bar .progress-bar-text").text().split("/")[0];
+            b$$0 = +f("#agario-exp-bar .progress-bar-text").text().split("/")[1].split(" ")[0];
+            e = f(".agario-profile-panel .progress-bar-star").text();
+            if (e != a.e) {
+                R({
+                    f : b$$0,
+                    d : b$$0,
+                    e : e
+                }, function() {
+                    f(".agario-profile-panel .progress-bar-star").text(a.e);
+                    f("#agario-exp-bar .progress-bar").css("width", "100%");
+                    f(".progress-bar-star").addClass("animated tada").one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", function() {
+                        f(".progress-bar-star").removeClass("animated tada");
+                    });
+                    setTimeout(function() {
+                        f("#agario-exp-bar .progress-bar-text").text(a.d + "/" + a.d + " XP");
+                        R({
+                            f : 0,
+                            d : a.d,
+                            e : a.e
+                        }, function() {
+                            R(a, c);
+                        });
+                    }, 1E3);
+                });
+            } else {
+                var p = Date.now();
+                var h = function() {
+                    var b;
+                    b = (Date.now() - p) / 1E3;
+                    b = 0 > b ? 0 : 1 < b ? 1 : b;
+                    b = b * b * (3 - 2 * b);
+                    f("#agario-exp-bar .progress-bar-text").text(~~(l + (a.f - l) * b) + "/" + a.d + " XP");
+                    f("#agario-exp-bar .progress-bar").css("width", (88 * (l + (a.f - l) * b) / a.d).toFixed(2) + "%");
+                    if (1 > b) {
+                        d.requestAnimationFrame(h);
+                    } else {
+                        if (c) {
+                            c();
+                        }
+                    }
+                };
+                d.requestAnimationFrame(h);
+            }
+        } else {
+            f(".agario-profile-panel .progress-bar-star").text(a.e);
+            f("#agario-exp-bar .progress-bar-text").text(a.f + "/" + a.d + " XP");
+            f("#agario-exp-bar .progress-bar").css("width", (88 * a.f / a.d).toFixed(2) + "%");
+            if (c) {
+                c();
+            }
+        }
+    }
+    function eb(a) {
+        if ("string" == typeof a) {
+            a = JSON.parse(a);
+        }
+        if (Date.now() + 18E5 > a.ia) {
+            f("#helloContainer").attr("data-logged-in", "0");
+        } else {
+            d.localStorage.loginCache = JSON.stringify(a);
+            B = a.fa;
+            f(".agario-profile-name").text(a.name);
+            Va();
+            R({
+                f : a.f,
+                d : a.d,
+                e : a.e
+            });
+            f("#helloContainer").attr("data-logged-in", "1");
+        }
+    }
+    function zb(a) {
+        a = a.split("\n");
+        eb({
+            name : a[0],
+            ra : a[1],
+            fa : a[2],
+            ia : 1E3 * +a[3],
+            e : +a[4],
+            f : +a[5],
+            d : +a[6]
+        });
+    }
+    function Ia(a$$0) {
+        if ("connected" == a$$0.status) {
+            var c = a$$0.authResponse.accessToken;
+            d.FB.api("/me/picture?width=180&height=180", function(a) {
+                d.localStorage.fbPictureCache = a.data.url;
+                f(".agario-profile-picture").attr("src", a.data.url);
+            });
+            f("#helloContainer").attr("data-logged-in", "1");
+            if (null != B) {
+                f.ajax("https://m.agar.io/checkToken", {
+                    error : function() {
+                        B = null;
+                        Ia(a$$0);
+                    },
+                    success : function(a) {
+                        a = a.split("\n");
+                        R({
+                            e : +a[0],
+                            f : +a[1],
+                            d : +a[2]
+                        });
+                    },
+                    dataType : "text",
+                    method : "POST",
+                    cache : false,
+                    crossDomain : true,
+                    data : B
+                });
+            } else {
+                f.ajax("https://m.agar.io/facebookLogin", {
+                    error : function() {
+                        B = null;
+                        f("#helloContainer").attr("data-logged-in", "0");
+                    },
+                    success : zb,
+                    dataType : "text",
+                    method : "POST",
+                    cache : false,
+                    crossDomain : true,
+                    data : c
+                });
+            }
+        }
+    }
+    if (!d.agarioNoInit) {
+        var Ja = d.location.protocol;
+        var ob = "https:" == Ja;
+        var xa;
+        var g;
+        var F;
         var q;
-        var r;
-        var O = null;
-        var s$$0 = null;
+        var s$$0;
+        var W = null;
+        var r = null;
         var t = 0;
         var u = 0;
-        var G = [];
-        var p = [];
-        var A = {};
+        var K = [];
+        var m = [];
+        var D = {};
         var v = [];
-        var I = [];
-        var B = [];
-        var V = 0;
-        var W = 0;
-        var Z = -1;
-        var $ = -1;
-        var fb = 0;
-        var H = 0;
-        var F = null;
-        var ha = 0;
-        var ia = 0;
-        var ja = 1E4;
-        var ka = 1E4;
+        var P = [];
+        var E = [];
+        var ca = 0;
+        var da = 0;
+        var fa = -1;
+        var ga = -1;
+        var ub = 0;
+        var A = 0;
+        var db = 0;
+        var I = null;
+        var oa = 0;
+        var pa = 0;
+        var qa = 1E4;
+        var ra = 1E4;
         var k = 1;
-        var w = null;
-        var Sa = true;
-        var oa = true;
-        var Ba = false;
-        var xa = false;
-        var J = 0;
-        var la = false;
-        var Ta = false;
-        var R = t = ~~((ha + ja) / 2);
-        var S = u = ~~((ia + ka) / 2);
-        var T = 1;
-        var Q = "";
-        var y = null;
-        var pa = false;
+        var x = null;
+        var fb = true;
+        var va = true;
+        var Ka = false;
+        var Ea = false;
+        var Q = 0;
+        var sa = false;
+        var gb = false;
+        var Y = t = ~~((oa + qa) / 2);
+        var Z = u = ~~((pa + ra) / 2);
+        var $ = 1;
+        var O = "";
+        var z = null;
         var wa = false;
-        var ua = 0;
-        var va = 0;
-        var fa = 0;
-        var ga = 0;
-        var P = 0;
-        var jb = ["#333333", "#FF3333", "#33FF33", "#3333FF"];
-        var za = false;
-        var ta = false;
-        var E = 1;
-        var Da = "ontouchstart" in g && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        var Aa = new Image;
-        Aa.src = "img/split.png";
-        var Ua = document.createElement("canvas");
-        if("undefined" == typeof console || ("undefined" == typeof DataView || ("undefined" == typeof WebSocket || (null == Ua || (null == Ua.getContext || null == g.localStorage))))) {
+        var Da = false;
+        var Ba = 0;
+        var Ca = 0;
+        var ma = 0;
+        var na = 0;
+        var hb = 0;
+        var yb = ["#333333", "#FF3333", "#33FF33", "#3333FF"];
+        var Fa = false;
+        var ka = false;
+        var Xa = 0;
+        var B = null;
+        var H = 1;
+        var w = 1;
+        var V = true;
+        var za = 0;
+        var Ma = "ontouchstart" in d && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        var Ga = new Image;
+        Ga.src = "img/split.png";
+        var ib = document.createElement("canvas");
+        if ("undefined" == typeof console || ("undefined" == typeof DataView || ("undefined" == typeof WebSocket || (null == ib || (null == ib.getContext || null == d.localStorage))))) {
             alert("You browser does not support this game, we recommend you to use Firefox to play this");
         } else {
-            var aa = null;
-            g.setNick = function (a) {
-                Ja();
-                F = a;
-                Ma();
-                J = 0;
+
+            var ha = null;
+            d.setNick = function(a) {
+                Sa();
+                I = a;
+                Ya();
+                Q = 0;
                 /*new*/GM_setValue("nick", a);
                 /*new*/console.log("Storing '" + a + "' as nick");
             };
-            g.setRegion = X;
-            g.setSkins = function (a) {
-                Sa = a;
+            d.setRegion = ea;
+            d.setSkins = function(a) {
+                fb = a;
             };
-            g.setNames = function (a) {
-                oa = a;
+            d.setNames = function(a) {
+                va = a;
             };
-            g.setDarkTheme = function (a) {
-                la = a;
+            d.setDarkTheme = function(a) {
+                sa = a;
             };
-            g.setColors = function (a) {
-                Ba = a;
+            d.setColors = function(a) {
+                Ka = a;
             };
-            g.setShowMass = function (a) {
-                Ta = a;
+            d.setShowMass = function(a) {
+                gb = a;
             };
-            g.spectate = function () {
-                F = null;
-                D(1);
-                Ja();
+            d.spectate = function() {
+                I = null;
+                G(1);
+                Sa();
             };
-            g.setGameMode = function (a) {
-                if(a != Q) {
-                    Q = a;
-                    Y();
+            d.setGameMode = function(a) {
+                if (a != O) {
+                    if (":party" == O) {
+                        f("#helloContainer").attr("data-party-state", "0");
+                    }
+                    ia(a);
+                    if (":party" != a) {
+                        N();
+                    }
                 }
             };
-            g.setAcid = function (a) {
-                za = a;
+            d.setAcid = function(a) {
+                Fa = a;
             };
-            if(null != g.localStorage) {
-                if(null == g.localStorage.AB9) {
-                    g.localStorage.AB9 = 0 + ~~(100 * Math.random());
+            if (null != d.localStorage) {
+                if (null == d.localStorage.AB9) {
+                    d.localStorage.AB9 = 0 + ~~(100 * Math.random());
                 }
-                P = +g.localStorage.AB9;
-                g.ABGroup = P;
+                hb = +d.localStorage.AB9;
+                d.ABGroup = hb;
             }
-            m.get(ba + "//gc.agar.io", function (a) {
-                var b = a.split(" ");
-                a = b[0];
-                b = b[1] || "";
-                if(-1 == ["UA"].indexOf(a)) {
-                    Va.push("ussr");
+            f.get(Ja + "//gc.agar.io", function(a) {
+                var c = a.split(" ");
+                a = c[0];
+                c = c[1] || "";
+                if (-1 == ["UA"].indexOf(a)) {
+                    jb.push("ussr");
                 }
-                if(U.hasOwnProperty(a)) {
-                    if("string" == typeof U[a]) {
-                        if(!w) {
-                            X(U[a]);
+                if (-1 != d.navigator.userAgent.indexOf("Android")) {
+                    d.location.href = "market://details?id=com.miniclip.agar.io";
+                }
+                if (-1 != d.navigator.userAgent.indexOf("iPhone") || (-1 != d.navigator.userAgent.indexOf("iPad") || -1 != d.navigator.userAgent.indexOf("iPod"))) {
+                    d.location.href = "https://itunes.apple.com/app/agar.io/id995999703";
+                }
+                if (ba.hasOwnProperty(a)) {
+                    if ("string" == typeof ba[a]) {
+                        if (!x) {
+                            ea(ba[a]);
                         }
                     } else {
-                        if(U[a].hasOwnProperty(b)) {
-                            if(!w) {
-                                X(U[a][b]);
+                        if (ba[a].hasOwnProperty(c)) {
+                            if (!x) {
+                                ea(ba[a][c]);
                             }
                         }
                     }
                 }
             }, "text");
-            var ca = false;
-            var da = 0;
-            if(25 > P) {
-                da = 10;
-            } else {
-                if(50 > P) {
-                    da = 5;
-                }
-            }
-            setTimeout(function () {
-                ca = true;
-            }, Math.max(6E4 * da, 1E4));
-            var U = {
-                AF: "JP-Tokyo",
-                AX: "EU-London",
-                AL: "EU-London",
-                DZ: "EU-London",
-                AS: "SG-Singapore",
-                AD: "EU-London",
-                AO: "EU-London",
-                AI: "US-Atlanta",
-                AG: "US-Atlanta",
-                AR: "BR-Brazil",
-                AM: "JP-Tokyo",
-                AW: "US-Atlanta",
-                AU: "SG-Singapore",
-                AT: "EU-London",
-                AZ: "JP-Tokyo",
-                BS: "US-Atlanta",
-                BH: "JP-Tokyo",
-                BD: "JP-Tokyo",
-                BB: "US-Atlanta",
-                BY: "EU-London",
-                BE: "EU-London",
-                BZ: "US-Atlanta",
-                BJ: "EU-London",
-                BM: "US-Atlanta",
-                BT: "JP-Tokyo",
-                BO: "BR-Brazil",
-                BQ: "US-Atlanta",
-                BA: "EU-London",
-                BW: "EU-London",
-                BR: "BR-Brazil",
-                IO: "JP-Tokyo",
-                VG: "US-Atlanta",
-                BN: "JP-Tokyo",
-                BG: "EU-London",
-                BF: "EU-London",
-                BI: "EU-London",
-                KH: "JP-Tokyo",
-                CM: "EU-London",
-                CA: "US-Atlanta",
-                CV: "EU-London",
-                KY: "US-Atlanta",
-                CF: "EU-London",
-                TD: "EU-London",
-                CL: "BR-Brazil",
-                CN: "CN-China",
-                CX: "JP-Tokyo",
-                CC: "JP-Tokyo",
-                CO: "BR-Brazil",
-                KM: "EU-London",
-                CD: "EU-London",
-                CG: "EU-London",
-                CK: "SG-Singapore",
-                CR: "US-Atlanta",
-                CI: "EU-London",
-                HR: "EU-London",
-                CU: "US-Atlanta",
-                CW: "US-Atlanta",
-                CY: "JP-Tokyo",
-                CZ: "EU-London",
-                DK: "EU-London",
-                DJ: "EU-London",
-                DM: "US-Atlanta",
-                DO: "US-Atlanta",
-                EC: "BR-Brazil",
-                EG: "EU-London",
-                SV: "US-Atlanta",
-                GQ: "EU-London",
-                ER: "EU-London",
-                EE: "EU-London",
-                ET: "EU-London",
-                FO: "EU-London",
-                FK: "BR-Brazil",
-                FJ: "SG-Singapore",
-                FI: "EU-London",
-                FR: "EU-London",
-                GF: "BR-Brazil",
-                PF: "SG-Singapore",
-                GA: "EU-London",
-                GM: "EU-London",
-                GE: "JP-Tokyo",
-                DE: "EU-London",
-                GH: "EU-London",
-                GI: "EU-London",
-                GR: "EU-London",
-                GL: "US-Atlanta",
-                GD: "US-Atlanta",
-                GP: "US-Atlanta",
-                GU: "SG-Singapore",
-                GT: "US-Atlanta",
-                GG: "EU-London",
-                GN: "EU-London",
-                GW: "EU-London",
-                GY: "BR-Brazil",
-                HT: "US-Atlanta",
-                VA: "EU-London",
-                HN: "US-Atlanta",
-                HK: "JP-Tokyo",
-                HU: "EU-London",
-                IS: "EU-London",
-                IN: "JP-Tokyo",
-                ID: "JP-Tokyo",
-                IR: "JP-Tokyo",
-                IQ: "JP-Tokyo",
-                IE: "EU-London",
-                IM: "EU-London",
-                IL: "JP-Tokyo",
-                IT: "EU-London",
-                JM: "US-Atlanta",
-                JP: "JP-Tokyo",
-                JE: "EU-London",
-                JO: "JP-Tokyo",
-                KZ: "JP-Tokyo",
-                KE: "EU-London",
-                KI: "SG-Singapore",
-                KP: "JP-Tokyo",
-                KR: "JP-Tokyo",
-                KW: "JP-Tokyo",
-                KG: "JP-Tokyo",
-                LA: "JP-Tokyo",
-                LV: "EU-London",
-                LB: "JP-Tokyo",
-                LS: "EU-London",
-                LR: "EU-London",
-                LY: "EU-London",
-                LI: "EU-London",
-                LT: "EU-London",
-                LU: "EU-London",
-                MO: "JP-Tokyo",
-                MK: "EU-London",
-                MG: "EU-London",
-                MW: "EU-London",
-                MY: "JP-Tokyo",
-                MV: "JP-Tokyo",
-                ML: "EU-London",
-                MT: "EU-London",
-                MH: "SG-Singapore",
-                MQ: "US-Atlanta",
-                MR: "EU-London",
-                MU: "EU-London",
-                YT: "EU-London",
-                MX: "US-Atlanta",
-                FM: "SG-Singapore",
-                MD: "EU-London",
-                MC: "EU-London",
-                MN: "JP-Tokyo",
-                ME: "EU-London",
-                MS: "US-Atlanta",
-                MA: "EU-London",
-                MZ: "EU-London",
-                MM: "JP-Tokyo",
-                NA: "EU-London",
-                NR: "SG-Singapore",
-                NP: "JP-Tokyo",
-                NL: "EU-London",
-                NC: "SG-Singapore",
-                NZ: "SG-Singapore",
-                NI: "US-Atlanta",
-                NE: "EU-London",
-                NG: "EU-London",
-                NU: "SG-Singapore",
-                NF: "SG-Singapore",
-                MP: "SG-Singapore",
-                NO: "EU-London",
-                OM: "JP-Tokyo",
-                PK: "JP-Tokyo",
-                PW: "SG-Singapore",
-                PS: "JP-Tokyo",
-                PA: "US-Atlanta",
-                PG: "SG-Singapore",
-                PY: "BR-Brazil",
-                PE: "BR-Brazil",
-                PH: "JP-Tokyo",
-                PN: "SG-Singapore",
-                PL: "EU-London",
-                PT: "EU-London",
-                PR: "US-Atlanta",
-                QA: "JP-Tokyo",
-                RE: "EU-London",
-                RO: "EU-London",
-                RU: "RU-Russia",
-                RW: "EU-London",
-                BL: "US-Atlanta",
-                SH: "EU-London",
-                KN: "US-Atlanta",
-                LC: "US-Atlanta",
-                MF: "US-Atlanta",
-                PM: "US-Atlanta",
-                VC: "US-Atlanta",
-                WS: "SG-Singapore",
-                SM: "EU-London",
-                ST: "EU-London",
-                SA: "EU-London",
-                SN: "EU-London",
-                RS: "EU-London",
-                SC: "EU-London",
-                SL: "EU-London",
-                SG: "JP-Tokyo",
-                SX: "US-Atlanta",
-                SK: "EU-London",
-                SI: "EU-London",
-                SB: "SG-Singapore",
-                SO: "EU-London",
-                ZA: "EU-London",
-                SS: "EU-London",
-                ES: "EU-London",
-                LK: "JP-Tokyo",
-                SD: "EU-London",
-                SR: "BR-Brazil",
-                SJ: "EU-London",
-                SZ: "EU-London",
-                SE: "EU-London",
-                CH: "EU-London",
-                SY: "EU-London",
-                TW: "JP-Tokyo",
-                TJ: "JP-Tokyo",
-                TZ: "EU-London",
-                TH: "JP-Tokyo",
-                TL: "JP-Tokyo",
-                TG: "EU-London",
-                TK: "SG-Singapore",
-                TO: "SG-Singapore",
-                TT: "US-Atlanta",
-                TN: "EU-London",
-                TR: "TK-Turkey",
-                TM: "JP-Tokyo",
-                TC: "US-Atlanta",
-                TV: "SG-Singapore",
-                UG: "EU-London",
-                UA: "EU-London",
-                AE: "EU-London",
-                GB: "EU-London",
-                US: {
-                    AL: "US-Atlanta",
-                    AK: "US-Fremont",
-                    AZ: "US-Fremont",
-                    AR: "US-Atlanta",
-                    CA: "US-Fremont",
-                    CO: "US-Fremont",
-                    CT: "US-Atlanta",
-                    DE: "US-Atlanta",
-                    FL: "US-Atlanta",
-                    GA: "US-Atlanta",
-                    HI: "US-Fremont",
-                    ID: "US-Fremont",
-                    IL: "US-Atlanta",
-                    IN: "US-Atlanta",
-                    IA: "US-Atlanta",
-                    KS: "US-Atlanta",
-                    KY: "US-Atlanta",
-                    LA: "US-Atlanta",
-                    ME: "US-Atlanta",
-                    MD: "US-Atlanta",
-                    MA: "US-Atlanta",
-                    MI: "US-Atlanta",
-                    MN: "US-Fremont",
-                    MS: "US-Atlanta",
-                    MO: "US-Atlanta",
-                    MT: "US-Fremont",
-                    NE: "US-Fremont",
-                    NV: "US-Fremont",
-                    NH: "US-Atlanta",
-                    NJ: "US-Atlanta",
-                    NM: "US-Fremont",
-                    NY: "US-Atlanta",
-                    NC: "US-Atlanta",
-                    ND: "US-Fremont",
-                    OH: "US-Atlanta",
-                    OK: "US-Atlanta",
-                    OR: "US-Fremont",
-                    PA: "US-Atlanta",
-                    RI: "US-Atlanta",
-                    SC: "US-Atlanta",
-                    SD: "US-Fremont",
-                    TN: "US-Atlanta",
-                    TX: "US-Atlanta",
-                    UT: "US-Fremont",
-                    VT: "US-Atlanta",
-                    VA: "US-Atlanta",
-                    WA: "US-Fremont",
-                    WV: "US-Atlanta",
-                    WI: "US-Atlanta",
-                    WY: "US-Fremont",
-                    DC: "US-Atlanta",
-                    AS: "US-Atlanta",
-                    GU: "US-Atlanta",
-                    MP: "US-Atlanta",
-                    PR: "US-Atlanta",
-                    UM: "US-Atlanta",
-                    VI: "US-Atlanta"
-                },
-                UM: "SG-Singapore",
-                VI: "US-Atlanta",
-                UY: "BR-Brazil",
-                UZ: "JP-Tokyo",
-                VU: "SG-Singapore",
-                VE: "BR-Brazil",
-                VN: "JP-Tokyo",
-                WF: "SG-Singapore",
-                EH: "EU-London",
-                YE: "JP-Tokyo",
-                ZM: "EU-London",
-                ZW: "EU-London"
+            var ja = false;
+            var Ta = 0;
+            setTimeout(function() {
+                ja = true;
+            }, Math.max(6E4 * Ta, 1E4));
+            var ba = {
+                AF : "JP-Tokyo",
+                AX : "EU-London",
+                AL : "EU-London",
+                DZ : "EU-London",
+                AS : "SG-Singapore",
+                AD : "EU-London",
+                AO : "EU-London",
+                AI : "US-Atlanta",
+                AG : "US-Atlanta",
+                AR : "BR-Brazil",
+                AM : "JP-Tokyo",
+                AW : "US-Atlanta",
+                AU : "SG-Singapore",
+                AT : "EU-London",
+                AZ : "JP-Tokyo",
+                BS : "US-Atlanta",
+                BH : "JP-Tokyo",
+                BD : "JP-Tokyo",
+                BB : "US-Atlanta",
+                BY : "EU-London",
+                BE : "EU-London",
+                BZ : "US-Atlanta",
+                BJ : "EU-London",
+                BM : "US-Atlanta",
+                BT : "JP-Tokyo",
+                BO : "BR-Brazil",
+                BQ : "US-Atlanta",
+                BA : "EU-London",
+                BW : "EU-London",
+                BR : "BR-Brazil",
+                IO : "JP-Tokyo",
+                VG : "US-Atlanta",
+                BN : "JP-Tokyo",
+                BG : "EU-London",
+                BF : "EU-London",
+                BI : "EU-London",
+                KH : "JP-Tokyo",
+                CM : "EU-London",
+                CA : "US-Atlanta",
+                CV : "EU-London",
+                KY : "US-Atlanta",
+                CF : "EU-London",
+                TD : "EU-London",
+                CL : "BR-Brazil",
+                CN : "CN-China",
+                CX : "JP-Tokyo",
+                CC : "JP-Tokyo",
+                CO : "BR-Brazil",
+                KM : "EU-London",
+                CD : "EU-London",
+                CG : "EU-London",
+                CK : "SG-Singapore",
+                CR : "US-Atlanta",
+                CI : "EU-London",
+                HR : "EU-London",
+                CU : "US-Atlanta",
+                CW : "US-Atlanta",
+                CY : "JP-Tokyo",
+                CZ : "EU-London",
+                DK : "EU-London",
+                DJ : "EU-London",
+                DM : "US-Atlanta",
+                DO : "US-Atlanta",
+                EC : "BR-Brazil",
+                EG : "EU-London",
+                SV : "US-Atlanta",
+                GQ : "EU-London",
+                ER : "EU-London",
+                EE : "EU-London",
+                ET : "EU-London",
+                FO : "EU-London",
+                FK : "BR-Brazil",
+                FJ : "SG-Singapore",
+                FI : "EU-London",
+                FR : "EU-London",
+                GF : "BR-Brazil",
+                PF : "SG-Singapore",
+                GA : "EU-London",
+                GM : "EU-London",
+                GE : "JP-Tokyo",
+                DE : "EU-London",
+                GH : "EU-London",
+                GI : "EU-London",
+                GR : "EU-London",
+                GL : "US-Atlanta",
+                GD : "US-Atlanta",
+                GP : "US-Atlanta",
+                GU : "SG-Singapore",
+                GT : "US-Atlanta",
+                GG : "EU-London",
+                GN : "EU-London",
+                GW : "EU-London",
+                GY : "BR-Brazil",
+                HT : "US-Atlanta",
+                VA : "EU-London",
+                HN : "US-Atlanta",
+                HK : "JP-Tokyo",
+                HU : "EU-London",
+                IS : "EU-London",
+                IN : "JP-Tokyo",
+                ID : "JP-Tokyo",
+                IR : "JP-Tokyo",
+                IQ : "JP-Tokyo",
+                IE : "EU-London",
+                IM : "EU-London",
+                IL : "JP-Tokyo",
+                IT : "EU-London",
+                JM : "US-Atlanta",
+                JP : "JP-Tokyo",
+                JE : "EU-London",
+                JO : "JP-Tokyo",
+                KZ : "JP-Tokyo",
+                KE : "EU-London",
+                KI : "SG-Singapore",
+                KP : "JP-Tokyo",
+                KR : "JP-Tokyo",
+                KW : "JP-Tokyo",
+                KG : "JP-Tokyo",
+                LA : "JP-Tokyo",
+                LV : "EU-London",
+                LB : "JP-Tokyo",
+                LS : "EU-London",
+                LR : "EU-London",
+                LY : "EU-London",
+                LI : "EU-London",
+                LT : "EU-London",
+                LU : "EU-London",
+                MO : "JP-Tokyo",
+                MK : "EU-London",
+                MG : "EU-London",
+                MW : "EU-London",
+                MY : "JP-Tokyo",
+                MV : "JP-Tokyo",
+                ML : "EU-London",
+                MT : "EU-London",
+                MH : "SG-Singapore",
+                MQ : "US-Atlanta",
+                MR : "EU-London",
+                MU : "EU-London",
+                YT : "EU-London",
+                MX : "US-Atlanta",
+                FM : "SG-Singapore",
+                MD : "EU-London",
+                MC : "EU-London",
+                MN : "JP-Tokyo",
+                ME : "EU-London",
+                MS : "US-Atlanta",
+                MA : "EU-London",
+                MZ : "EU-London",
+                MM : "JP-Tokyo",
+                NA : "EU-London",
+                NR : "SG-Singapore",
+                NP : "JP-Tokyo",
+                NL : "EU-London",
+                NC : "SG-Singapore",
+                NZ : "SG-Singapore",
+                NI : "US-Atlanta",
+                NE : "EU-London",
+                NG : "EU-London",
+                NU : "SG-Singapore",
+                NF : "SG-Singapore",
+                MP : "SG-Singapore",
+                NO : "EU-London",
+                OM : "JP-Tokyo",
+                PK : "JP-Tokyo",
+                PW : "SG-Singapore",
+                PS : "JP-Tokyo",
+                PA : "US-Atlanta",
+                PG : "SG-Singapore",
+                PY : "BR-Brazil",
+                PE : "BR-Brazil",
+                PH : "JP-Tokyo",
+                PN : "SG-Singapore",
+                PL : "EU-London",
+                PT : "EU-London",
+                PR : "US-Atlanta",
+                QA : "JP-Tokyo",
+                RE : "EU-London",
+                RO : "EU-London",
+                RU : "RU-Russia",
+                RW : "EU-London",
+                BL : "US-Atlanta",
+                SH : "EU-London",
+                KN : "US-Atlanta",
+                LC : "US-Atlanta",
+                MF : "US-Atlanta",
+                PM : "US-Atlanta",
+                VC : "US-Atlanta",
+                WS : "SG-Singapore",
+                SM : "EU-London",
+                ST : "EU-London",
+                SA : "EU-London",
+                SN : "EU-London",
+                RS : "EU-London",
+                SC : "EU-London",
+                SL : "EU-London",
+                SG : "JP-Tokyo",
+                SX : "US-Atlanta",
+                SK : "EU-London",
+                SI : "EU-London",
+                SB : "SG-Singapore",
+                SO : "EU-London",
+                ZA : "EU-London",
+                SS : "EU-London",
+                ES : "EU-London",
+                LK : "JP-Tokyo",
+                SD : "EU-London",
+                SR : "BR-Brazil",
+                SJ : "EU-London",
+                SZ : "EU-London",
+                SE : "EU-London",
+                CH : "EU-London",
+                SY : "EU-London",
+                TW : "JP-Tokyo",
+                TJ : "JP-Tokyo",
+                TZ : "EU-London",
+                TH : "JP-Tokyo",
+                TL : "JP-Tokyo",
+                TG : "EU-London",
+                TK : "SG-Singapore",
+                TO : "SG-Singapore",
+                TT : "US-Atlanta",
+                TN : "EU-London",
+                TR : "TK-Turkey",
+                TM : "JP-Tokyo",
+                TC : "US-Atlanta",
+                TV : "SG-Singapore",
+                UG : "EU-London",
+                UA : "EU-London",
+                AE : "EU-London",
+                GB : "EU-London",
+                US : "US-Atlanta",
+                UM : "SG-Singapore",
+                VI : "US-Atlanta",
+                UY : "BR-Brazil",
+                UZ : "JP-Tokyo",
+                VU : "SG-Singapore",
+                VE : "BR-Brazil",
+                VN : "JP-Tokyo",
+                WF : "SG-Singapore",
+                EH : "EU-London",
+                YE : "JP-Tokyo",
+                ZM : "EU-London",
+                ZW : "EU-London"
             };
             /*new*/// Hack to kill an established websocket
-            /*new*///g.connect = La;
-            /*new*/g.connect2 = g.connect;g.connect = La;setTimeout(function(){try {g.connect2("Killing_original_websocket","");}catch(err){}} ,5000);
-            var ea = 500;
-            var Pa = -1;
-            var Qa = -1;
-            var x = null;
-            var z = 1;
-            var ma = null;
-            var M = {};
-            var Va = "poland;usa;china;russia;canada;australia;spain;brazil;germany;ukraine;france;sweden;chaplin;north korea;south korea;japan;united kingdom;earth;greece;latvia;lithuania;estonia;finland;norway;cia;maldivas;austria;nigeria;reddit;yaranaika;confederate;9gag;indiana;4chan;italy;bulgaria;tumblr;2ch.hk;hong kong;portugal;jamaica;german empire;mexico;sanik;switzerland;croatia;chile;indonesia;bangladesh;thailand;iran;iraq;peru;moon;botswana;bosnia;netherlands;european union;taiwan;pakistan;hungary;satanist;qing dynasty;matriarchy;patriarchy;feminism;ireland;texas;facepunch;prodota;cambodia;steam;piccolo;ea;india;kc;denmark;quebec;ayy lmao;sealand;bait;tsarist russia;origin;vinesauce;stalin;belgium;luxembourg;stussy;prussia;8ch;argentina;scotland;sir;romania;belarus;wojak;doge;nasa;byzantium;imperial japan;french kingdom;somalia;turkey;mars;pokerface;8;irs;receita federal;facebook".split(";");
-            var kb = ["8", "nasa"];
-            var lb = ["m'blob"];
-            Oa.prototype = {
-                id: 0,
-                a: null,
-                l: null,
-                name: null,
-                k: null,
-                J: null,
-                x: 0,
-                y: 0,
-                size: 0,
-                p: 0,
-                q: 0,
-                o: 0,
-                D: 0,
-                F: 0,
-                n: 0,
-                W: 0,
-                L: 0,
-                ja: 0,
-                ba: 0,
-                A: false,
-                d: false,
-                j: false,
-                M: true,
-                S: function () {
+            /*new*//*remap*/d.connect2 = d.connect;d.connect = zeach.connect;setTimeout(function(){try {d.connect2("Killing_original_websocket","");}catch(err){}} ,5000);
+
+            var J = null;
+            d.connect = Aa;
+            var la = 500;
+            var $a = -1;
+            var ab = -1;
+            var y = null;
+            var C = 1;
+            var ta = null;
+            var Qa = function() {
+                var a = Date.now();
+                var c = 1E3 / 60;
+                return function() {
+                    d.requestAnimationFrame(Qa);
+                    var b = Date.now();
+                    var e = b - a;
+                    if (e > c) {
+                        a = b - e % c;
+                        if (!S() || 240 > Date.now() - Xa) {
+                            bb();
+                        } else {
+                            console.warn("Skipping draw");
+                        }
+                        Ab();
+                    }
+                };
+            }();
+            var T = {};
+            var jb = "poland;usa;china;russia;canada;australia;spain;brazil;germany;ukraine;france;sweden;chaplin;north korea;south korea;japan;united kingdom;earth;greece;latvia;lithuania;estonia;finland;norway;cia;maldivas;austria;nigeria;reddit;yaranaika;confederate;9gag;indiana;4chan;italy;bulgaria;tumblr;2ch.hk;hong kong;portugal;jamaica;german empire;mexico;sanik;switzerland;croatia;chile;indonesia;bangladesh;thailand;iran;iraq;peru;moon;botswana;bosnia;netherlands;european union;taiwan;pakistan;hungary;satanist;qing dynasty;matriarchy;patriarchy;feminism;ireland;texas;facepunch;prodota;cambodia;steam;piccolo;ea;india;kc;denmark;quebec;ayy lmao;sealand;bait;tsarist russia;origin;vinesauce;stalin;belgium;luxembourg;stussy;prussia;8ch;argentina;scotland;sir;romania;belarus;wojak;doge;nasa;byzantium;imperial japan;french kingdom;somalia;turkey;mars;pokerface;8;irs;receita federal;facebook".split(";");
+            var Bb = ["8", "nasa"];
+            var Cb = ["m'blob"];
+            Ha.prototype = {
+                V : null,
+                x : 0,
+                y : 0,
+                i : 0,
+                b : 0
+            };
+            aa.prototype = {
+                id : 0,
+                a : null,
+                name : null,
+                o : null,
+                O : null,
+                x : 0,
+                y : 0,
+                size : 0,
+                s : 0,
+                t : 0,
+                r : 0,
+                J : 0,
+                K : 0,
+                q : 0,
+                ba : 0,
+                Q : 0,
+                qa : 0,
+                ha : 0,
+                G : false,
+                h : false,
+                n : false,
+                R : true,
+                Y : 0,
+                X : function() {
                     var a;
                     a = 0;
-                    for(; a < v.length; a++) {
-                        if(v[a] == this) {
+                    for (;a < v.length;a++) {
+                        if (v[a] == this) {
                             v.splice(a, 1);
                             break;
                         }
                     }
-                    delete A[this.id];
-                    a = p.indexOf(this);
-                    if(-1 != a) {
-                        xa = true;
-                        p.splice(a, 1);
+                    delete D[this.id];
+                    a = m.indexOf(this);
+                    if (-1 != a) {
+                        Ea = true;
+                        m.splice(a, 1);
                     }
-                    a = G.indexOf(this.id);
-                    if(-1 != a) {
-                        G.splice(a, 1);
+                    a = K.indexOf(this.id);
+                    if (-1 != a) {
+                        K.splice(a, 1);
                     }
-                    this.A = true;
-                    I.push(this);
+                    this.G = true;
+                    if (0 < this.Y) {
+                        P.push(this);
+                    }
                 },
-                h: function () {
+                l : function() {
                     return Math.max(~~(0.3 * this.size), 24);
                 },
-                Z: function (a) {
-                    if(this.name = a) {
-                        if(null == this.k) {
-                            this.k = new na(this.h(), "#FFFFFF", true, "#000000");
+                B : function(a) {
+                    if (this.name = a) {
+                        if (null == this.o) {
+                            this.o = new ua(this.l(), "#FFFFFF", true, "#000000");
                         } else {
-                            this.k.H(this.h());
+                            this.o.M(this.l());
                         }
-                        this.k.u(this.name);
+                        this.o.C(this.name);
                     }
                 },
-                R: function () {
-                    var a = this.C();
-                    for(; this.a.length > a;) {
-                        var b = ~~(Math.random() * this.a.length);
-                        this.a.splice(b, 1);
-                        this.l.splice(b, 1);
+                W : function() {
+                    var a = this.I();
+                    for (;this.a.length > a;) {
+                        var c = ~~(Math.random() * this.a.length);
+                        this.a.splice(c, 1);
                     }
-                    if(0 == this.a.length) {
-                        if(0 < a) {
-                            this.a.push({
-                                Q: this,
-                                e: this.size,
-                                x: this.x,
-                                y: this.y
-                            });
-                            this.l.push(Math.random() - 0.5);
+                    if (0 == this.a.length) {
+                        if (0 < a) {
+                            this.a.push(new Ha(this, this.x, this.y, this.size, Math.random() - 0.5));
                         }
                     }
-                    for(; this.a.length < a;) {
-                        b = ~~(Math.random() * this.a.length);
-                        var c = this.a[b];
-                        this.a.splice(b, 0, {
-                            Q: this,
-                            e: c.e,
-                            x: c.x,
-                            y: c.y
-                        });
-                        this.l.splice(b, 0, this.l[b]);
+                    for (;this.a.length < a;) {
+                        c = ~~(Math.random() * this.a.length);
+                        c = this.a[c];
+                        this.a.push(new Ha(this, c.x, c.y, c.i, c.b));
                     }
                 },
-                C: function () {
-                    if(0 == this.id) {
-                        return 16;
-                    }
+                I : function() {
                     var a = 10;
-                    if(20 > this.size) {
+                    if (20 > this.size) {
                         a = 0;
                     }
-                    if(this.d) {
+                    if (this.h) {
                         a = 30;
                     }
-                    var b = this.size;
-                    if(!this.d) {
-                        b *= k;
+                    var c = this.size;
+                    if (!this.h) {
+                        c *= k;
                     }
-                    b *= z;
-                    if(this.W & 32) {
-                        b *= 0.25;
+                    c *= C;
+                    if (this.ba & 32) {
+                        c *= 0.25;
                     }
-                    return ~~Math.max(b, a);
+                    return~~Math.max(c, a);
                 },
-                ha: function () {
-                    this.R();
+                oa : function() {
+                    this.W();
                     var a$$0 = this.a;
-                    var b = this.l;
                     var c = a$$0.length;
-                    var d = 0;
-                    for(; d < c; ++d) {
-                        var e = b[(d - 1 + c) % c];
-                        var l = b[(d + 1) % c];
-                        b[d] += (Math.random() - 0.5) * (this.j ? 3 : 1);
-                        b[d] *= 0.7;
-                        if(10 < b[d]) {
-                            b[d] = 10;
+                    var b = 0;
+                    for (;b < c;++b) {
+                        var e = a$$0[(b - 1 + c) % c].b;
+                        var l = a$$0[(b + 1) % c].b;
+                        a$$0[b].b += (Math.random() - 0.5) * (this.n ? 3 : 1);
+                        a$$0[b].b *= 0.7;
+                        if (10 < a$$0[b].b) {
+                            a$$0[b].b = 10;
                         }
-                        if(-10 > b[d]) {
-                            b[d] = -10;
+                        if (-10 > a$$0[b].b) {
+                            a$$0[b].b = -10;
                         }
-                        b[d] = (e + l + 8 * b[d]) / 10;
+                        a$$0[b].b = (e + l + 8 * a$$0[b].b) / 10;
                     }
-                    var h = this;
-                    var g = this.d ? 0 : (this.id / 1E3 + H / 1E4) % (2 * Math.PI);
-                    d = 0;
-                    for(; d < c; ++d) {
-                        var f = a$$0[d].e;
-                        e = a$$0[(d - 1 + c) % c].e;
-                        l = a$$0[(d + 1) % c].e;
-                        if(15 < this.size && (null != O && (20 < this.size * k && 0 != this.id))) {
-                            var m = false;
-                            var p = a$$0[d].x;
-                            var q = a$$0[d].y;
-                            O.ia(p - 5, q - 5, 10, 10, function (a) {
-                                if(a.Q != h) {
-                                    if(25 > (p - a.x) * (p - a.x) + (q - a.y) * (q - a.y)) {
-                                        m = true;
+                    var p = this;
+                    var h = this.h ? 0 : (this.id / 1E3 + A / 1E4) % (2 * Math.PI);
+                    b = 0;
+                    for (;b < c;++b) {
+                        var d = a$$0[b].i;
+                        e = a$$0[(b - 1 + c) % c].i;
+                        l = a$$0[(b + 1) % c].i;
+                        if (15 < this.size && (null != W && (20 < this.size * k && 0 < this.id))) {
+                            var f = false;
+                            var g = a$$0[b].x;
+                            var m = a$$0[b].y;
+                            W.pa(g - 5, m - 5, 10, 10, function(a) {
+                                if (a.V != p) {
+                                    if (25 > (g - a.x) * (g - a.x) + (m - a.y) * (m - a.y)) {
+                                        f = true;
                                     }
                                 }
                             });
-                            if(!m) {
-                                if(a$$0[d].x < ha || (a$$0[d].y < ia || (a$$0[d].x > ja || a$$0[d].y > ka))) {
-                                    m = true;
+                            if (!f) {
+                                if (a$$0[b].x < oa || (a$$0[b].y < pa || (a$$0[b].x > qa || a$$0[b].y > ra))) {
+                                    f = true;
                                 }
                             }
-                            if(m) {
-                                if(0 < b[d]) {
-                                    b[d] = 0;
+                            if (f) {
+                                if (0 < a$$0[b].b) {
+                                    a$$0[b].b = 0;
                                 }
-                                b[d] -= 1;
+                                a$$0[b].b -= 1;
                             }
                         }
-                        f += b[d];
-                        if(0 > f) {
-                            f = 0;
+                        d += a$$0[b].b;
+                        if (0 > d) {
+                            d = 0;
                         }
-                        f = this.j ? (19 * f + this.size) / 20 : (12 * f + this.size) / 13;
-                        a$$0[d].e = (e + l + 8 * f) / 10;
+                        d = this.n ? (19 * d + this.size) / 20 : (12 * d + this.size) / 13;
+                        a$$0[b].i = (e + l + 8 * d) / 10;
                         e = 2 * Math.PI / c;
-                        l = this.a[d].e;
-                        if(this.d) {
-                            if(0 == d % 2) {
+                        l = this.a[b].i;
+                        if (this.h) {
+                            if (0 == b % 2) {
                                 l += 5;
                             }
                         }
-                        a$$0[d].x = this.x + Math.cos(e * d + g) * l;
-                        a$$0[d].y = this.y + Math.sin(e * d + g) * l;
+                        a$$0[b].x = this.x + Math.cos(e * b + h) * l;
+                        a$$0[b].y = this.y + Math.sin(e * b + h) * l;
                     }
                 },
-                K: function () {
-                    if(0 == this.id) {
+                P : function() {
+                    if (0 >= this.id) {
                         return 1;
                     }
                     var a;
-                    a = (H - this.L) / 120;
+                    a = (A - this.Q) / 120;
                     a = 0 > a ? 0 : 1 < a ? 1 : a;
-                    var b = 0 > a ? 0 : 1 < a ? 1 : a;
-                    this.h();
-                    if(this.A && 1 <= b) {
-                        var c = I.indexOf(this);
-                        if(-1 != c) {
-                            I.splice(c, 1);
+                    var c = 0 > a ? 0 : 1 < a ? 1 : a;
+                    this.l();
+                    if (this.G && 1 <= c) {
+                        var b = P.indexOf(this);
+                        if (-1 != b) {
+                            P.splice(b, 1);
                         }
                     }
-                    this.x = a * (this.D - this.p) + this.p;
-                    this.y = a * (this.F - this.q) + this.q;
-                    this.size = b * (this.n - this.o) + this.o;
-                    return b;
+                    this.x = a * (this.J - this.s) + this.s;
+                    this.y = a * (this.K - this.t) + this.t;
+                    this.size = c * (this.q - this.r) + this.r;
+                    return c;
                 },
-                I: function () {
-                    return 0 == this.id ? true : this.x + this.size + 40 < t - q / 2 / k || (this.y + this.size + 40 < u - r / 2 / k || (this.x - this.size - 40 > t + q / 2 / k || this.y - this.size - 40 > u + r / 2 / k)) ? false : true;
+                N : function() {
+                    return 0 >= this.id ? true : this.x + this.size + 40 < t - q / 2 / k || (this.y + this.size + 40 < u - s$$0 / 2 / k || (this.x - this.size - 40 > t + q / 2 / k || this.y - this.size - 40 > u + s$$0 / 2 / k)) ? false : true;
                 },
-                T: function (a) {
-                    if(this.I()) {
-                        var b = 0 != this.id && (!this.d && (!this.j && 0.4 > k));
-                        if(5 > this.C()) {
-                            b = true;
+                w : function(a) {
+                    if (this.N()) {
+                        ++this.Y;
+                        var c = 0 < this.id && (!this.h && (!this.n && 0.4 > k));
+                        if (5 > this.I()) {
+                            c = true;
                         }
-                        if(this.M && !b) {
-                            var c = 0;
-                            for(; c < this.a.length; c++) {
-                                this.a[c].e = this.size;
+                        if (this.R && !c) {
+                            var b = 0;
+                            for (;b < this.a.length;b++) {
+                                this.a[b].i = this.size;
                             }
                         }
-                        this.M = b;
+                        this.R = c;
                         a.save();
-                        this.ba = H;
-                        c = this.K();
-                        if(this.A) {
-                            a.globalAlpha *= 1 - c;
+                        this.ha = A;
+                        b = this.P();
+                        if (this.G) {
+                            a.globalAlpha *= 1 - b;
                         }
                         a.lineWidth = 10;
                         a.lineCap = "round";
-                        a.lineJoin = this.d ? "miter" : "round";
-                        if(Ba) {
+                        a.lineJoin = this.h ? "miter" : "round";
+                        if (Ka) {
                             a.fillStyle = "#FFFFFF";
                             a.strokeStyle = "#AAAAAA";
                         } else {
@@ -3338,310 +3420,469 @@ $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js
                             a.strokeStyle = this.color;
                         }
                         /*new*/drawCellInfos.call(this, zeach.isColors, zeach.ctx);
-                        if(b) {
+                        if (c) {
                             a.beginPath();
                             a.arc(this.x, this.y, this.size + 5, 0, 2 * Math.PI, false);
                         } else {
-                            this.ha();
+                            this.oa();
                             a.beginPath();
-                            var d = this.C();
+                            var e = this.I();
                             a.moveTo(this.a[0].x, this.a[0].y);
-                            c = 1;
-                            for(; c <= d; ++c) {
-                                var e = c % d;
-                                a.lineTo(this.a[e].x, this.a[e].y);
+                            b = 1;
+                            for (;b <= e;++b) {
+                                var d = b % e;
+                                a.lineTo(this.a[d].x, this.a[d].y);
                             }
                         }
                         a.closePath();
-                        d = this.name.toLowerCase();
-                        //if(!this.j && (Sa && ":teams" != Q)) {
-                        //    if(-1 != Va.indexOf(d)) {
-                        //        if(!M.hasOwnProperty(d)) {
-                        //            M[d] = new Image;
-                        //            M[d].src = "skins/" + d + ".png";
+                        e = this.name.toLowerCase();
+                        //if (!this.n && (fb && ":teams" != O)) {
+                        //    if (-1 != jb.indexOf(e)) {
+                        //        if (!T.hasOwnProperty(e)) {
+                        //            T[e] = new Image;
+                        //            T[e].src = "skins/" + e + ".png";
                         //        }
-                        //        c = 0 != M[d].width && M[d].complete ? M[d] : null;
+                        //        b = 0 != T[e].width && T[e].complete ? T[e] : null;
                         //    } else {
-                        //        c = null;
+                        //        b = null;
                         //    }
                         //} else {
-                        //    c = null;
+                        //    b = null;
                         //}
-                        /*new*/var c = customSkins(this, zeach.defaultSkins, zeach.imgCache, zeach.isShowSkins, zeach.gameMode);
-                        c = (e = c) ? -1 != lb.indexOf(d) : false;
-
-
-                        /*new*///if (!b) {
-                        a.stroke();
-                        /*new*///}
+                        /*new*//*remap*/var b = customSkins(this, zeach.defaultSkins, zeach.imgCache, zeach.isShowSkins, zeach.gameMode);
+                        b = (d = b) ? -1 != Cb.indexOf(e) : false;
+                        /*new*///if (!c) {
+                            a.stroke();
+                        /*new*///}}
                         /*new*/if(!cobbler.isLiteBrite)
                             a.fill();
 
-
-
-                        /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id) /*|| isBitDoSkin(this.name.toLowerCase())*/) ? 1 : 0.5;
-                        if(!(null == e)) {
-                            if(!c) {
+                        if (!(null == d)) {
+                            if (!b) {
                                 a.save();
+                                /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id)) ? 1 : 0.5;
                                 a.clip();
-                                a.drawImage(e, this.x - this.size, this.y - this.size, 2 * this.size, 2 * this.size);
+                                a.drawImage(d, this.x - this.size, this.y - this.size, 2 * this.size, 2 * this.size);
                                 a.restore();
                             }
                         }
-                        if(Ba || 15 < this.size) {
-                            if(!b) {
+                        if (Ka || 15 < this.size) {
+                            if (!c) {
                                 a.strokeStyle = "#000000";
                                 a.globalAlpha *= 0.1;
                                 a.stroke();
                             }
                         }
                         a.globalAlpha = 1;
-                        if(null != e) {
-                            if(c) {
-                                a.drawImage(e, this.x - 2 * this.size, this.y - 2 * this.size, 4 * this.size, 4 * this.size);
+                        if (null != d) {
+                            if (b) {
+                                a.drawImage(d, this.x - 2 * this.size, this.y - 2 * this.size, 4 * this.size, 4 * this.size);
                             }
                         }
-                        c = -1 != p.indexOf(this);
-                        if(0 != this.id) {
-                            //b = ~~this.y;
-                            //if((oa || c) && (this.name && (this.k && (null == e || -1 == kb.indexOf(d))))) {
-                            //    e = this.k;
-                            //    e.u(this.name);
-                            //    e.H(this.h());
-                            //    d = Math.ceil(10 * k) / 10;
-                            //    e.$(d);
-                            //    e = e.G();
-                            //    var l = ~~(e.width / d);
-                            //    var h = ~~(e.height / d);
-                            //    a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
-                            //    b += e.height / 2 / d + 4;
-                            //}
-                            /*new*//*remap*/b = drawCellName.call(this,c,d,e);
-
-                            //if(Ta) {
-                            //    if(c || 0 == p.length && ((!this.d || this.j) && 20 < this.size)) {
-                            //        if(null == this.J) {
-                            //            this.J = new na(this.h() / 2, "#FFFFFF", true, "#000000");
-                            //        }
-                            //        c = this.J;
-                            //        c.H(this.h() / 2);
-                            //        c.u(~~(this.size * this.size / 100));
-                            //        d = Math.ceil(10 * k) / 10;
-                            //        c.$(d);
-                            //        e = c.G();
-                            //        l = ~~(e.width / d);
-                            //        h = ~~(e.height / d);
-                            //        a.drawImage(e, ~~this.x - ~~(l / 2), b - ~~(h / 2), l, h);
-                            //    }
-                            //}
-                            /*new*//*remap*/ drawCellMass.call(this,b,c);
-
+                        b = -1 != m.indexOf(this);
+                        c = ~~this.y;
+                        //if (0 != this.id && ((va || b) && (this.name && (this.o && (null == d || -1 == Bb.indexOf(e)))))) {
+                        //    d = this.o;
+                        //    d.C(this.name);
+                        //    d.M(this.l());
+                        //    e = 0 >= this.id ? 1 : Math.ceil(10 * k) / 10;
+                        //    d.ea(e);
+                        //    d = d.L();
+                        //    var p = ~~(d.width / e);
+                        //    var h = ~~(d.height / e);
+                        //    a.drawImage(d, ~~this.x - ~~(p / 2), c - ~~(h / 2), p, h);
+                        //    c += d.height / 2 / e + 4;
+                        //}
+                        //if (0 < this.id) {
+                        //    if (gb) {
+                        //        if (b || 0 == m.length && ((!this.h || this.n) && 20 < this.size)) {
+                        //            if (null == this.O) {
+                        //                this.O = new ua(this.l() / 2, "#FFFFFF", true, "#000000");
+                        //            }
+                        //            b = this.O;
+                        //            b.M(this.l() / 2);
+                        //            b.C(~~(this.size * this.size / 100));
+                        //            e = Math.ceil(10 * k) / 10;
+                        //            b.ea(e);
+                        //            d = b.L();
+                        //            p = ~~(d.width / e);
+                        //            h = ~~(d.height / e);
+                        //            a.drawImage(d, ~~this.x - ~~(p / 2), c - ~~(h / 2), p, h);
+                        //        }
+                        //    }
+                        //}
+                        /*new*//*remap*/if(0 != this.id) {
+                            /*new*//*remap*/var vertical_offset = drawCellName.call(this,b,e,d);
+                            /*new*//*remap*/ drawCellMass.call(this,vertical_offset,b);
                         }
                         a.restore();
                     }
                 }
             };
-            /*new*//*remap*/restorePointObj(Oa.prototype);
-            na.prototype = {
-                w: "",
-                N: "#000000",
-                P: false,
-                s: "#000000",
-                r: 16,
-                m: null,
-                O: null,
-                g: false,
-                v: 1,
-                H: function (a) {
-                    if(this.r != a) {
-                        this.r = a;
-                        this.g = true;
+            /*new*//*remap*/restorePointObj(aa.prototype);
+            ua.prototype = {
+                F : "",
+                S : "#000000",
+                U : false,
+                v : "#000000",
+                u : 16,
+                p : null,
+                T : null,
+                k : false,
+                D : 1,
+                M : function(a) {
+                    if (this.u != a) {
+                        this.u = a;
+                        this.k = true;
                     }
                 },
-                $: function (a) {
-                    if(this.v != a) {
+                ea : function(a) {
+                    if (this.D != a) {
+                        this.D = a;
+                        this.k = true;
+                    }
+                },
+                setStrokeColor : function(a) {
+                    if (this.v != a) {
                         this.v = a;
-                        this.g = true;
+                        this.k = true;
                     }
                 },
-                setStrokeColor: function (a) {
-                    if(this.s != a) {
-                        this.s = a;
-                        this.g = true;
+                C : function(a) {
+                    if (a != this.F) {
+                        this.F = a;
+                        this.k = true;
                     }
                 },
-                u: function (a) {
-                    if(a != this.w) {
-                        this.w = a;
-                        this.g = true;
+                L : function() {
+                    if (null == this.p) {
+                        this.p = document.createElement("canvas");
+                        this.T = this.p.getContext("2d");
                     }
-                },
-                G: function () {
-                    if(null == this.m) {
-                        this.m = document.createElement("canvas");
-                        this.O = this.m.getContext("2d");
-                    }
-                    if(this.g) {
-                        this.g = false;
-                        var a = this.m;
-                        var b = this.O;
-                        var c = this.w;
-                        var d = this.v;
-                        var e = this.r;
-                        var l = e + "px Ubuntu";
-                        b.font = l;
-                        var h = ~~(0.2 * e);
-                        a.width = (b.measureText(c)
-                                .width + 6) * d;
-                        a.height = (e + h) * d;
-                        b.font = l;
-                        b.scale(d, d);
-                        b.globalAlpha = 1;
-                        b.lineWidth = 3;
-                        b.strokeStyle = this.s;
-                        b.fillStyle = this.N;
-                        if(this.P) {
-                            b.strokeText(c, 3, e - h / 2);
+                    if (this.k) {
+                        this.k = false;
+                        var a = this.p;
+                        var c = this.T;
+                        var b = this.F;
+                        var e = this.D;
+                        var d = this.u;
+                        var p = d + "px Ubuntu";
+                        c.font = p;
+                        var h = ~~(0.2 * d);
+                        a.width = (c.measureText(b).width + 6) * e;
+                        a.height = (d + h) * e;
+                        c.font = p;
+                        c.scale(e, e);
+                        c.globalAlpha = 1;
+                        c.lineWidth = 3;
+                        c.strokeStyle = this.v;
+                        c.fillStyle = this.S;
+                        if (this.U) {
+                            c.strokeText(b, 3, d - h / 2);
                         }
-                        b.fillText(c, 3, e - h / 2);
+                        c.fillText(b, 3, d - h / 2);
                     }
-                    return this.m;
+                    return this.p;
                 }
             };
-            /*new*//*remap*/restoreCanvasElementObj(na.prototype);
-
-            if(!Date.now) {
-                Date.now = function () {
-                    return(new Date)
-                        .getTime();
+            /*new*//*remap*/restoreCanvasElementObj(ua.prototype);
+            if (!Date.now) {
+                Date.now = function() {
+                    return(new Date).getTime();
                 };
             }
-            var Ya = {
-                ca: function (a$$0) {
-                    function b$$1(a, b, c, d, e) {
+            (function() {
+                var a$$0 = ["ms", "moz", "webkit", "o"];
+                var c = 0;
+                for (;c < a$$0.length && !d.requestAnimationFrame;++c) {
+                    d.requestAnimationFrame = d[a$$0[c] + "RequestAnimationFrame"];
+                    d.cancelAnimationFrame = d[a$$0[c] + "CancelAnimationFrame"] || d[a$$0[c] + "CancelRequestAnimationFrame"];
+                }
+                if (!d.requestAnimationFrame) {
+                    d.requestAnimationFrame = function(a) {
+                        return setTimeout(a, 1E3 / 60);
+                    };
+                    d.cancelAnimationFrame = function(a) {
+                        clearTimeout(a);
+                    };
+                }
+            })();
+            var mb = {
+                ja : function(a$$0) {
+                    function c$$1(a, c, b, d, e) {
                         this.x = a;
-                        this.y = b;
-                        this.f = c;
-                        this.c = d;
+                        this.y = c;
+                        this.j = b;
+                        this.g = d;
                         this.depth = e;
                         this.items = [];
-                        this.b = [];
+                        this.c = [];
                     }
-                    var c$$1 = a$$0.da || 2;
-                    var d$$0 = a$$0.ea || 4;
-                    b$$1.prototype = {
-                        x: 0,
-                        y: 0,
-                        f: 0,
-                        c: 0,
-                        depth: 0,
-                        items: null,
-                        b: null,
-                        B: function (a) {
-                            var b$$0 = 0;
-                            for(; b$$0 < this.items.length; ++b$$0) {
-                                var c = this.items[b$$0];
-                                if(c.x >= a.x && (c.y >= a.y && (c.x < a.x + a.f && c.y < a.y + a.c))) {
+                    var b$$1 = a$$0.ka || 2;
+                    var e$$0 = a$$0.la || 4;
+                    c$$1.prototype = {
+                        x : 0,
+                        y : 0,
+                        j : 0,
+                        g : 0,
+                        depth : 0,
+                        items : null,
+                        c : null,
+                        H : function(a) {
+                            var c$$0 = 0;
+                            for (;c$$0 < this.items.length;++c$$0) {
+                                var b = this.items[c$$0];
+                                if (b.x >= a.x && (b.y >= a.y && (b.x < a.x + a.j && b.y < a.y + a.g))) {
                                     return true;
                                 }
                             }
-                            if(0 != this.b.length) {
+                            if (0 != this.c.length) {
                                 var d = this;
-                                return this.V(a, function (b) {
-                                    return d.b[b].B(a);
+                                return this.$(a, function(c) {
+                                    return d.c[c].H(a);
                                 });
                             }
                             return false;
                         },
-                        t: function (a, b) {
-                            var c$$0 = 0;
-                            for(; c$$0 < this.items.length; ++c$$0) {
-                                b(this.items[c$$0]);
+                        A : function(a, c) {
+                            var b$$0 = 0;
+                            for (;b$$0 < this.items.length;++b$$0) {
+                                c(this.items[b$$0]);
                             }
-                            if(0 != this.b.length) {
+                            if (0 != this.c.length) {
                                 var d = this;
-                                this.V(a, function (c) {
-                                    d.b[c].t(a, b);
+                                this.$(a, function(b) {
+                                    d.c[b].A(a, c);
                                 });
                             }
                         },
-                        i: function (a) {
-                            if(0 != this.b.length) {
-                                this.b[this.U(a)].i(a);
+                        m : function(a) {
+                            if (0 != this.c.length) {
+                                this.c[this.Z(a)].m(a);
                             } else {
-                                if(this.items.length >= c$$1 && this.depth < d$$0) {
-                                    this.aa();
-                                    this.b[this.U(a)].i(a);
+                                if (this.items.length >= b$$1 && this.depth < e$$0) {
+                                    this.ga();
+                                    this.c[this.Z(a)].m(a);
                                 } else {
                                     this.items.push(a);
                                 }
                             }
                         },
-                        U: function (a) {
-                            return a.x < this.x + this.f / 2 ? a.y < this.y + this.c / 2 ? 0 : 2 : a.y < this.y + this.c / 2 ? 1 : 3;
+                        Z : function(a) {
+                            return a.x < this.x + this.j / 2 ? a.y < this.y + this.g / 2 ? 0 : 2 : a.y < this.y + this.g / 2 ? 1 : 3;
                         },
-                        V: function (a, b) {
-                            return a.x < this.x + this.f / 2 && (a.y < this.y + this.c / 2 && b(0) || a.y >= this.y + this.c / 2 && b(2)) || a.x >= this.x + this.f / 2 && (a.y < this.y + this.c / 2 && b(1) || a.y >= this.y + this.c / 2 && b(3)) ? true : false;
+                        $ : function(a, c) {
+                            return a.x < this.x + this.j / 2 && (a.y < this.y + this.g / 2 && c(0) || a.y >= this.y + this.g / 2 && c(2)) || a.x >= this.x + this.j / 2 && (a.y < this.y + this.g / 2 && c(1) || a.y >= this.y + this.g / 2 && c(3)) ? true : false;
                         },
-                        aa: function () {
+                        ga : function() {
                             var a = this.depth + 1;
-                            var c = this.f / 2;
-                            var d = this.c / 2;
-                            this.b.push(new b$$1(this.x, this.y, c, d, a));
-                            this.b.push(new b$$1(this.x + c, this.y, c, d, a));
-                            this.b.push(new b$$1(this.x, this.y + d, c, d, a));
-                            this.b.push(new b$$1(this.x + c, this.y + d, c, d, a));
+                            var b = this.j / 2;
+                            var d = this.g / 2;
+                            this.c.push(new c$$1(this.x, this.y, b, d, a));
+                            this.c.push(new c$$1(this.x + b, this.y, b, d, a));
+                            this.c.push(new c$$1(this.x, this.y + d, b, d, a));
+                            this.c.push(new c$$1(this.x + b, this.y + d, b, d, a));
                             a = this.items;
                             this.items = [];
-                            c = 0;
-                            for(; c < a.length; c++) {
-                                this.i(a[c]);
+                            b = 0;
+                            for (;b < a.length;b++) {
+                                this.m(a[b]);
                             }
                         },
-                        clear: function () {
+                        clear : function() {
                             var a = 0;
-                            for(; a < this.b.length; a++) {
-                                this.b[a].clear();
+                            for (;a < this.c.length;a++) {
+                                this.c[a].clear();
                             }
                             this.items.length = 0;
-                            this.b.length = 0;
+                            this.c.length = 0;
                         }
                     };
-                    var e$$0 = {
-                        x: 0,
-                        y: 0,
-                        f: 0,
-                        c: 0
+                    var d$$0 = {
+                        x : 0,
+                        y : 0,
+                        j : 0,
+                        g : 0
                     };
-                    return {
-                        root: new b$$1(a$$0.X, a$$0.Y, a$$0.fa - a$$0.X, a$$0.ga - a$$0.Y, 0),
-                        i: function (a) {
-                            this.root.i(a);
+                    return{
+                        root : new c$$1(a$$0.ca, a$$0.da, a$$0.ma - a$$0.ca, a$$0.na - a$$0.da, 0),
+                        m : function(a) {
+                            this.root.m(a);
                         },
-                        t: function (a, b) {
-                            this.root.t(a, b);
+                        A : function(a, c) {
+                            this.root.A(a, c);
                         },
-                        ia: function (a, b, c, d, f) {
-                            e$$0.x = a;
-                            e$$0.y = b;
-                            e$$0.f = c;
-                            e$$0.c = d;
-                            this.root.t(e$$0, f);
+                        pa : function(a, c, b, e, f) {
+                            d$$0.x = a;
+                            d$$0.y = c;
+                            d$$0.j = b;
+                            d$$0.g = e;
+                            this.root.A(d$$0, f);
                         },
-                        B: function (a) {
-                            return this.root.B(a);
+                        H : function(a) {
+                            return this.root.H(a);
                         },
-                        clear: function () {
+                        clear : function() {
                             this.root.clear();
                         }
                     };
                 }
             };
-            g.onload = Wa;
+            var Za = function() {
+                var a = new aa(0, 0, 0, 32, "#ED1C24", "");
+                var c = document.createElement("canvas");
+                c.width = 32;
+                c.height = 32;
+                var b = c.getContext("2d");
+                return function() {
+                    if (0 < m.length) {
+                        a.color = m[0].color;
+                        a.B(m[0].name);
+                    }
+                    b.clearRect(0, 0, 32, 32);
+                    b.save();
+                    b.translate(16, 16);
+                    b.scale(0.4, 0.4);
+                    a.w(b);
+                    b.restore();
+                    var d = document.getElementById("favicon");
+                    var f = d.cloneNode(true);
+                    f.setAttribute("href", c.toDataURL("image/png"));
+                    d.parentNode.replaceChild(f, d);
+                };
+            }();
+            console.log("running kb1")
+            //kb();
+            //f(function() {
+            //    Za();
+            //});
+            console.log("running kb2")
+
+            f(function() {
+                if (d.localStorage.loginCache) {
+                    eb(d.localStorage.loginCache);
+                }
+                if (d.localStorage.fbPictureCache) {
+                    f(".agario-profile-picture").attr("src", d.localStorage.fbPictureCache);
+                }
+            });
+            console.log("running kb3")
+
+            d.fbAsyncInit = function() {
+                function a$$0() {
+                    d.FB.login(function(a) {
+                        Ia(a);
+                    }, {
+                        scope : "public_profile, email"
+                    });
+                }
+                d.FB.init({
+                    appId : "677505792353827",
+                    cookie : true,
+                    xfbml : true,
+                    status : true,
+                    version : "v2.2"
+                });
+                d.FB.Event.subscribe("auth.statusChange", function(c) {
+                    if ("connected" == c.status) {
+                        Ia(c);
+                    } else {
+                        a$$0();
+                    }
+                });
+                d.facebookLogin = a$$0;
+            };
+            console.log("running kb4")
+
+            var Ab = function() {
+                function a$$0(a, c, b, d, e) {
+                    var f = c.getContext("2d");
+                    var g = c.width;
+                    c = c.height;
+                    a.color = e;
+                    a.B(b);
+                    a.size = d;
+                    f.save();
+                    f.translate(g / 2, c / 2);
+                    a.w(f);
+                    f.restore();
+                }
+                var c$$0 = new aa(0, 0, 0, 32, "#5bc0de", "");
+                c$$0.id = -1;
+                var b$$0 = new aa(0, 0, 0, 32, "#5bc0de", "");
+                b$$0.id = -1;
+                var d$$0 = document.createElement("canvas");
+                d$$0.getContext("2d");
+                d$$0.width = d$$0.height = 70;
+                a$$0(b$$0, d$$0, "", 26, "#ebc0de");
+                return function() {
+                    f(".cell-spinner").filter(":visible").each(function() {
+                        var b = f(this);
+                        var g = Date.now();
+                        var h = this.width;
+                        var k = this.height;
+                        var m = this.getContext("2d");
+                        m.clearRect(0, 0, h, k);
+                        m.save();
+                        m.translate(h / 2, k / 2);
+                        var q = 0;
+                        for (;10 > q;++q) {
+                            m.drawImage(d$$0, (0.1 * g + 80 * q) % (h + 140) - h / 2 - 70 - 35, k / 2 * Math.sin((0.001 * g + q) % Math.PI * 2) - 35, 70, 70);
+                        }
+                        m.restore();
+                        if (b = b.attr("data-itr")) {
+                            b = X(b);
+                        }
+                        a$$0(c$$0, this, b || "", +f(this).attr("data-size"), "#5bc0de");
+                    });
+                };
+            };
+            console.log("running kb5")
+
+            d.createParty = function() {
+                ia(":party");
+                J = function(a) {
+                    f(".partyToken").val(a);
+                    f("#helloContainer").attr("data-party-state", "1");
+                };
+                N();
+            };
+            console.log("running kb6")
+
+            d.joinParty = function(a) {
+                f("#helloContainer").attr("data-party-state", "4");
+                f.ajax(Ja + "//m.agar.io/getToken", {
+                    error : function() {
+                        f("#helloContainer").attr("data-party-state", "6");
+                    },
+                    success : function(c) {
+                        c = c.split("\n");
+                        f(".partyToken").val(a);
+                        f("#helloContainer").attr("data-party-state", "5");
+                        ia(":party");
+                        Aa("ws://" + c[0], a);
+                    },
+                    dataType : "text",
+                    method : "POST",
+                    cache : false,
+                    crossDomain : true,
+                    data : a
+                });
+            };
+            d.cancelParty = function() {
+                f("#helloContainer").attr("data-party-state", "0");
+                ia("");
+                N();
+            };
+            console.log("running kb7")
+
+            //f(function() {
+            //    f(kb);
+            //});
+            d.onload = kb;
         }
     }
-})(unsafeWindow, unsafeWindow.jQuery)
-
+/*new*/})(unsafeWindow, unsafeWindow.jQuery);
 
 // ====================================== Stats Screen ===========================================================
 
@@ -3692,7 +3933,7 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '   <li><B>Z</B> - Zoom in/zoom out</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
-           //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
+        //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
     '</div>' +
     '</div>');
 
@@ -4125,7 +4366,7 @@ unsafeWindow.OnCellEaten = function(predator, prey) {
 unsafeWindow.OnLeaderboard = function(position) {
     stats.top_slot = Math.min(stats.top_slot, position);
 };
-
+console.log("motherfucker");
 unsafeWindow.OnDraw = function(context) {
     display_stats && stat_canvas && context.drawImage(stat_canvas, 10, 10);
 };
@@ -4358,77 +4599,74 @@ jQuery(document)
 uiOnLoadTweaks();
 
 var col1 = $("#col1");
-    AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
-    AppendCheckboxP(col1, 'option4', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
-    AppendCheckboxP(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
-    AppendCheckboxP(col1, 'option7', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
-    AppendCheckboxP(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gridLines, function(val){window.cobbler.gridLines = val;});
-    col1.append("<h3>Stats</h3>");
-    AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
-    AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
+AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
+AppendCheckboxP(col1, 'option4', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
+AppendCheckboxP(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
+AppendCheckboxP(col1, 'option7', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
+AppendCheckboxP(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gridLines, function(val){window.cobbler.gridLines = val;});
+col1.append("<h3>Stats</h3>");
+AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
+AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
 var col2 = $("#col2");
-    AppendCheckboxP(col2, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
-    AppendCheckboxP(col2, 'litebrite-checkbox', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
-    col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
-        '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
-        '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugLow" autocomplete="off" value=1>Low</label>' +
-        '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugHigh" autocomplete="off" value=2>High</label>' +
-        '</div>');
-    $('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
-    $('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
-    col2.append('<h3>Grazer</h3>');
-    AppendCheckboxP(col2, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
-    AppendCheckboxP(col2, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
-    col2.append('<h4>Hybrid Grazer</h4>' +
-        '<div id="hybrid-group" class="input-group"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
-        '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +'></div>' +
-        '<p>Starts with old grazer and at specified mass switches to new grazer</p>');
-        $('#hybrid-checkbox').change(function(){
-            if(!!this.checked){
-                $('#hybrid-textbox').removeAttr("disabled");
-            } else {
-                $('#hybrid-textbox').attr({disabled:"disabled"})
-            }
-            cobbler.grazerHybridSwitch = !!this.checked;
-        });
-    if(cobbler.grazerHybridSwitch){$('#hybrid-checkbox').prop('checked', true);}else{ $('#hybrid-textbox').attr({disabled:"disabled"})}
-        $('#hybrid-textbox').on('input propertychange paste', function() {
-            var newval = parseInt(this.value);
-            if(!_.isNaN(newval)) {
-                $("#hybrid-group").removeClass('has-error');
-                cobbler.grazerHybridSwitchMass = newval;
-            }
-            else{
-                $("#hybrid-group").addClass('has-error');
-            }
-        });
+AppendCheckboxP(col2, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
+AppendCheckboxP(col2, 'litebrite-checkbox', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
+col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
+    '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
+    '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugLow" autocomplete="off" value=1>Low</label>' +
+    '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugHigh" autocomplete="off" value=2>High</label>' +
+    '</div>');
+$('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
+$('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
+col2.append('<h3>Grazer</h3>');
+AppendCheckboxP(col2, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
+AppendCheckboxP(col2, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
+col2.append('<h4>Hybrid Grazer</h4>' +
+    '<div id="hybrid-group" class="input-group"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
+    '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +'></div>' +
+    '<p>Starts with old grazer and at specified mass switches to new grazer</p>');
+$('#hybrid-checkbox').change(function(){
+    if(!!this.checked){
+        $('#hybrid-textbox').removeAttr("disabled");
+    } else {
+        $('#hybrid-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.grazerHybridSwitch = !!this.checked;
+});
+if(cobbler.grazerHybridSwitch){$('#hybrid-checkbox').prop('checked', true);}else{ $('#hybrid-textbox').attr({disabled:"disabled"})}
+$('#hybrid-textbox').on('input propertychange paste', function() {
+    var newval = parseInt(this.value);
+    if(!_.isNaN(newval)) {
+        $("#hybrid-group").removeClass('has-error');
+        cobbler.grazerHybridSwitchMass = newval;
+    }
+    else{
+        $("#hybrid-group").addClass('has-error');
+    }
+});
 
 var col3 = $("#col3");
-    col3.append("<h3>Music/Sound</h3>");
-    col3.append('<p>Sound Effects<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></p>');
-    col3.append('<p>Music<input type="range" id="bgm" value=' + window.cobbler.bgmVol + ' step=".1" min="0" max="1" oninput="volBGM(this.value);"></p>');
-    col3.append('<h3>Skins Support</h3>');
-    AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function(val){window.cobbler.amConnectSkins = val;});
-    AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function(val){window.cobbler.amExtendedSkins = val;});
-    AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function(val){window.cobbler.imgurSkins = val;});
-    //AppendCheckboxP(col3, 'bitdo-checkbox', ' Bit.do `skins', window.cobbler.bitdoSkins, function(val){window.cobbler.bitdoSkins = val;});
-    $("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
-        "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"});
-    $("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
-        "title": "Leaves blob centers empty except for skins."});
+col3.append("<h3>Music/Sound</h3>");
+col3.append('<p>Sound Effects<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></p>');
+col3.append('<p>Music<input type="range" id="bgm" value=' + window.cobbler.bgmVol + ' step=".1" min="0" max="1" oninput="volBGM(this.value);"></p>');
+col3.append('<h3>Skins Support</h3>');
+AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function(val){window.cobbler.amConnectSkins = val;});
+AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function(val){window.cobbler.amExtendedSkins = val;});
+AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function(val){window.cobbler.imgurSkins = val;});
+//AppendCheckboxP(col3, 'bitdo-checkbox', ' Bit.do `skins', window.cobbler.bitdoSkins, function(val){window.cobbler.bitdoSkins = val;});
+$("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
+    "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"});
+$("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
+    "title": "Leaves blob centers empty except for skins."});
 
 // Ugly ass hack to fix effects of official code loading before mod
-    $("#canvas").remove();
-    $("body").prepend('<canvas id="canvas" width="800" height="600"></canvas>');
+$("#canvas").remove();
+$("body").prepend('<canvas id="canvas" width="800" height="600"></canvas>');
 // enable tooltops
-    setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
+//setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
 
 
 
 
 //================================  Skins from skins.AgarioMods.com  ===================================================
 
-    var agariomodsSkins = ("0chan;18-25;1up;360nati0n;8ball;UmguwJ0;aa9skillz;ace;adamzonetopmarks;advertisingmz;agariomods.com;al sahim;alaska;albania;alchestbreach;alexelcapo;algeria;am3nlc;amoodiesqueezie;amway921wot;amyleethirty3;anarchy;android;angrybirdsnest;angryjoeshow;animebromii;anonymous;antvenom;aperture;apple;arcadego;assassinscreed;atari;athenewins;authenticgames;avatar;aviatorgaming;awesome;awwmuffin;aypierre;baka;balenaproductions;bandaid;bane;baseball;bashurverse;basketball;bateson87;batman;battlefield;bdoubleo100;beats;bebopvox;belarus;belgium;bender;benderchat;bereghostgames;bert;bestcodcomedy;bielarus;bitcoin;bjacau1;bjacau2;black widow;blackiegonth;blitzwinger;blobfish;bluexephos;bluh;blunty3000;bobross;bobsaget;bodil30;bodil40;bohemianeagle;boo;boogie2988;borg;bowserbikejustdance;bp;breakfast;breizh;brksedu;buckballs;burgundy;butters;buzzbean11;bystaxx;byzantium;calfreezy;callofduty;captainsparklez;casaldenerd;catalonia;catalunya;catman;cavemanfilms;celopand;chaboyyhd;chaika;chaosxsilencer;chaoticmonki;charlie615119;charmander;chechenya;checkpointplus;cheese;chickfila;chimneyswift11;chocolate;chrisandthemike;chrisarchieprods;chrome;chucknorris;chuggaaconroy;cicciogamer89;cinnamontoastken;cirno;cj;ckaikd0021;clanlec;clashofclansstrats;cling on;cobanermani456;coca cola;codqg;coisadenerd;cokacola;colombia;colombiaa;commanderkrieger;communitygame;concrafter;consolesejogosbrasil;controless ;converse;cookie;coolifegame;coookie;cornella;cornellà;coruja;craftbattleduty;creeper;creepydoll;criken2;criousgamers;cristian4games;csfb;cuba;cubex55;cyberman65;cypriengaming;cyprus;czech;czechia;czechrepublic;d7297ut;d7oomy999;dagelijkshaadee;daithidenogla;darduinmymenlon;darksideofmoon;darksydephil;darkzerotv;dashiegames;day9tv;deadloxmc;deadpool;deal with it;deathly hallows;deathstar;debitorlp;deigamer;demon;derp;desu;dhole;diabl0x9;dickbutt;dilleron;dilleronplay;direwolf20;dissidiuswastaken;dnb;dnermc;doge;doggie;dolan;domo;domokun;donald;dong;donut;doraemon;dotacinema;douglby;dpjsc08;dreamcast;drift0r;drunken;dspgaming;dusdavidgames;dykgaming;ea;easports;easportsfootball;eatmydiction1;eavision;ebin;eeoneguy;egg;egoraptor;eguri89games;egypt;eksi;electrokitty;electronicartsde;elementanimation;elezwarface;eligorko;elrubiusomg;enzoknol;eowjdfudshrghk;epicface;ethoslab;exetrizegamer;expand;eye;facebook;fantabobgames;fast forward;fastforward;favijtv;fazeclan;fbi;fer0m0nas;fernanfloo;fgteev;fidel;fiji;finn;fir4sgamer;firefox;fishies;flash;florida;fnatic;fnaticc;foe;folagor03;forcesc2strategy;forocoches;frankieonpcin1080p;freeman;freemason;friesland;frigiel;frogout;fuckfacebook;fullhdvideos4me;funkyblackcat;gaben;gabenn;gagatunfeed;gamebombru;gamefails;gamegrumps;gamehelper;gameloft;gamenewsofficial;gameplayrj;gamerspawn;games;gameshqmedia;gamespot;gamestarde;gametrailers;gametube;gamexplain;garenavietnam;garfield;gassymexican;gaston;geilkind;generikb;germanletsfail;getinmybelly;getinthebox;ghostrobo;giancarloparimango11;gimper;gimperr;github;giygas;gizzy14gazza;gnomechild;gocalibergaming;godsoncoc;gogomantv;gokoutv;goldglovetv;gommehd;gona89;gonzo;gonzossm;grammar nazi;grayhat;grima;gronkh;grumpy;gtamissions;gtaseriesvideos;guccinoheya;guilhermegamer;guilhermeoss;gurren lagann;h2odelirious;haatfilms;hagrid;halflife;halflife3;halo;handicapped;hap;hassanalhajry;hatty;hawaii;hawkeye;hdluh;hdstarcraft;heartrockerchannel;hebrew;heisenburg;helix;helldogmadness;hikakingames;hikeplays;hipsterwhale;hispachan;hitler;homestuck;honeycomb;hosokawa;hue;huskymudkipz;huskystarcraft;hydro;iballisticsquid;iceland;ie;igameplay1337;ignentertainment;ihascupquake;illuminati;illuminatiii;ilvostrocarodexter;imaqtpie;imgur;immortalhdfilms;imperial japan;imperialists;imperialjapan;imvuinc;insanegaz;insidegaming;insidersnetwork;instagram;instalok;inthelittlewood;ipodmail;iron man;isaac;isamuxpompa;isis;isreal;itchyfeetleech;itsjerryandharry;itsonbtv;iulitm;ivysaur;izuniy;jackfrags;jacksepticeye;jahovaswitniss;jahrein;jaidefinichon;james bond;jamesnintendonerd;jamonymow;java;jellyyt;jeromeasf;jew;jewnose;jibanyan;jimmies;jjayjoker;joeygraceffagames;johnsju;jontronshow;josemicod5;joueurdugrenier;juegagerman;jumpinthepack;jupiter;kalmar union;kame;kappa;karamba728;kenny;keralis;kiloomobile;kingdomoffrance;kingjoffrey;kinnpatuhikaru;kirby;kitty;kjragaming;klingon;knekrogamer;knights templar;knightstemplar;knowyourmeme;kootra;kripparrian;ksiolajidebt;ksiolajidebthd;kuplinovplay;kurdistan;kwebbelkop;kyle;kyokushin4;kyrsp33dy;ladle;laggerfeed;lazuritnyignom;ldshadowlady;le snake;lenny;letsplay;letsplayshik;letstaddl;level5ch;levelcapgaming;lgbt;liberland;libertyy;liechtenstien;lifesimmer;linux;lisbug;littlelizardgaming;llessur;loadingreadyrun;loki;lolchampseries;lonniedos;love;lpmitkev;luigi;luke4316;m3rkmus1c;macedonia;machinimarealm;machinimarespawn;magdalenamariamonika;mahalovideogames;malena010102;malta;mario;mario11168;markipliergame;mars;maryland;masterball;mastercheif;mateiformiga;matroix;matthdgamer;matthewpatrick13;mattshea;maxmoefoegames;mcdonalds;meatboy;meatwad;meatwagon22;megamilk;messyourself;mickey;mike tyson;mike;miles923;minecraftblow;minecraftfinest;minecraftuniverse;miniladdd;miniminter;minnesotaburns;minnie;mkiceandfire;mlg;mm7games;mmohut;mmoxreview;mod3rnst3pny;moldova;morealia;mortalkombat;mr burns;mr.bean;mr.popo;mrchesterccj;mrdalekjd;mredxwx;mrlev12;mrlololoshka;mrvertez;mrwoofless;multirawen;munchingorange;n64;naga;namcobandaigameseu;nasa;natusvinceretv;nauru;nazi;nbgi;needforspeed;nepenthez;nextgentactics;nextgenwalkthroughs;ngtzombies;nick fury;nick;nickelodeon;niichts;nintendo;nintendocaprisun;nintendowiimovies;nipple;nislt;nobodyepic;node;noobfromua;northbrabant;northernlion;norunine;nosmoking;notch;nsa;obama;obey;officialclashofclans;officialnerdcubed;oficialmundocanibal;olafvids;omfgcata;onlyvgvids;opticnade;osu;ouch;outsidexbox;p3rvduxa;packattack04082;palau;paluten;pandaexpress;paulsoaresjr;pauseunpause;pazudoraya;pdkfilms;peanutbuttergamer;pedo;pedobear;peinto1008;peka;penguin;penguinz0;pepe;pepsi;perpetuumworld;pewdiepie;pi;pietsmittie;pig;piggy;pika;pimpnite;pinkfloyd;pinkstylist;pirate;piratebay;pizza;pizzaa;plagasrz;plantsvszombies;playclashofclans;playcomedyclub;playscopetrailers;playstation;playstation3gaminghd;pockysweets;poketlwewt;pooh;poop;popularmmos;potato;prestonplayz;protatomonster;prowrestlingshibatar;pt;pur3pamaj;quantum leap;question;rageface;rajmangaminghd;retard smile;rewind;rewinside;rezendeevil;reziplaygamesagain;rfm767;riffer333;robbaz;rockalone2k;rockbandprincess1;rockstar;rockstargames;rojov13;rolfharris;roomba;roosterteeth;roviomobile;rspproductionz;rss;rusgametactics;ryukyu;s.h.e.i.l.d;sah4rshow;samoa;sara12031986;sarazarlp;satan;saudi arabia;scream;screwattack;seal;seananners;serbia;serbiangamesbl;sethbling;sharingan;shell;shine;shofu;shrek;shufflelp;shurikworld;shuuya007;sinistar;siphano13;sir;skillgaming;skinspotlights;skkf;skull;skydoesminecraft;skylandersgame;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;smikesmike05;smoothmcgroove;smoove7182954;smoshgames;snafu;snapchat;snoop dogg;soccer;soliare;solomid;somalia;sp4zie;space ace;space;sparklesproduction;sparkofphoenix;spawn;speedyw03;speirstheamazinghd;spiderman;spongegar;spore;spqr;spy;squareenix;squirtle;ssohpkc;sssniperwolf;ssundee;stalinjr;stampylonghead;star wars rebel;starbucks;starchild;starrynight;staxxcraft;stitch;stupid;summit1g;sunface;superevgexa;superman;superskarmory;swiftor;swimmingbird941;syria;t3ddygames;tackle4826;taco;taltigolt;tasselfoot;tazercraft;tbnrfrags;tctngaming;teamfortress;teamgarrymoviethai;teammojang;terrorgamesbionic;tetraninja;tgn;the8bittheater;thealvaro845;theatlanticcraft;thebajancanadian;thebraindit;thecraftanos;thedanirep;thedeluxe4;thediamondminecart;theescapistmagazine;thefantasio974;thegaminglemon;thegrefg;thejoves;thejwittz;themasterov;themaxmurai;themediacows;themrsark;thepolishpenguinpl;theradbrad;therelaxingend;therpgminx;therunawayguys;thesims;theskylanderboy;thesw1tcher;thesyndicateproject;theuselessmouth;thewillyrex;thnxcya;thor;tintin;tmartn;tmartn2;tobygames;tomo0723sw;tonga;topbestappsforkids;totalhalibut;touchgameplay;transformer;transformers;trickshotting;triforce;trollarchoffice;trollface;trumpsc;tubbymcfatfuck;turkey;tv;tvddotty;tvongamenet;twitch;twitter;twosyncfifa;typicalgamer;uberdanger;uberhaxornova;ubisoft;uguu;ukip;ungespielt;uppercase;uruguay;utorrent;vanossgaming;vatican;venomextreme;venturiantale;videogamedunkey;videogames;vietnam;vikkstar123;vikkstar123hd;vintagebeef;virus;vladnext3;voat;voyager;vsauce3;w1ldc4t43;wakawaka;wales;walrus;wazowski;wewlad;white  light;whiteboy7thst;whoyourenemy;wiiriketopray;willyrex;windows;wingsofredemption;wit my woes;woodysgamertag;worldgamingshows;worldoftanks;worldofwarcraft;wowcrendor;wqlfy;wroetoshaw;wwf;wykop;xalexby11;xbox;xboxviewtv;xbulletgtx;xcalizorz;xcvii007r1;xjawz;xmandzio;xpertthief;xrpmx13;xsk;yamimash;yarikpawgames;ycm;yfrosta;yinyang;ylilauta;ylilautaa;yoba;yobaa;yobaaa;yogscast2;yogscastlalna;yogscastsips;yogscastsjin;yoteslaya;youalwayswin;yourheroes;yourmom;youtube;zackscottgames;zangado;zazinombies;zeecrazyatheist;zeon;zerkaahd;zerkaaplays;zexyzek;zimbabwe;zng;zoella;zoidberg;zombey;zoomingames").split(";");
-
-
-
+var agariomodsSkins = ("0chan;18-25;1up;360nati0n;8ball;UmguwJ0;aa9skillz;ace;adamzonetopmarks;advertisingmz;agariomods.com;al sahim;alaska;albania;alchestbreach;alexelcapo;algeria;am3nlc;amoodiesqueezie;amway921wot;amyleethirty3;anarchy;android;angrybirdsnest;angryjoeshow;animebromii;anonymous;antvenom;aperture;apple;arcadego;assassinscreed;atari;athenewins;authenticgames;avatar;aviatorgaming;awesome;awwmuffin;aypierre;baka;balenaproductions;bandaid;bane;baseball;bashurverse;basketball;bateson87;batman;battlefield;bdoubleo100;beats;bebopvox;belarus;belgium;bender;benderchat;bereghostgames;bert;bestcodcomedy;bielarus;bitcoin;bjacau1;bjacau2;black widow;blackiegonth;blitzwinger;blobfish;bluexephos;bluh;blunty3000;bobross;bobsaget;bodil30;bodil40;bohemianeagle;boo;boogie2988;borg;bowserbikejustdance;bp;breakfast;breizh;brksedu;buckballs;burgundy;butters;buzzbean11;bystaxx;byzantium;calfreezy;callofduty;captainsparklez;casaldenerd;catalonia;catalunya;catman;cavemanfilms;celopand;chaboyyhd;chaika;chaosxsilencer;chaoticmonki;charlie615119;charmander;chechenya;checkpointplus;cheese;chickfila;chimneyswift11;chocolate;chrisandthemike;chrisarchieprods;chrome;chucknorris;chuggaaconroy;cicciogamer89;cinnamontoastken;cirno;cj;ckaikd0021;clanlec;clashofclansstrats;cling on;cobanermani456;coca cola;codqg;coisadenerd;cokacola;colombia;colombiaa;commanderkrieger;communitygame;concrafter;consolesejogosbrasil;controless ;converse;cookie;coolifegame;coookie;cornella;cornellà;coruja;craftbattleduty;creeper;creepydoll;criken2;criousgamers;cristian4games;csfb;cuba;cubex55;cyberman65;cypriengaming;cyprus;czech;czechia;czechrepublic;d7297ut;d7oomy999;dagelijkshaadee;daithidenogla;darduinmymenlon;darksideofmoon;darksydephil;darkzerotv;dashiegames;day9tv;deadloxmc;deadpool;deal with it;deathly hallows;deathstar;debitorlp;deigamer;demon;derp;desu;dhole;diabl0x9;dickbutt;dilleron;dilleronplay;direwolf20;dissidiuswastaken;dnb;dnermc;doge;doggie;dolan;domo;domokun;donald;dong;donut;doraemon;dotacinema;douglby;dpjsc08;dreamcast;drift0r;drunken;dspgaming;dusdavidgames;dykgaming;ea;easports;easportsfootball;eatmydiction1;eavision;ebin;eeoneguy;egg;egoraptor;eguri89games;egypt;eksi;electrokitty;electronicartsde;elementanimation;elezwarface;eligorko;elrubiusomg;enzoknol;eowjdfudshrghk;epicface;ethoslab;exetrizegamer;expand;eye;facebook;fantabobgames;fast forward;fastforward;favijtv;fazeclan;fbi;fer0m0nas;fernanfloo;fgteev;fidel;fiji;finn;fir4sgamer;firefox;fishies;flash;florida;fnatic;fnaticc;foe;folagor03;forcesc2strategy;forocoches;frankieonpcin1080p;freeman;freemason;friesland;frigiel;frogout;fuckfacebook;fullhdvideos4me;funkyblackcat;gaben;gabenn;gagatunfeed;gamebombru;gamefails;gamegrumps;gamehelper;gameloft;gamenewsofficial;gameplayrj;gamerspawn;games;gameshqmedia;gamespot;gamestarde;gametrailers;gametube;gamexplain;garenavietnam;garfield;gassymexican;gaston;geilkind;generikb;germanletsfail;getinmybelly;getinthebox;ghostrobo;giancarloparimango11;gimper;gimperr;github;giygas;gizzy14gazza;gnomechild;gocalibergaming;godsoncoc;gogomantv;gokoutv;goldglovetv;gommehd;gona89;gonzo;gonzossm;grammar nazi;grayhat;grima;gronkh;grumpy;gtamissions;gtaseriesvideos;guccinoheya;guilhermegamer;guilhermeoss;gurren lagann;h2odelirious;haatfilms;hagrid;halflife;halflife3;halo;handicapped;hap;hassanalhajry;hatty;hawaii;hawkeye;hdluh;hdstarcraft;heartrockerchannel;hebrew;heisenburg;helix;helldogmadness;hikakingames;hikeplays;hipsterwhale;hispachan;hitler;homestuck;honeycomb;hosokawa;hue;huskymudkipz;huskystarcraft;hydro;iballisticsquid;iceland;ie;igameplay1337;ignentertainment;ihascupquake;illuminati;illuminatiii;ilvostrocarodexter;imaqtpie;imgur;immortalhdfilms;imperial japan;imperialists;imperialjapan;imvuinc;insanegaz;insidegaming;insidersnetwork;instagram;instalok;inthelittlewood;ipodmail;iron man;isaac;isamuxpompa;isis;isreal;itchyfeetleech;itsjerryandharry;itsonbtv;iulitm;ivysaur;izuniy;jackfrags;jacksepticeye;jahovaswitniss;jahrein;jaidefinichon;james bond;jamesnintendonerd;jamonymow;java;jellyyt;jeromeasf;jew;jewnose;jibanyan;jimmies;jjayjoker;joeygraceffagames;johnsju;jontronshow;josemicod5;joueurdugrenier;juegagerman;jumpinthepack;jupiter;kalmar union;kame;kappa;karamba728;kenny;keralis;kiloomobile;kingdomoffrance;kingjoffrey;kinnpatuhikaru;kirby;kitty;kjragaming;klingon;knekrogamer;knights templar;knightstemplar;knowyourmeme;kootra;kripparrian;ksiolajidebt;ksiolajidebthd;kuplinovplay;kurdistan;kwebbelkop;kyle;kyokushin4;kyrsp33dy;ladle;laggerfeed;lazuritnyignom;ldshadowlady;le snake;lenny;letsplay;letsplayshik;letstaddl;level5ch;levelcapgaming;lgbt;liberland;libertyy;liechtenstien;lifesimmer;linux;lisbug;littlelizardgaming;llessur;loadingreadyrun;loki;lolchampseries;lonniedos;love;lpmitkev;luigi;luke4316;m3rkmus1c;macedonia;machinimarealm;machinimarespawn;magdalenamariamonika;mahalovideogames;malena010102;malta;mario;mario11168;markipliergame;mars;maryland;masterball;mastercheif;mateiformiga;matroix;matthdgamer;matthewpatrick13;mattshea;maxmoefoegames;mcdonalds;meatboy;meatwad;meatwagon22;megamilk;messyourself;mickey;mike tyson;mike;miles923;minecraftblow;minecraftfinest;minecraftuniverse;miniladdd;miniminter;minnesotaburns;minnie;mkiceandfire;mlg;mm7games;mmohut;mmoxreview;mod3rnst3pny;moldova;morealia;mortalkombat;mr burns;mr.bean;mr.popo;mrchesterccj;mrdalekjd;mredxwx;mrlev12;mrlololoshka;mrvertez;mrwoofless;multirawen;munchingorange;n64;naga;namcobandaigameseu;nasa;natusvinceretv;nauru;nazi;nbgi;needforspeed;nepenthez;nextgentactics;nextgenwalkthroughs;ngtzombies;nick fury;nick;nickelodeon;niichts;nintendo;nintendocaprisun;nintendowiimovies;nipple;nislt;nobodyepic;node;noobfromua;northbrabant;northernlion;norunine;nosmoking;notch;nsa;obama;obey;officialclashofclans;officialnerdcubed;oficialmundocanibal;olafvids;omfgcata;onlyvgvids;opticnade;osu;ouch;outsidexbox;p3rvduxa;packattack04082;palau;paluten;pandaexpress;paulsoaresjr;pauseunpause;pazudoraya;pdkfilms;peanutbuttergamer;pedo;pedobear;peinto1008;peka;penguin;penguinz0;pepe;pepsi;perpetuumworld;pewdiepie;pi;pietsmittie;pig;piggy;pika;pimpnite;pinkfloyd;pinkstylist;pirate;piratebay;pizza;pizzaa;plagasrz;plantsvszombies;playclashofclans;playcomedyclub;playscopetrailers;playstation;playstation3gaminghd;pockysweets;poketlwewt;pooh;poop;popularmmos;potato;prestonplayz;protatomonster;prowrestlingshibatar;pt;pur3pamaj;quantum leap;question;rageface;rajmangaminghd;retard smile;rewind;rewinside;rezendeevil;reziplaygamesagain;rfm767;riffer333;robbaz;rockalone2k;rockbandprincess1;rockstar;rockstargames;rojov13;rolfharris;roomba;roosterteeth;roviomobile;rspproductionz;rss;rusgametactics;ryukyu;s.h.e.i.l.d;sah4rshow;samoa;sara12031986;sarazarlp;satan;saudi arabia;scream;screwattack;seal;seananners;serbia;serbiangamesbl;sethbling;sharingan;shell;shine;shofu;shrek;shufflelp;shurikworld;shuuya007;sinistar;siphano13;sir;skillgaming;skinspotlights;skkf;skull;skydoesminecraft;skylandersgame;skype;skyrim;slack;slovakia;slovenia;slowpoke;smash;smikesmike05;smoothmcgroove;smoove7182954;smoshgames;snafu;snapchat;snoop dogg;soccer;soliare;solomid;somalia;sp4zie;space ace;space;sparklesproduction;sparkofphoenix;spawn;speedyw03;speirstheamazinghd;spiderman;spongegar;spore;spqr;spy;squareenix;squirtle;ssohpkc;sssniperwolf;ssundee;stalinjr;stampylonghead;star wars rebel;starbucks;starchild;starrynight;staxxcraft;stitch;stupid;summit1g;sunface;superevgexa;superman;superskarmory;swiftor;swimmingbird941;syria;t3ddygames;tackle4826;taco;taltigolt;tasselfoot;tazercraft;tbnrfrags;tctngaming;teamfortress;teamgarrymoviethai;teammojang;terrorgamesbionic;tetraninja;tgn;the8bittheater;thealvaro845;theatlanticcraft;thebajancanadian;thebraindit;thecraftanos;thedanirep;thedeluxe4;thediamondminecart;theescapistmagazine;thefantasio974;thegaminglemon;thegrefg;thejoves;thejwittz;themasterov;themaxmurai;themediacows;themrsark;thepolishpenguinpl;theradbrad;therelaxingend;therpgminx;therunawayguys;thesims;theskylanderboy;thesw1tcher;thesyndicateproject;theuselessmouth;thewillyrex;thnxcya;thor;tintin;tmartn;tmartn2;tobygames;tomo0723sw;tonga;topbestappsforkids;totalhalibut;touchgameplay;transformer;transformers;trickshotting;triforce;trollarchoffice;trollface;trumpsc;tubbymcfatfuck;turkey;tv;tvddotty;tvongamenet;twitch;twitter;twosyncfifa;typicalgamer;uberdanger;uberhaxornova;ubisoft;uguu;ukip;ungespielt;uppercase;uruguay;utorrent;vanossgaming;vatican;venomextreme;venturiantale;videogamedunkey;videogames;vietnam;vikkstar123;vikkstar123hd;vintagebeef;virus;vladnext3;voat;voyager;vsauce3;w1ldc4t43;wakawaka;wales;walrus;wazowski;wewlad;white  light;whiteboy7thst;whoyourenemy;wiiriketopray;willyrex;windows;wingsofredemption;wit my woes;woodysgamertag;worldgamingshows;worldoftanks;worldofwarcraft;wowcrendor;wqlfy;wroetoshaw;wwf;wykop;xalexby11;xbox;xboxviewtv;xbulletgtx;xcalizorz;xcvii007r1;xjawz;xmandzio;xpertthief;xrpmx13;xsk;yamimash;yarikpawgames;ycm;yfrosta;yinyang;ylilauta;ylilautaa;yoba;yobaa;yobaaa;yogscast2;yogscastlalna;yogscastsips;yogscastsjin;yoteslaya;youalwayswin;yourheroes;yourmom;youtube;zackscottgames;zangado;zazinombies;zeecrazyatheist;zeon;zerkaahd;zerkaaplays;zexyzek;zimbabwe;zng;zoella;zoidberg;zombey;zoomingames").split(";");
