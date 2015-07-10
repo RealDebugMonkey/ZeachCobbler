@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.25.1
+// @version      0.25.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -67,10 +67,10 @@ var _version_ = GM_info.script.version;
 
 var debugMonkeyReleaseMessage = "<h3>Love ya'll (with less bugs)</h3><p>" +
     "There are still bound to be more bugs... but this should work in the general case.<br>If you use Ghostery " +
-    "you might need to <a 'href=http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a>. " +
+    "you might need to <a href='http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a>. " +
     "With the stock Agario client I had to allow Facebook and Doubleclick (for some reason) before 'Play' and XP gaining worked. " +
     "<h4>Privacy note</h4>As a general Public Service Announcement: If you decide to use the Facebook login option, " +
-    "Facebook connect will require your account info, but <b>your email is optional</b> andyou can decline " +
+    "Facebook connect will require your account info, but <b>your email is optional</b> and you can decline " +
     "to share your email by clicking the 'choose what info to provide' link and then unselecting email as in these screen shots:" +
     "<a href='http://i.imgur.com/1K4xGKH.png'><img width='45%' height='45%' src='http://i.imgur.com/1K4xGKH.png'></a>"+
     "<a href='http://i.imgur.com/1EvFpO3.png'><img width='25%' height='25%' src='http://i.imgur.com/1EvFpO3.png'></a>" +
@@ -205,9 +205,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         get mouseX2()       {return fa;},       // g_moveX
         get mouseY2()       {return ga;},       // g_moveY
         get mapLeft()       {return oa;},       // g_minX
-        get mapBottom()     {return pa;},       // g_minY
+        get mapTop()        {return pa;},       // g_minY
         get mapRight()      {return qa;},       // g_maxX
-        get mapTop()        {return ra;},       // g_maxY
+        get mapBottom()     {return ra;},       // g_maxY
         get isShowSkins()   {return fb;},       // g_showSkins
         // "g_showNames": "va",
         get isNightMode()   {return sa;},       // ??
@@ -2456,7 +2456,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         /*new*//*mikey*/OnDraw(zeach.ctx);
         Q = Math.max(Q, wb());
-        /*new*//*remap*/ var extras = " " + getScoreBoardExtrasString(J);
+        /*new*//*remap*/ var extras = " " + getScoreBoardExtrasString(Q);
         if (0 != Q) {
             if (null == ta) {
                 ta = new ua(24, "#FFFFFF");
@@ -3170,7 +3170,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 ZW : "EU-London"
             };
             /*new*/// Hack to kill an established websocket
-            /*new*//*remap*/d.connect2 = d.connect;d.connect = zeach.connect;setTimeout(function(){try {d.connect2("Killing_original_websocket","");}catch(err){}} ,5000);
+            /*new*//*remap*/d.connect2 = d.connect;d.connect = zeach.connect;setTimeout(function(){try {d.connect2("Killing_original_websocket","");}catch(err){}} ,1500);
 
             var J = null;
             d.connect = Aa;
@@ -3891,7 +3891,7 @@ jQuery('body').append('<div id="chart-container" style="display:none; position:a
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
 
 jQuery("#helloContainer").css('left','230px');
-jQuery(".agario-profile-panel").css({'left': '100%', "top":"-120px", "position":"absolute"});
+//jQuery(".agario-profile-panel").css({'left': '100%', "top":"-120px", "position":"absolute"});
 jQuery(".agario-promo").hide();
 jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; height:673px; background-color: #FFFFFF; ' +
     'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
@@ -3907,10 +3907,20 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '<div id="page0" role="tabpanel" class="tab-pane active">'+ debugMonkeyReleaseMessage +'</div>' +
 
     '<div id="page1" role="tabpanel" class="tab-pane">' +
-    '<div id="statArea" style="vertical-align:top; width:350px; display:inline-block;"></div>' +
-    '<div id="pieArea" style="vertical-align: top; width:350px; height:250px; display:inline-block; vertical-align:top"></div>' +
-    '<div id="gainArea" style="width:350px; display:inline-block; vertical-align:top"></div><div id="lossArea" style="width:350px; display:inline-block;"></div>' +
-    '<div id="chartArea" style="width:700px; height:200px; display:inline-block; vertical-align:top"></div></div>' +
+        '<div class="row">' +
+            '<div id="statArea" class="col-sm-6" style="vertical-align:top;"></div>' +
+            '<div id="pieArea" class="col-sm-5" style="vertical-align: top; height:250px;"></div>' +
+             '<div id="padder" class="col-sm-1"></div>' +
+        '</div>' +
+        '<div class="row">' +
+            '<div id="gainArea" class="col-sm-6" style="vertical-align:top;"></div>' +
+            '<div id="lossArea" class="col-sm-6" style="vertical-align:top;"></div>' +
+        '</div>' +
+        '<div class="row">' +
+            '<div id="chartArea" class="col-sm-8" ></div>' +
+            '<div id="XPArea" class="col-sm-4"></div>' +
+        '</div>' +
+    '</div>' +
     '<div id="page2" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
     '<div id="col1" class="col-sm-4" style="padding-left: 5%; padding-right: 1%;"><h3>Options</h3></div>' +
@@ -3935,7 +3945,7 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
         //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
     '</div>' +
     '</div>');
-
+jQuery(".agario-profile-panel").appendTo("#XPArea");
 
 function LS_getValue(aKey, aDefault) {
     var val = localStorage.getItem(__STORAGE_PREFIX + aKey);
@@ -4243,9 +4253,8 @@ function DrawStats(game_over) {
         jQuery('#lossArea').append('<ul><li style="font-size: 16px; ">Nobody has eaten you</li></ul>');
 
     if (stats.time_of_death !== null){
-        jQuery('#chartArea').width(700).height(240);
-        jQuery('#chartArea')[0].width = 700;
-        jQuery('#chartArea')[0].height= 240;
+        jQuery('#chartArea').height(200);
+        jQuery('#chartArea')[0].height=200;
         stat_chart = CreateChart('chartArea', my_color, true);
         var scale = Math.max.apply(Math,chart_data.map(function(o){return o.y;}))/16;
         var scaled_data = num_cells_data.map(function(a){return {x:a.x, y:a.y*scale};});
@@ -4253,9 +4262,8 @@ function DrawStats(game_over) {
         stat_chart.render();
     }
     else {
-        jQuery('#chartArea').width(700).height(240);
-        jQuery('#chartArea')[0].width = 700;
-        jQuery('#chartArea')[0].height= 240;
+        jQuery('#chartArea').height(200);
+        jQuery('#chartArea')[0].height= 200;
     }
 }
 
@@ -4365,7 +4373,6 @@ unsafeWindow.OnCellEaten = function(predator, prey) {
 unsafeWindow.OnLeaderboard = function(position) {
     stats.top_slot = Math.min(stats.top_slot, position);
 };
-console.log("motherfucker");
 unsafeWindow.OnDraw = function(context) {
     display_stats && stat_canvas && context.drawImage(stat_canvas, 10, 10);
 };
@@ -4560,7 +4567,6 @@ unsafeWindow.closeServerbrowser = function () {
     jQuery("#serverBrowser")
         .fadeOut();
 };
-console.log(openServerbrowser)
 var locations = new Array("Amsterdam", "Frankfurt", "London", "Quebec", "Paris", "Atlanta", "Chicago", "Dallas", "Los Angeles", "Miami", "New Jersey", "Seattle", "Silicon Valley", "Sydney", "Tokyo");
 locations.sort();
 locations[0] = [locations[1], locations[1] = locations[0]][0];
