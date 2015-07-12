@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.25.3
+// @version      0.25.4
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -66,7 +66,7 @@
 var _version_ = GM_info.script.version;
 
 var debugMonkeyReleaseMessage = "<h3>Love ya'll (with less bugs)</h3><p>" +
-    "There are still bound to be more bugs... ";
+    "There are still bound to be more bugs...</p>";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -92,7 +92,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     // Configurable options we want to persist
 
     var rightClickFires = GM_getValue('rightClickFires', false);
-    var minimapScale = GM_getValue('minimapScale', 48);
+    var minimapScale = GM_getValue('minimapScale', 256);
     var displayDebugInfo = 1;   // Has multiple levels
 
     // Game State & Info
@@ -179,6 +179,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         _visualizeGrazing : GM_getValue('visualizeGrazing', true),
         set visualizeGrazing(val)       {this._visualizeGrazing = val; GM_setValue('visualizeGrazing', val);},
         get visualizeGrazing()          {return this._visualizeGrazing;},
+        _msDelayBetweenShots : GM_getValue('visualizeGrazing', 145),
+        set msDelayBetweenShots(val)       {this._msDelayBetweenShots = val; GM_setValue('msDelayBetweenShots', val);},
+        get msDelayBetweenShots()          {return this._msDelayBetweenShots;},
         "displayMiniMap" : true,
         "clickToShoot" : false,
     };
@@ -288,6 +291,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             ws.send(z0);
         }
     }
+    y = render(21);
+    y.setUint8(0, 16);
+    y.setFloat64(1, moveX, true);
+    y.setFloat64(9, moveY, true);
+    y.setUint32(17, 0, true);
 
     function getMass(x){
         return x*x/100
@@ -1993,7 +2001,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             console.log("socket open");
             a = L(5);
             a.setUint8(0, 254);
-            a.setUint32(1, 4, true);
+            a.setUint32(1, 5, true);
             M(a);
             a = L(5);
             a.setUint8(0, 255);
@@ -2189,9 +2197,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             ++l;
             var d;
-            p = a.getInt16(c, true);
+            p = a.getInt32(c, true);
             c += 2;
-            h = a.getInt16(c, true);
+            h = a.getInt32(c, true);
             c += 2;
             d = a.getInt16(c, true);
             c += 2;
