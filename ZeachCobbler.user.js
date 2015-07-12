@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.25.2
+// @version      0.25.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -66,16 +66,7 @@
 var _version_ = GM_info.script.version;
 
 var debugMonkeyReleaseMessage = "<h3>Love ya'll (with less bugs)</h3><p>" +
-    "There are still bound to be more bugs... but this should work in the general case.<br>If you use Ghostery " +
-    "you might need to <a href='http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a>. " +
-    "With the stock Agario client I had to allow Facebook and Doubleclick (for some reason) before 'Play' and XP gaining worked. " +
-    "<h4>Privacy note</h4>As a general Public Service Announcement: If you decide to use the Facebook login option, " +
-    "Facebook connect will require your account info, but <b>your email is optional</b> and you can decline " +
-    "to share your email by clicking the 'choose what info to provide' link and then unselecting email as in these screen shots:" +
-    "<a href='http://i.imgur.com/1K4xGKH.png'><img width='45%' height='45%' src='http://i.imgur.com/1K4xGKH.png'></a>"+
-    "<a href='http://i.imgur.com/1EvFpO3.png'><img width='25%' height='25%' src='http://i.imgur.com/1EvFpO3.png'></a>" +
-    "<br><br>debugmonkey</p><br>PS. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
-    "I can. Only one of me and I gotta keep food on the table before working on this hobby.";
+    "There are still bound to be more bugs... ";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
