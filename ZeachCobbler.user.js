@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.25.4
+// @version      0.25.5
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -291,12 +291,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             ws.send(z0);
         }
     }
-    y = render(21);
-    y.setUint8(0, 16);
-    y.setFloat64(1, moveX, true);
-    y.setFloat64(9, moveY, true);
-    y.setUint32(17, 0, true);
-
+    
     function getMass(x){
         return x*x/100
     }
