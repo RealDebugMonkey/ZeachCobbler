@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.25.8
+// @version      0.25.9
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -1867,7 +1867,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         V = false;
         Ra();
         if (d.googletag) {
-            if (d.googletag.pubads) {
+            if (d.googletag.pubads && d.googletag.pubads().clear) {
                 d.googletag.pubads().clear(d.aa);
             }
         }
@@ -1926,7 +1926,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 ja = true;
             }, 6E4 * Ta);
             if (d.googletag) {
-                if (d.googletag.pubads) {
+                if (d.googletag.pubads && d.googletag.pubads().clear) {
                     d.googletag.pubads().refresh(d.aa);
                 }
             }
@@ -2005,7 +2005,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             console.log("socket open");
             a = L(5);
             a.setUint8(0, 254);
-            a.setUint32(1, 4, true);
+            a.setUint32(1, 5, true);
             M(a);
             a = L(5);
             a.setUint8(0, 255);
@@ -2201,10 +2201,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             ++l;
             var d;
-            p = a.getInt16(c, true);
-            c += 2;
-            h = a.getInt16(c, true);
-            c += 2;
+            p = a.getInt32(c, true);
+            c += 4;
+            h = a.getInt32(c, true);
+            c += 4;
             d = a.getInt16(c, true);
             c += 2;
             var g = a.getUint8(c++);
