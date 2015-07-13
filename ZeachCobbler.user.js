@@ -1625,6 +1625,26 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         //else if('8'.charCodeAt(0) === d.keyCode && isPlayerAlive()) { // SELF DESTRUCT
         //    zeach.fireFunction(20);
         //}
+        else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
+            var id = d.keyCode - '1'.charCodeAt(0);
+            var arr = [];
+            var amount = 0;
+            for(var i = 0; i < zeach.myPoints.length; i++) {
+                var point = zeach.myPoints[i];
+                var mass = getMass(point.nSize);
+                for (var j = 0; j < arr.length; j++) {
+                    var current = arr[j];
+                    var cMass = getMass(current.nSize);
+                    if (cMass < mass) {
+                        arr[j] = point;
+                        mass = cMass;
+                        point = current;
+                    }
+                }
+                arr.push(point);
+            }
+            selectedBlobID = arr[id].id;
+        }
     }
 
     function onAfterUpdatePacket() {
