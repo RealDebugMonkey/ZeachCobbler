@@ -1,6 +1,37 @@
 For more recent changes see script header.
 
 ```
+//              0.21.0 - Changed way script is loaded.
+//              0.20.0 - Version leap due to updated grazer
+//                     - Fixes for new client behavior
+//              0.15.0 - Fixed Minimap (Zeach broke it)
+//                     - Fixed Borders(Zeach broke them too)
+//                     - Lite Brite mode added (and some UI issues fixed)
+//                   2 - Lite Brite, SFX, and BGM settings all saved
+//                   3 - hack for overflowing chart & updated hardcoded agariomods skins
+//              0.14.0 - Major refactoring to help with future updates
+//                     - Support for AgarioMods connect skins
+//              0.13.0 - Fixed break caused by recent code changes
+//                   1 - bug fixes
+//                     - removed direct connect UI (for now)
+//                   2 - grazer speed improved by removing debug logging & adding artifical 200ms throttle
+//                   3 - fixed virus poppers
+//                     - fixed ttr calculation
+//                   6 - fixed flickering grazer lines
+//              0.12.0 - Added music and sound effects.
+//                     - Sound effects from agariomods.com
+//                     - Music from http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
+//                     - Fix: scroll wheel function
+//                     - Fixed blank cell not displaying % diff issue
+//                     - Fixed key bindings triggering while changing name
+//                   4 - bug fix courtesy of Gjum
+//                   5 - updated handshake for v548
+//              0.11.0 - Fix for v538 fix
+//                   1 - grazer fixed, time alive and ttr fixed
+//                   2 - more fixes for stuff I missed
+//                   3 - onDestroy bugfix
+//                   4 - update with mikeyk730's latest changes
+//                   5 - skins should now display in experimental
 //              0.10.0 - Mikey's stats screen added
 //                     - Minimap added - idea and code from Gamerlio's bot
 //                     - Our own blobs are no longer considered threats in grazing mode
