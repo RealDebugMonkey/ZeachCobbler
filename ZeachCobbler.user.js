@@ -194,6 +194,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         _miniMapScaleValue : GM_getValue('miniMapScaleValue', 64),
         set miniMapScaleValue(val)       {this._miniMapScaleValue = val; GM_setValue('miniMapScaleValue', val);},
         get miniMapScaleValue()          {return this._miniMapScale ? this._miniMapScaleValue : 64;},
+        _enableBlobLock : GM_getValue('enableBlobLock', true),
+        set enableBlobLock(val)       {this._enableBlobLock = val; GM_setValue('enableBlobLock', val);},
+        get enableBlobLock()          {return this._enableBlobLock;},
+        
         "displayMiniMap" : true,
         "clickToShoot" : false,
     };
@@ -234,6 +238,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         get mapWidth()      {return  ~~(Math.abs(zeach.mapLeft) + zeach.mapRight)},
         get mapHeight()  {return  ~~(Math.abs(zeach.mapTop) + zeach.mapBottom)},
     };
+    
 
     function restoreCanvasElementObj(objPrototype){
         var canvasElementPropMap = {
@@ -290,7 +295,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return !!zeach.myPoints.length;
     }
 
-    function sendMouseUpdate(ws, mouseX2,mouseY2) {
+    function sendMouseUpdate(ws, mouseX2, mouseY2) {
         lastMouseCoords = {x: mouseX2, y: mouseY2};
 
         if (ws != null && ws.readyState == ws.OPEN) {
@@ -1667,6 +1672,44 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cell.nameCache.setValue(" ");
         }
     }
+    
+    
+    function sendMultyMouseUpdate(send_normal) {
+        for (var i = 0; i < zeach.myPoints.length; i++) {
+            var blob = zeach.myPoints[i];
+            var x = zeach.mouseX2;
+            var y = zeach.mouseY2;
+            if (blob.locked) {
+                blob.last_locked--;
+                if (blob.last_locked < 0) {
+                    continue;
+                }
+                x = blob.locked_x;
+                y = blob.locked_y;
+            } else if (!send_normal) {
+                continue;
+            }
+            var z0 = new ArrayBuffer(21);
+            var z1 = new DataView(z0);
+            z1.setUint8(0, 16);
+            z1.setFloat64(1, x, true);
+            z1.setFloat64(9, y, true);
+            z1.setUint32(17, 0, true);
+            zeach.webSocket.send(z0);
+        }
+    }
+    
+    function lockCurrentBlob() {
+        var blob = getSelectedBlob(); 
+        if (blob.locked) {
+            blob.locked = false;
+        } else {
+            blob.locked = true;
+            blob.last_locked = 10;
+            blob.locked_x = zeach.mouseX2; 
+            blob.locked_y = zeach.mouseY2;
+        }
+    }
 
     //window.setLiteBrite = function (val){
     //    isLiteBrite = val;
@@ -1685,6 +1728,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         g = F.getContext("2d");
         /*new*//*remap*/ F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         F.onmousedown = function(a) {
+            /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob();}
             /*new*/if(isPlayerAlive() && rightClickFires){fireAtVirusNearestToCursor();}return;
             if (Ma) {
                 var c = a.clientX - (5 + q / 5 / 2);
@@ -2302,23 +2346,28 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function U() {
         /*new*/if(isGrazing){ doGrazing(); return; }
         /*new*/if(suspendMouseUpdates){return;}
+        /*new*/var send_normal = false;;
         var a;
         if (S()) {
             a = ca - q / 2;
             var c = da - s$$0 / 2;
             if (!(64 > a * a + c * c)) {
                 if (!(0.01 > Math.abs($a - fa) && 0.01 > Math.abs(ab - ga))) {
-                    $a = fa;
-                    ab = ga;
-                    a = L(21);
-                    a.setUint8(0, 16);
-                    a.setFloat64(1, fa, true);
-                    a.setFloat64(9, ga, true);
-                    a.setUint32(17, 0, true);
-                    M(a);
+                    send_normal = true;
+                    /*new*/if(!cobbler.enableBlobLock) {
+                        $a = fa;
+                        ab = ga;
+                        a = L(21);
+                        a.setUint8(0, 16);
+                        a.setFloat64(1, fa, true);
+                        a.setFloat64(9, ga, true);
+                        a.setUint32(17, 0, true);
+                        M(a);
+                    /*new*/}
                 }
             }
         }
+        /*new*/ if(cobbler.enableBlobLock) {sendMultyMouseUpdate(send_normal);}
     }
     function Ya() {
         if (S() && null != I) {
@@ -3218,6 +3267,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 b : 0
             };
             aa.prototype = {
+                /*new_angal*/ locked : false,
                 id : 0,
                 a : null,
                 name : null,
