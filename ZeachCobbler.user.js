@@ -4,12 +4,13 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.25.9
+// @version      0.26.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.25.0 - Facebook Update
+// @changes     0.26.0 - Configurable Minimap scale & Agariomod private server location update
+//              0.25.0 - Facebook Update
 //                   1 - Tons of bug fixes
 //              0.24.0 - Switched back to hacky method of loading & added hotkey reference
 //                   1 - Guest play fix
@@ -65,17 +66,13 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Love ya'll (with less bugs)</h3><p>" +
-    "There are still bound to be more bugs... but this should work in the general case.<br>If you use Ghostery " +
-    "you might need to <a href='http://i.imgur.com/MGCkhE2.png' alt='recommended settings'>allow some stuff in Ghostery blocks</a>. " +
-    "With the stock Agario client I had to allow Facebook and Doubleclick (for some reason) before 'Play' and XP gaining worked. " +
-    "<h4>Privacy note</h4>As a general Public Service Announcement: If you decide to use the Facebook login option, " +
-    "Facebook connect will require your account info, but <b>your email is optional</b> and you can decline " +
-    "to share your email by clicking the 'choose what info to provide' link and then unselecting email as in these screen shots:" +
-    "<a href='http://i.imgur.com/1K4xGKH.png'><img width='45%' height='45%' src='http://i.imgur.com/1K4xGKH.png'></a>"+
-    "<a href='http://i.imgur.com/1EvFpO3.png'><img width='25%' height='25%' src='http://i.imgur.com/1EvFpO3.png'></a>" +
+var debugMonkeyReleaseMessage = "<h3>Minimap Change</h3><p>" +
+    "Minimap scale is now configurable. Most places 1/64 scale is fine but I have encountered maps that are absolutely HUGE. " +
+    "On those maps the minimap can be too big and overlay the game canvas, making mouse input fail. On these huge maps I " +
+    "would recommend a map scale of 1/256. " +
     "<br><br>debugmonkey</p><br>PS. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
-    "I can. Only one of me and I gotta keep food on the table before working on this hobby.";
+    "I can. Only one of me and I gotta keep food on the table before working on this hobby.<br>" +
+    "<img src='http://i.imgur.com/6qvN7wes.jpg'>";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -101,7 +98,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     // Configurable options we want to persist
 
     var rightClickFires = GM_getValue('rightClickFires', false);
-    var minimapScale = GM_getValue('minimapScale', 128);
     var displayDebugInfo = 1;   // Has multiple levels
 
     // Game State & Info
@@ -191,6 +187,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         _msDelayBetweenShots : GM_getValue('visualizeGrazing', 145),
         set msDelayBetweenShots(val)       {this._msDelayBetweenShots = val; GM_setValue('msDelayBetweenShots', val);},
         get msDelayBetweenShots()          {return this._msDelayBetweenShots;},
+        _miniMapScale : GM_getValue('miniMapScale', false),
+        set miniMapScale(val)       {this._miniMapScale = val; GM_setValue('miniMapScale', val);},
+        get miniMapScale()          {return this._miniMapScale;},
+        minimapScaleCurrentValue : 1,
+        _miniMapScaleValue : GM_getValue('miniMapScaleValue', 64),
+        set miniMapScaleValue(val)       {this._miniMapScaleValue = val; GM_setValue('miniMapScaleValue', val);},
+        get miniMapScaleValue()          {return this._miniMapScale ? this._miniMapScaleValue : 64;},
         "displayMiniMap" : true,
         "clickToShoot" : false,
     };
@@ -1069,23 +1072,25 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     // Probably isn't necessary to throttle it ... but what the hell.
     var rescaleMinimap = _.throttle(function(){
+        var minimapScale = cobbler.miniMapScaleValue;
         var scaledWidth = ~~(zeach.mapWidth/minimapScale);
         var scaledHeight = ~~(zeach.mapHeight/minimapScale);
         var minimap = jQuery("#mini-map");
 
-        if(minimap.width() != scaledWidth || minimap.height() != scaledHeight){
+        if(minimap.width() != scaledWidth || minimap.height() != scaledHeight || cobbler.minimapScaleCurrentValue != minimapScale){
             // rescale the div
             minimap.width(scaledWidth);
             minimap.height(scaledHeight);
             // rescale the canvas element
             minimap[0].width = scaledWidth;
             minimap[0].height = scaledHeight;
+            cobbler.minimapScaleCurrentValue = minimapScale;
         }
-    }, 10*1000);
+    }, 5*1000);
 
     function drawMiniMap() {
         rescaleMinimap();
-
+        var minimapScale = cobbler.miniMapScaleValue;
         miniMapCtx.clearRect(0, 0, ~~(zeach.mapWidth/minimapScale), ~~(zeach.mapHeight/minimapScale));
 
         _.forEach(_.values(getOtherBlobs()), function(blob){
@@ -3926,8 +3931,8 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '</div>' +
     '<div id="page2" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
-    '<div id="col1" class="col-sm-4" style="padding-left: 5%; padding-right: 1%;"><h3>Options</h3></div>' +
-    '<div id="col2" class="col-sm-4" style="padding-left: 5%; padding-right: 2%;"><h3>Modes</h3></div>' +
+    '<div id="col1" class="col-sm-4" style="padding-left: 5%; padding-right: 1%;"></div>' +
+    '<div id="col2" class="col-sm-4" style="padding-left: 5%; padding-right: 2%;"></div>' +
     '<div id="col3" class="col-sm-4" style="padding-left: 0%; padding-right: 5%;"></div>' +
     '</div>' +
     '</div>'+
@@ -4570,7 +4575,7 @@ unsafeWindow.closeServerbrowser = function () {
     jQuery("#serverBrowser")
         .fadeOut();
 };
-var locations = new Array("Amsterdam", "Frankfurt", "London", "Quebec", "Paris", "Atlanta", "Chicago", "Dallas", "Los Angeles", "Miami", "New Jersey", "Seattle", "Silicon Valley", "Sydney", "Tokyo");
+var locations=new Array("Chicago Beta","Dallas Beta","Frankfurt Beta","London Beta","Los Angeles Beta","Miami Beta","New Jersey Beta","Paris Beta","Seattle Beta","Silicon Valley Beta","Sydney Beta","Amsterdam","Amsterdam Beta","Atlanta Beta","Frankfurt Alpha","Frankfurt","London","Quebec","Paris","Paris Gamma","Atlanta","Chicago","Dallas","Los Angeles","Miami","New Jersey","Seattle","Silicon Valley","Sydney","Tokyo");
 locations.sort();
 locations[0] = [locations[1], locations[1] = locations[0]][0];
 
@@ -4607,6 +4612,11 @@ jQuery(document)
 uiOnLoadTweaks();
 
 var col1 = $("#col1");
+col1.append("<h3>Modes</h3>");
+
+AppendCheckboxP(col1, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
+AppendCheckboxP(col1, 'litebrite-checkbox', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
+col1.append("<h3>Options</h3>");
 AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
 AppendCheckboxP(col1, 'option4', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
 AppendCheckboxP(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
@@ -4616,8 +4626,6 @@ col1.append("<h3>Stats</h3>");
 AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
 AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
 var col2 = $("#col2");
-AppendCheckboxP(col2, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
-AppendCheckboxP(col2, 'litebrite-checkbox', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
 col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugLow" autocomplete="off" value=1>Low</label>' +
@@ -4625,6 +4633,31 @@ col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-tog
     '</div>');
 $('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
 $('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
+
+
+col2.append('<h4>Minimap Scale</h4>' +
+    '<div id="minimap-group" class="input-group"><span class="input-group-addon"><input id="minimap-checkbox" type="checkbox"></span>' +
+    '<input id="minimap-textbox" type="text" class="form-control" value='+ cobbler.miniMapScaleValue +'></div>');
+$('#minimap-checkbox').change(function(){
+    if(!!this.checked){
+        $('#minimap-textbox').removeAttr("disabled");
+    } else {
+        $('#minimap-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.miniMapScale = !!this.checked;
+});
+if(cobbler.miniMapScale){$('#minimap-checkbox').prop('checked', true);}else{ $('#minimap-textbox').attr({disabled:"disabled"})}
+$('#minimap-textbox').on('input propertychange paste', function() {
+    var newval = parseInt(this.value);
+    if(!_.isNaN(newval) && newval > 1 && newval < 999) {
+        $("#minimap-group").removeClass('has-error');
+        cobbler.miniMapScaleValue = newval;
+    }
+    else{
+        $("#minimap-group").addClass('has-error');
+    }
+});
+
 col2.append('<h3>Grazer</h3>');
 AppendCheckboxP(col2, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
 AppendCheckboxP(col2, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
@@ -4651,6 +4684,7 @@ $('#hybrid-textbox').on('input propertychange paste', function() {
         $("#hybrid-group").addClass('has-error');
     }
 });
+
 
 var col3 = $("#col3");
 col3.append("<h3>Music/Sound</h3>");
