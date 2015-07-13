@@ -68,6 +68,8 @@ Zeach Cobbler also includes a bot we like to call the "grazer" which helps with 
 ## What's up with the name?
 It was chosen on a whim. And I like Peach Cobbler.
 
+(Much later I discovered that there was actually a person using 'Zeach Cobbler' as their online handle. My deepest apologies to that individual if the name collision causes them any grief.)
+
 # Contributers and Used code
 * Angal - For the original Server select UI (now unused)
 * Apostolique - debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
