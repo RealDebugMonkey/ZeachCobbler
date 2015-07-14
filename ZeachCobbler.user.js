@@ -4,12 +4,13 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.26.0
+// @version      0.27.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.26.0 - Configurable Minimap scale & Agariomod private server location update
+// @changes     0.27.0 - Click-to-lock added
+//              0.26.0 - Configurable Minimap scale & Agariomod private server location update
 //              0.25.0 - Facebook Update
 //                   1 - Tons of bug fixes
 //              0.24.0 - Switched back to hacky method of loading & added hotkey reference
@@ -66,7 +67,16 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Minimap Change</h3><p>" +
+var debugMonkeyReleaseMessage = "<h3>Multiblob Navigation?!</h3><p>" +
+    "Contributer 'angal' has submitted a potentially game-changing feature. You'll find a new click-to-lock feature in the " +
+    "extended option screen. When it is enabled you can click to tell the currently selected blob to go to the location " +
+    "clicked and just stop moving. All other cells will continue responding to your mouse as usual. Click again to unlock " +
+    "the currently selected blob. You can cycle between blobs by hitting tab or using buttons 1-7.<br><br>" +
+    "How does this help you? When you're in two pieces you can click on one side of a virus, then navigate the non-selected blob " +
+    "around the other way using your mouse, then click again to unlock the first blob.<br><br>This also makes it possible to restore the " +
+    "old 'q' functionality which old-timers will remember as the short-lived way to keep your cells from remerging. Of course, " +
+    "someone will need to actually write the code for that ...." +
+    "<h4>Minimap changes</h4>" +
     "Minimap scale is now configurable. Most places 1/64 scale is fine but I have encountered maps that are absolutely HUGE. " +
     "On those maps the minimap can be too big and overlay the game canvas, making mouse input fail. On these huge maps I " +
     "would recommend a map scale of 1/256. " +
@@ -98,7 +108,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     // Configurable options we want to persist
 
     var rightClickFires = GM_getValue('rightClickFires', false);
-    var displayDebugInfo = 1;   // Has multiple levels
 
     // Game State & Info
     var highScore = 0;
@@ -197,7 +206,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         _enableBlobLock : GM_getValue('enableBlobLock', true),
         set enableBlobLock(val)       {this._enableBlobLock = val; GM_setValue('enableBlobLock', val);},
         get enableBlobLock()          {return this._enableBlobLock;},
-        
+
         "displayMiniMap" : true,
         "clickToShoot" : false,
     };
@@ -238,7 +247,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         get mapWidth()      {return  ~~(Math.abs(zeach.mapLeft) + zeach.mapRight)},
         get mapHeight()  {return  ~~(Math.abs(zeach.mapTop) + zeach.mapBottom)},
     };
-    
+
 
     function restoreCanvasElementObj(objPrototype){
         var canvasElementPropMap = {
@@ -1563,12 +1572,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 jQuery("#mini-map").show();
             }
         }
-        //else if('D'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-        //    displayDebugInfo +=1;
-        //    if(displayDebugInfo >= 3){
-        //        displayDebugInfo = 0;
-        //    }
-        //}
         else if('E'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             fireAtVirusNearestToCursor();
         }
@@ -1692,8 +1695,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cell.nameCache.setValue(" ");
         }
     }
-    
-    
+
+
     function sendMultyMouseUpdate(send_normal) {
         for (var i = 0; i < zeach.myPoints.length; i++) {
             var blob = zeach.myPoints[i];
@@ -1718,15 +1721,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             zeach.webSocket.send(z0);
         }
     }
-    
+
     function lockCurrentBlob() {
-        var blob = getSelectedBlob(); 
+        var blob = getSelectedBlob();
         if (blob.locked) {
             blob.locked = false;
         } else {
             blob.locked = true;
             blob.last_locked = 10;
-            blob.locked_x = zeach.mouseX2; 
+            blob.locked_x = zeach.mouseX2;
             blob.locked_y = zeach.mouseY2;
         }
     }
@@ -2383,7 +2386,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         a.setFloat64(9, ga, true);
                         a.setUint32(17, 0, true);
                         M(a);
-                    /*new*/}
+                        /*new*/}
                 }
             }
         }
@@ -3534,7 +3537,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         /*new*//*remap*/var b = customSkins(this, zeach.defaultSkins, zeach.imgCache, zeach.isShowSkins, zeach.gameMode);
                         b = (d = b) ? -1 != Cb.indexOf(e) : false;
                         /*new*///if (!c) {
-                            a.stroke();
+                        a.stroke();
                         /*new*///}}
                         /*new*/if(!cobbler.isLiteBrite)
                             a.fill();
@@ -3830,8 +3833,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     var d = document.getElementById("favicon");
                     var f = d.cloneNode(true);
                     /*new*/try{
-                    f.setAttribute("href", c.toDataURL("image/png"));
-                    /*new*/}catch(err){}
+                        f.setAttribute("href", c.toDataURL("image/png"));
+                        /*new*/}catch(err){}
                     d.parentNode.replaceChild(f, d);
                 };
             }();
@@ -3914,7 +3917,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             b = X(b);
                         }
                         a$$0(c$$0, this, b || "", +f(this).attr("data-size"), "#5bc0de");
-/*new*/             });
+                        /*new*/             });
                 };
             };
 
@@ -3959,7 +3962,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             /*new*/d.onload = kb;
         }
     }
-/*new*/})(unsafeWindow, unsafeWindow.jQuery);
+    /*new*/})(unsafeWindow, unsafeWindow.jQuery);
 
 // ====================================== Stats Screen ===========================================================
 
@@ -3985,19 +3988,19 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '<div id="page0" role="tabpanel" class="tab-pane active">'+ debugMonkeyReleaseMessage +'</div>' +
 
     '<div id="page1" role="tabpanel" class="tab-pane">' +
-        '<div class="row">' +
-            '<div id="statArea" class="col-sm-6" style="vertical-align:top;"></div>' +
-            '<div id="pieArea" class="col-sm-5" style="vertical-align: top; height:250px;"></div>' +
-             '<div id="padder" class="col-sm-1"></div>' +
-        '</div>' +
-        '<div class="row">' +
-            '<div id="gainArea" class="col-sm-6" style="vertical-align:top;"></div>' +
-            '<div id="lossArea" class="col-sm-6" style="vertical-align:top;"></div>' +
-        '</div>' +
-        '<div class="row">' +
-            '<div id="chartArea" class="col-sm-8" ></div>' +
-            '<div id="XPArea" class="col-sm-4"></div>' +
-        '</div>' +
+    '<div class="row">' +
+    '<div id="statArea" class="col-sm-6" style="vertical-align:top;"></div>' +
+    '<div id="pieArea" class="col-sm-5" style="vertical-align: top; height:250px;"></div>' +
+    '<div id="padder" class="col-sm-1"></div>' +
+    '</div>' +
+    '<div class="row">' +
+    '<div id="gainArea" class="col-sm-6" style="vertical-align:top;"></div>' +
+    '<div id="lossArea" class="col-sm-6" style="vertical-align:top;"></div>' +
+    '</div>' +
+    '<div class="row">' +
+    '<div id="chartArea" class="col-sm-8" ></div>' +
+    '<div id="XPArea" class="col-sm-4"></div>' +
+    '</div>' +
     '</div>' +
     '<div id="page2" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
