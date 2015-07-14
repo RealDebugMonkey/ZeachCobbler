@@ -113,7 +113,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     // Game State & Info
     var highScore = 0;
     var timeSpawned = null;
-    var grazingTargetID;    // primarily used for target fixation
+    var grazzerTargetResetRequest = false;
     var nearestVirusID;
     var suspendMouseUpdates = false;
     var grazingTargetFixation = false;
@@ -287,16 +287,17 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return !!zeach.myPoints.length;
     }
 
-    function sendMouseUpdate(ws, mouseX2, mouseY2) {
+    function sendMouseUpdate(ws, mouseX2, mouseY2, blob) {
         lastMouseCoords = {x: mouseX2, y: mouseY2};
 
         if (ws != null && ws.readyState == ws.OPEN) {
+            var blobId = blob ? blob.id : 0;
             var z0 = new ArrayBuffer(21);
             var z1 = new DataView(z0);
             z1.setUint8(0, 16);
             z1.setFloat64(1, mouseX2, true);
             z1.setFloat64(9, mouseY2, true);
-            z1.setUint32(17, 0, true);
+            z1.setUint32(17, blobId, true);
             ws.send(z0);
         }
     }
@@ -446,9 +447,29 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         switch(isGrazing) {
             case 1: {
+                if (grazzerTargetResetRequest == 'all') {
+                    grazzerTargetResetRequest = false;
+                    
+                    for(var i = 0; i < zeach.myPoints.length; i++) {
+                        var point = zeach.myPoints[i];
+                        point.grazingTargetID = false;
+                    }
+                } else if (grazzerTargetResetRequest == 'current') {
+                    var pseudoBlob = getMouseCoordsAsPseudoBlob();
+        
+                    pseudoBlob.size = getSelectedBlob().size;
+                    //pseudoBlob.scoreboard = scoreboard;
+                    var target = findFoodToEat_old(pseudoBlob,zeach.allItems);
+                    if(-1 == target){
+                        isGrazing = false;
+                        return;
+                    }
+                    getSelectedBlob().grazingTargetID = target.id;
+                }
+                
                 if(null == throttledResetGrazingTargetId){
                     throttledResetGrazingTargetId = _.throttle(function (){
-                        grazingTargetID = null;
+                        grazzerTargetResetRequest = 'all'
                         //console.log(~~(Date.now()/1000));
                     }, 200);
                 }
@@ -456,32 +477,35 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 // with target fixation on, target remains until it's eaten by someone or
                 // otherwise disappears. With it off target is constantly recalculated
                 // at the expense of CPU
-                if(!grazingTargetFixation){
+                if(!grazingTargetFixation) {
                     throttledResetGrazingTargetId();
                 }
 
-                if(!zeach.allNodes.hasOwnProperty(grazingTargetID))
-                {
-                    var target = findFoodToEat_old(getSelectedBlob(), zeach.allItems);
-                    if(-1 == target){
-                        isGrazing = 2;
-                        return;
+                
+                for(var i = 0; i < zeach.myPoints.length; i++) {
+                    var point = zeach.myPoints[i];
+                    
+                    if(!zeach.allNodes.hasOwnProperty(point.grazingTargetID)) {
+                        var target = findFoodToEat_old(point, zeach.allItems);
+                        if(-1 == target){
+                            isGrazing = 2;
+                            return;
+                        }
+                        point.grazingTargetID = target.id;
+                    } else {
+                        target = zeach.allNodes[point.grazingTargetID];
                     }
-                    grazingTargetID = target.id;
-                }
-                else
-                {
-                    target = zeach.allNodes[grazingTargetID];
+                    sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
                 }
                 break;
             }
             case 2: {
                 target = findFoodToEat();
+                sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
                 break;
             }
         }
 
-        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
     }
 
     function dasMouseSpeedFunction(cx, cy, radius, nx, ny) {
@@ -825,20 +849,22 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var threats = getThreats(blobArray, getMass(cell.size));
         blobArray.forEach(function (element){
             var distance = lineDistance(cell, element);
-            element.isSafeTarget = null;
+            if (!element.isSafeTarget) {
+                element.isSafeTarget = {};
+            }
+            element.isSafeTarget[cell.id] = null;
             if( getMass(element.size) <= (getMass(cell.size) * 0.4) && !element.isVirus){
                 if(isSafeTarget(cell, element, threats)){
                     edibles.push({"distance":distance, "id":element.id});
-                    element.isSafeTarget = true;
-                }
-                else {
-                    element.isSafeTarget = false;
+                    element.isSafeTarget[cell.id] = true;
+                } else {
+                    element.isSafeTarget[cell.id] = false;
                 }
             }
         });
         edibles = edibles.sort(function(x,y){return x.distance<y.distance?-1:1;});
         edibles.forEach(function (element){
-            var density = calcFoodDensity(zeach.allNodes[element.id], blobArray)/(element.distance*2);
+            var density = calcFoodDensity(cell, zeach.allNodes[element.id], blobArray)/(element.distance*2);
             densityResults.push({"density":density, "id":element.id});
         });
         if(0 === densityResults.length){
@@ -893,7 +919,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return { id: -5, x: cell.x + direction.x * cell.size * 5, y: cell.y + direction.y * cell.size * 5 };
     }
 
-    function calcFoodDensity(cell2, blobArray2){
+    function calcFoodDensity(cell, cell2, blobArray2){
         var MaxDistance2 = 250;
         var pelletCount = 0;
         blobArray2.forEach(function (element2){
@@ -903,7 +929,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var cond2 = distance2 < MaxDistance2;
             var cond3 = !element2.isVirus;
             //console.log(cond1 + " " + distance2 + " " + cell2.isSafeTarget);
-            if( cond1 && cond2 && cond3 && cell2.isSafeTarget ){
+            if( cond1 && cond2 && cond3 && cell2.isSafeTarget[cell.id] ){
                 pelletCount +=1;
             }
         });
@@ -1242,21 +1268,29 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         var oldLineWidth = ctx.lineWidth;
         var oldColor = ctx.color;
-        zeach.allItems.forEach(function (element){
-            if(element.isSafeTarget === true)
-                drawLine(ctx,element, getSelectedBlob(), "white" );
-            else if (element.isSafeTarget === false)
-                drawLine(ctx,element, getSelectedBlob(), "red" );
-            else
-            {
-                //drawLine(ctx,element, getSelectedBlob(), "blue" );
+        
+        ctx.lineWidth = 10;
+        for(var i = 0; i < zeach.myPoints.length; i++) {
+            var point = zeach.myPoints[i];
+        
+            if(_.has(zeach.allNodes, point.grazingTargetID)){
+                drawLine(ctx, zeach.allNodes[point.grazingTargetID], point, "green");
             }
-
-        });
-
-        if(_.has(zeach.allNodes, grazingTargetID)){
-            ctx.lineWidth = 10;
-            drawLine(ctx, zeach.allNodes[grazingTargetID], getSelectedBlob(), "green");
+        }
+        
+        ctx.lineWidth = 2;
+        for(var i = 0; i < zeach.myPoints.length; i++) {
+            var point = zeach.myPoints[i];
+            zeach.allItems.forEach(function (element){
+                if (!element.isSafeTarget) {
+                } else if(element.isSafeTarget[point.id] === true) {
+                    drawLine(ctx, element, point, "white" );
+                } else if (element.isSafeTarget[point.id] === false) {
+                    drawLine(ctx, element, point, "red" );
+                } else {
+                    //drawLine(ctx,element, getSelectedBlob(), "blue" );
+                }
+            })
         }
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
@@ -1546,7 +1580,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             setAcid(cobbler.isAcid);
         }
         else if('C'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            grazingTargetID = null;
+            grazzerTargetResetRequest = "all";
             showVisualCues = !showVisualCues;
             if(!showVisualCues) {
                 zoomFactor = 10;
@@ -1565,7 +1599,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 isGrazing = 0;
                 return;
             }
-            grazingTargetID = null;
+            grazzerTargetResetRequest = "all";
             isGrazing = (2 == isGrazing) ? false : 2;
         }
         else if('H'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
@@ -1573,7 +1607,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 isGrazing = 0;
                 return;
             }
-            grazingTargetID = null;
+            grazzerTargetResetRequest = "all";
             isGrazing = (1 == isGrazing) ? false : 1;
         }
         else if('M'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
@@ -1588,19 +1622,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             fireAtVirusNearestToBlob(getSelectedBlob(),zeach.allItems);
         }
-        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing) && grazingTargetFixation)
-        {
+        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing)) {
             console.log("Retarget requested");
-            var pseudoBlob = getMouseCoordsAsPseudoBlob();
-
-            pseudoBlob.size = getSelectedBlob().size;
-            //pseudoBlob.scoreboard = scoreboard;
-            var target = findFoodToEat_old(pseudoBlob,zeach.allItems);
-            if(-1 == target){
-                isGrazing = false;
-                return;
-            }
-            grazingTargetID = target.id;
+            grazzerTargetResetRequest = "current";
         }
         else if('V'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             cobbler.visualizeGrazing = !cobbler.visualizeGrazing;
