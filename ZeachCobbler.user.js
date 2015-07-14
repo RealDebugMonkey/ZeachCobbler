@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.27.1
+// @version      0.27.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -12,6 +12,10 @@
 // @changes     0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
+//                   2 - Fixed virus shot counter, improved shots remaining calculation
+//                     - General code cleanup
+//                     - shots per ms field added
+//                     - options screen cleanup/reorg
 //              0.26.0 - Configurable Minimap scale & Agariomod private server location update
 //              0.25.0 - Facebook Update
 //                   1 - Tons of bug fixes
@@ -72,8 +76,8 @@ var _version_ = GM_info.script.version;
 var debugMonkeyReleaseMessage = "<h3>Multiblob Navigation?!</h3><p>" +
     "Contributer 'angal' has submitted a potentially game-changing feature. You'll find a new click-to-lock feature in the " +
     "extended option screen. When it is enabled you can click to tell the currently selected blob to go to the location " +
-    "clicked and just stop moving. All other blobs will continue responding to your mouse as usual. Press 'S' to unlock " +
-    "the currently selected blob (or click again if you don't have auto switch-on-click enabled). You can cycle between blobs by hitting tab or using buttons 1-7.<br><br>" +
+    "clicked. Once it reaches that location it will stop moving. All other blobs will continue responding to your mouse as usual. Press 'S' to unlock " +
+    "the currently selected blob (or just click again if you don't have auto switch-on-click enabled). You can cycle between blobs by hitting tab or using buttons 1-7.<br><br>" +
     "How does this help you? When you're in two pieces you can click on one side of a virus, then navigate the non-selected blob " +
     "around the other way using your mouse, then click again to unlock the first blob.<br><br>This also makes it possible to restore the " +
     "old 'q' functionality which old-timers will remember as the short-lived way to keep your cells from remerging. Of course, " +
@@ -84,7 +88,7 @@ var debugMonkeyReleaseMessage = "<h3>Multiblob Navigation?!</h3><p>" +
     "would recommend a map scale of 1/256. " +
     "<br><br>debugmonkey</p><br>PS. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
     "I can. Only one of me and I gotta keep food on the table before working on this hobby.<br>" +
-    "<img src='http://i.imgur.com/6qvN7wes.jpg'>";
+    "<img src='http://i.imgur.com/p4zv6vx.jpg'>";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -105,11 +109,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     var isGrazing = false;
     var serverIP = "";
     var showVisualCues = true;
-
-
-    // Configurable options we want to persist
-
-    var rightClickFires = GM_getValue('rightClickFires', false);
 
     // Game State & Info
     var highScore = 0;
@@ -141,80 +140,59 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         .get(0)
         .getContext("2d");
 
+    // cobbler is the object that holds all user options. Options that should never be persisted can be defined here.
+    // If an option setting should be remembered it can
     var cobbler = {
         set grazingMode(val)    {isGrazing = val;},
         get grazingMode()       {return isGrazing},
         _isAcid : false,
         set isAcid(val)         {this._isAcid = val; setAcid(val);},
         get isAcid()            {return this._isAcid},
-        _isLiteBrite :          GM_getValue('isLiteBrite', false),
-        set isLiteBrite(val)    {this._isLiteBrite = val; GM_setValue('isLiteBrite', val);},
-        get isLiteBrite()       { return this._isLiteBrite;},
-        _sfxVol :               GM_getValue('sfxVol', 0.5),
-        set sfxVol(val)         {this._sfxVol = val; GM_setValue('sfxVol', val);},
-        get sfxVol()            { return this._sfxVol;},
-        _bgmVol :               GM_getValue('bgmVol', 0.5),
-        set bgmVol(val)         {this._bgmVol = val; GM_setValue('bgmVol', val);},
-        get bgmVol()            { return this._bgmVol;},
-        _drawTail :             GM_getValue('drawTail', false),
-        set drawTail(val)       {this._drawTail = val; GM_setValue('drawTail', val);},
-        get drawTail()          {return this._drawTail;},
-        _splitGuide:            GM_getValue('splitGuide', true),
-        set splitGuide(val)     {this._splitGuide = val; GM_setValue('splitGuide', val);},
-        get splitGuide()        {return this._splitGuide;},
-        _rainbowPellets:        GM_getValue('rainbowPellets', true),
-        set rainbowPellets(val) {this._rainbowPellets = val; GM_setValue('rainbowPellets', val);},
-        get rainbowPellets()    {return this._rainbowPellets;},
-        _debugLevel:            GM_getValue('debugLevel', 1),
-        set debugLevel(val)     {this._debugLevel = val; GM_setValue('debugLevel', val);},
-        get debugLevel()        {return this._debugLevel;},
-        _imgurSkins:            GM_getValue('imgurSkins', true),
-        set imgurSkins(val)     {this._imgurSkins = val; GM_setValue('imgurSkins', val);},
-        get imgurSkins()        {return this._imgurSkins;},
-        _amExtendedSkins:           GM_getValue('amExtendedSkins', true),
-        set amExtendedSkins(val)    {this._amExtendedSkins = val; GM_setValue('amExtendedSkins', val);},
-        get amExtendedSkins()       {return this._amExtendedSkins;},
-        _amConnectSkins:            GM_getValue('amConnectSkins', true),
-        set amConnectSkins(val)     {this._amConnectSkins = val; GM_setValue('amConnectSkins', val);},
-        get amConnectSkins()        {return this._amConnectSkins;},
-        _namesUnderBlobs:           GM_getValue('namesUnderBlobs', false),
-        set namesUnderBlobs(val)    {this._namesUnderBlobs = val; GM_setValue('namesUnderBlobs', val);},
-        get namesUnderBlobs()       {return this._namesUnderBlobs;},
-        _grazerHybridSwitch:            GM_getValue('grazerHybridSwitch', false),
-        set grazerHybridSwitch(val)     {this._grazerHybridSwitch = val; GM_setValue('grazerHybridSwitch', val);},
-        get grazerHybridSwitch()        {return this._grazerHybridSwitch;},
-        _grazerHybridSwitchMass:        GM_getValue('grazerHybridSwitchMass', 300),
-        set grazerHybridSwitchMass(val) {this._grazerHybridSwitchMass = val; GM_setValue('grazerHybridSwitchMass', val);},
-        get grazerHybridSwitchMass()    {return this._grazerHybridSwitchMass;},
-        _gridLines:          GM_getValue('gridLines', true),
-        set gridLines(val)   {this._gridLines = val; GM_setValue('gridLines', val);},
-        get gridLines()      {return this._gridLines;},
-        _autoRespawn:        GM_getValue('autoRespawn', false),
-        set autoRespawn(val) {this._autoRespawn = val; GM_setValue('autoRespawn', val);},
-        get autoRespawn()    {return this._autoRespawn;},
-        _visualizeGrazing : GM_getValue('visualizeGrazing', true),
-        set visualizeGrazing(val)       {this._visualizeGrazing = val; GM_setValue('visualizeGrazing', val);},
-        get visualizeGrazing()          {return this._visualizeGrazing;},
-        _msDelayBetweenShots : GM_getValue('visualizeGrazing', 145),
-        set msDelayBetweenShots(val)       {this._msDelayBetweenShots = val; GM_setValue('msDelayBetweenShots', val);},
-        get msDelayBetweenShots()          {return this._msDelayBetweenShots;},
-        _miniMapScale : GM_getValue('miniMapScale', false),
-        set miniMapScale(val)       {this._miniMapScale = val; GM_setValue('miniMapScale', val);},
-        get miniMapScale()          {return this._miniMapScale;},
         minimapScaleCurrentValue : 1,
-        _miniMapScaleValue : GM_getValue('miniMapScaleValue', 64),
-        set miniMapScaleValue(val)       {this._miniMapScaleValue = val; GM_setValue('miniMapScaleValue', val);},
-        get miniMapScaleValue()          {return this._miniMapScale ? this._miniMapScaleValue : 64;},
-        _enableBlobLock : GM_getValue('enableBlobLock', true),
-        set enableBlobLock(val)       {this._enableBlobLock = val; GM_setValue('enableBlobLock', val);},
-        get enableBlobLock()          {return this._enableBlobLock;},
-        _nextOnBlobLock : GM_getValue('nextOnBlobLock', false),
-        set nextOnBlobLock(val)       {this._nextOnBlobLock = val; GM_setValue('nextOnBlobLock', val);},
-        get nextOnBlobLock()          {return this._nextOnBlobLock;},
-        
         "displayMiniMap" : true,
-        "clickToShoot" : false,
+
     };
+    // utility function to simplify creation of options whose state should be persisted to disk
+    function simpleSavedSettings(optionsObject){
+        _.forEach(optionsObject, function(defaultValue, settingName){
+            var backingVar = '_' + settingName;
+            cobbler[backingVar] = GM_getValue(settingName, defaultValue),
+            Object.defineProperty(cobbler, settingName, {
+                get: function()     { return this[backingVar];},
+                set: function(val)  { this[backingVar] = val; GM_setValue(settingName, val); }
+            });
+        });
+    }
+    // defines all options that should be persisted along with their default values.
+    function makeCobbler(){
+        var optionsAndDefaults = {
+            "isLiteBrite"       : true,
+            "sfxVol"            : 0.5,
+            "bgmVol"            : 0.5,
+            "drawTail"          : false,
+            "splitGuide"        : true,
+            "rainbowPellets"    : true,
+            "debugLevel"        : 1,
+            "imgurSkins"        : true,
+            "amExtendedSkins"   : true,
+            "amConnectSkins"    : true,
+            "namesUnderBlobs"   : false,
+            "grazerHybridSwitch": false,
+            "grazerHybridSwitchMass" : 300,
+            "gridLines"         : true,
+            "autoRespawn"       : false,
+            "visualizeGrazing"  : true,
+            "msDelayBetweenShots" : 100,
+            "miniMapScale"      : false,
+            "miniMapScaleValue" : 64,
+            "enableBlobLock"    : false,
+            'nextOnBlobLock'    : false,
+            'rightClickFires'   : false,
+        };
+        simpleSavedSettings(optionsAndDefaults);
+    }
+    makeCobbler();
+
     window.cobbler = cobbler;
 
     // ======================   Property & Var Name Restoration  =======================================================
@@ -335,7 +313,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function getVirusShotsNeededForSplit(cellSize){
-        return ~~((150-cellSize)/7);
+        return ~~((149-cellSize)/7);
     }
 
     function calcTTR(element){
@@ -345,7 +323,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function getBlobShotsAvailable(blob) {
-        return ~~(Math.max(0, (getMass(blob.nSize)-20)/15));
+        return ~~(Math.max(0, (getMass(blob.nSize)-(35-18))/18));
     }
 
     function distanceFromCellZero(blob) {
@@ -1071,7 +1049,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             debugStrings.push("M - suspend mouse: " + (suspendMouseUpdates ? "On" : "Off"));
             debugStrings.push("P - grazing target fixation :" + (grazingTargetFixation ? "On" : "Off"));
             if(grazingTargetFixation){ debugStrings.push("  (T) to retarget");}
-            debugStrings.push("O - right click: " + (rightClickFires ? "Fires @ virus" : "Default"))
+            debugStrings.push("O - right click: " + (cobbler.rightClickFires ? "Fires @ virus" : "Default"))
             debugStrings.push("Z - zoom: " + zoomFactor.toString());
             if (isPlayerAlive()) {
                 debugStrings.push("Location: " + Math.floor(getSelectedBlob().x) + ", " + Math.floor(getSelectedBlob().y));
@@ -1300,7 +1278,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     function fireAtVirusNearestToBlob(blob, blobArray) {
         console.log("fireAtVirusNearestToBlob");
-        var msDelayBetweenShots = 75;
+        var msDelayBetweenShots = cobbler.msDelayBetweenShots;
         nearestVirus = findNearestVirus(blob, blobArray);
 
         if(-1 == nearestVirus){
@@ -1361,19 +1339,21 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     };
 
 
+    // special skins are defined in this script by me and are never translucent
+    function isSpecialSkin(targetName){
+        return skinsSpecial.hasOwnProperty(targetName.toLowerCase());
+    }
+    // special skins are defined in this script by me and can be translucent
+    function isExtendedSkin(targetName){
+        return _.has(extendedSkins, targetName.toLowerCase());
+    }
+
     function isAgarioModsSkin(targetName){
         if(!cobbler.amExtendedSkins){
             return false;
         }
         return _.includes(agariomodsSkins, targetName)
     }
-    function isSpecialSkin(targetName){
-        return skinsSpecial.hasOwnProperty(targetName.toLowerCase());
-    }
-    function isExtendedSkin(targetName){
-        return _.has(extendedSkins, targetName.toLowerCase());
-    }
-
     function isImgurSkin(targetName){
         if(!cobbler.imgurSkins){
             return false;
@@ -1387,9 +1367,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return _.startsWith(targetName, "*");
     }
 
-    //function isBitDoSkin(targetName){
-    //    return _.startsWith(targetName, "`");
-    //}
 
     function customSkins(cell, defaultSkins, imgCache, showSkins, gameMode) {
         var retval = null;
@@ -1401,7 +1378,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         else if(!cell.isAgitated && showSkins ){
             if(-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
-                    /*isBitDoSkin(userName) ||*/ isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
+                    isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
                     if(isSpecialSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
@@ -1603,8 +1580,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             suspendMouseUpdates = !suspendMouseUpdates;
         }
         else if('O'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            rightClickFires = !rightClickFires;
-            GM_setValue('rightClickFires', rightClickFires);
+            cobbler.rightClickFires = !cobbler.rightClickFires;
         }
         else if('P'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazingTargetFixation = !grazingTargetFixation;
@@ -1735,9 +1711,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
 
-    window.setLeftMouseButtonFires = function (val){
-        rightClickFires = val;
-    };
 
 // ======================   Start main    ==================================================================
 
@@ -1750,7 +1723,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         /*new*//*remap*/ F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         F.onmousedown = function(a) {
             /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob();}
-            /*new*/if(isPlayerAlive() && rightClickFires){fireAtVirusNearestToCursor();}return;
+            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor();}return;
             if (Ma) {
                 var c = a.clientX - (5 + q / 5 / 2);
                 var b = a.clientY - (5 + q / 5 / 2);
@@ -4003,7 +3976,7 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '<div id="page2" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
     '<div id="col1" class="col-sm-4 checkbox" style="padding-left: 5%; padding-right: 1%;"></div>' +
-    '<div id="col2" class="col-sm-4" style="padding-left: 5%; padding-right: 2%;"></div>' +
+    '<div id="col2" class="col-sm-4" style="padding-left: 2%; padding-right: 2%;"></div>' +
     '<div id="col3" class="col-sm-4" style="padding-left: 2%; padding-right: 5%;"></div>' +
     '</div>' +
     '</div>'+
@@ -4020,7 +3993,7 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '   <li><B>M</B> - Enables/Disables mouse input</li>' +
     '   <li><B>Z</B> - Zoom in/zoom out</li>' +
     '   <li><B>1...7</B> - Selecte n-th blob sorted by size</li>' +
-    '   <li><B>Click</B> - Look currently selected blob (if blob locking enabled)</li>' +
+    '   <li><B>Click</B> - Lock currently selected blob (if blob locking enabled)</li>' +
     '   <li><B>S</B> - Unlock all blobs (if blob locking enabled)</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
@@ -4699,11 +4672,12 @@ col1.append("<h4>Stats</h4>");
 AppendCheckbox(col1, 'chart-checkbox', ' Show in-game chart', display_chart, OnChangeDisplayChart);
 AppendCheckbox(col1, 'stats-checkbox', ' Show in-game stats', display_stats, OnChangeDisplayStats);
 col1.append("<h4>Features</h4>");
+AppendCheckbox(col1, 'feature-click-fire', ' Click to fire @ virus', window.cobbler.rightClickFires, function(val) {window.cobbler.rightClickFires = val;});
 AppendCheckbox(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function(val) {window.cobbler.enableBlobLock = val;});
 AppendCheckbox(col1, 'feature-blob-lock-next', ' Switch blob on lock', window.cobbler.nextOnBlobLock, function(val) {window.cobbler.nextOnBlobLock = val;});
 
 var col2 = $("#col2");
-col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
+col2.append('<h4>Debug Level</h4><div class="btn-group-sm" role="group" data-toggle="buttons">' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugLow" autocomplete="off" value=1>Low</label>' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugHigh" autocomplete="off" value=2>High</label>' +
@@ -4711,6 +4685,18 @@ col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-tog
 $('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
 $('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
 
+col2.append('<h4>Virus Popper</h4><h5>Milliseconds between shots</h5><div id="mspershot-group" class="input-group input-group-sm"> <input type="text" id="mspershot-textbox" class="form-control" placeholder="1-2000 (Default: 100)"' +
+    'value=' + cobbler.msDelayBetweenShots.toString() + '><span class="input-group-addon">ms</span></div><h6>145ms = 7 shots per second. Lower values are faster but less stable.</h6>');
+$('#mspershot-textbox').on('input propertychange paste', function() {
+    var newval = parseInt(this.value);
+    if(!_.isNaN(newval) && newval > 0 && newval <= 2000) {
+        $("#mspershot-group").removeClass('has-error');
+        cobbler.msDelayBetweenShots = newval;
+    }
+    else{
+        $("#mspershot-group").addClass('has-error');
+    }
+});
 
 col2.append('<h4>Minimap Scale</h4>' +
     '<div id="minimap-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="minimap-checkbox" type="checkbox"></span>' +
@@ -4735,13 +4721,14 @@ $('#minimap-textbox').on('input propertychange paste', function() {
     }
 });
 
-col2.append('<h3>Grazer</h3>');
-AppendCheckboxP(col2, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
-AppendCheckboxP(col2, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
-col2.append('<h4>Hybrid Grazer</h4>' +
+col2.append('<h4>Grazer</h4><div id="grazer-checks" class="checkbox" ></div>');
+var grazerChecks = $("#grazer-checks");
+AppendCheckbox(grazerChecks, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
+AppendCheckbox(grazerChecks, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
+col2.append('<h5>Hybrid Grazer</h5>' +
     '<div id="hybrid-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
-    '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +'></div>' +
-    '<p>Starts with old grazer and at specified mass switches to new grazer</p>');
+    '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +' placeholder="Default: 300"></div>' +
+    '<h6>Starts with old grazer and at specified mass switches to new grazer</h6>');
 $('#hybrid-checkbox').change(function(){
     if(!!this.checked){
         $('#hybrid-textbox').removeAttr("disabled");
@@ -4764,10 +4751,10 @@ $('#hybrid-textbox').on('input propertychange paste', function() {
 
 
 var col3 = $("#col3");
-col3.append("<h3>Music/Sound</h3>");
+col3.append("<h4>Music/Sound</h4>");
 col3.append('<p>Sound Effects<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></p>');
 col3.append('<p>Music<input type="range" id="bgm" value=' + window.cobbler.bgmVol + ' step=".1" min="0" max="1" oninput="volBGM(this.value);"></p>');
-col3.append('<h3>Skins Support</h3>');
+col3.append('<h4>Skins Support</h4>');
 AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function(val){window.cobbler.amConnectSkins = val;});
 AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function(val){window.cobbler.amExtendedSkins = val;});
 AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function(val){window.cobbler.imgurSkins = val;});
