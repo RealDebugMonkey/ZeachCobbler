@@ -144,10 +144,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     // If an option setting should be remembered it can
     var cobbler = {
         set grazingMode(val)    {isGrazing = val;},
-        get grazingMode()       {return isGrazing},
+        get grazingMode()       {return isGrazing;},
         _isAcid : false,
         set isAcid(val)         {this._isAcid = val; setAcid(val);},
-        get isAcid()            {return this._isAcid},
+        get isAcid()            {return this._isAcid;},
         minimapScaleCurrentValue : 1,
         "displayMiniMap" : true,
 
@@ -177,6 +177,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "amExtendedSkins"   : true,
             "amConnectSkins"    : true,
             "namesUnderBlobs"   : false,
+            "grazerMultiBlob"   : true,
             "grazerHybridSwitch": false,
             "grazerHybridSwitchMass" : 300,
             "gridLines"         : true,
@@ -197,7 +198,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     // ======================   Property & Var Name Restoration  =======================================================
     var zeach = {
-        get connect()       {return Aa},        // Connect
+        get connect()       {return Aa;},        // Connect
         get ctx()           {return g;},        // g_context
         get webSocket()     {return r;},        // g_socket
         get myIDs()         {return K;},        // g_playerCellIds
@@ -221,14 +222,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         get imgCache()      {return T;},       // ???
         get textFunc()      {return ua;},       // CachedCanvas
         get textBlobs()     {return Bb;},       // g_skinNamesB
-        get hasNickname()   {return va},        // g_showNames
-        get scale()   {return k},        //
+        get hasNickname()   {return va;},        // g_showNames
+        get scale()   {return k;},        //
         // Classes
         get CachedCanvas()  {return ua;},       // CachedCanvas
-        get Cell()          {return aa},        //
+        get Cell()          {return aa;},        //
         // These never existed before but are useful
-        get mapWidth()      {return  ~~(Math.abs(zeach.mapLeft) + zeach.mapRight)},
-        get mapHeight()  {return  ~~(Math.abs(zeach.mapTop) + zeach.mapBottom)},
+        get mapWidth()      {return  ~~(Math.abs(zeach.mapLeft) + zeach.mapRight);},
+        get mapHeight()  {return  ~~(Math.abs(zeach.mapTop) + zeach.mapBottom);},
     };
 
 
@@ -273,7 +274,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     // ======================   Utility code    ==================================================================
     function isFood(blob){
-        return (blob.nSize < 15)
+        return (blob.nSize < 15);
     }
     function getSelectedBlob(){
         if(!_.contains(zeach.myIDs, selectedBlobID)){
@@ -290,7 +291,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function sendMouseUpdate(ws, mouseX2, mouseY2, blob) {
         lastMouseCoords = {x: mouseX2, y: mouseY2};
 
-        if (ws != null && ws.readyState == ws.OPEN) {
+        if (ws && ws.readyState == ws.OPEN) {
             var blobId = blob ? blob.id : 0;
             var z0 = new ArrayBuffer(21);
             var z1 = new DataView(z0);
@@ -303,7 +304,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function getMass(x){
-        return x*x/100
+        return x*x/100;
     }
 
     function lineDistance( point1, point2 ){
@@ -361,7 +362,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var ns = -1/sl;
         // y-int of ptt
         var yint1 = myBlob.ny - myBlob.nx*sl;
-        if(!lineDistance(myBlob, potential) < dtt){
+        if(!(lineDistance(myBlob, potential) < dtt)){
             // get second y-int
             var yint2 = potential.ny - potential.nx * ns;
             var interx = (yint2-yint1)/(sl-ns);
@@ -427,14 +428,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     var throttledResetGrazingTargetId = null;
 
     function doGrazing() {
+        var i;
         if(!isPlayerAlive()) {
             //isGrazing = false;
             return;
         }
         
-        if(null == throttledResetGrazingTargetId){
+        if(null === throttledResetGrazingTargetId){
             throttledResetGrazingTargetId = _.throttle(function (){
-                grazzerTargetResetRequest = 'all'
+                grazzerTargetResetRequest = 'all';
                 //console.log(~~(Date.now()/1000));
             }, 200);
         }
@@ -443,21 +445,20 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (grazzerTargetResetRequest == 'all') {
             grazzerTargetResetRequest = false;
             
-            for(var i = 0; i < zeach.myPoints.length; i++) {
-                var point = zeach.myPoints[i];
-                point.grazingTargetID = false;
+            for(i = 0; i < zeach.myPoints.length; i++) {
+                zeach.myPoints[i].grazingTargetID = false;
             }
         } else if (grazzerTargetResetRequest == 'current') {
             var pseudoBlob = getMouseCoordsAsPseudoBlob();
 
             pseudoBlob.size = getSelectedBlob().size;
             //pseudoBlob.scoreboard = scoreboard;
-            var target = findFoodToEat_old(pseudoBlob,zeach.allItems);
-            if(-1 == target){
+            var newTarget = findFoodToEat_old(pseudoBlob,zeach.allItems);
+            if(-1 == newTarget){
                 isGrazing = false;
                 return;
             }
-            getSelectedBlob().grazingTargetID = target.id;
+            getSelectedBlob().grazingTargetID = newTarget.id;
         }
         
         // with target fixation on, target remains until it's eaten by someone or
@@ -471,8 +472,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
 
         var targets = findFoodToEat();
-        for(var i = 0; i < zeach.myPoints.length; i++) {
+        for(i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
+            
+            if (!cobbler.grazerMultiBlob && point.id != getSelectedBlob().id) {
+                continue;
+            }
+                    
             point.grazingMode = isGrazing;
             if(cobbler.grazerHybridSwitch) {
                 var mass = getMass(point.nSize);
@@ -487,7 +493,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 case 1: {
 
                     if(!zeach.allNodes.hasOwnProperty(point.grazingTargetID)) {
-                        var target = findFoodToEat_old(point, zeach.allItems);
+                        target = findFoodToEat_old(point, zeach.allItems);
                         if(-1 == target){
                             point.grazingMode = 2;
                             return;
@@ -496,13 +502,22 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     } else {
                         target = zeach.allNodes[point.grazingTargetID];
                     }
-                    sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
+                    if (!cobbler.grazerMultiBlob) {
+                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
+                    } else {
+                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
+                    }
                 
                 break;
                 }
                 case 2: {
-                    target = targets[point.id];
-                    sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
+                    if (!cobbler.grazerMultiBlob) {
+                        target = _.max(targets, "v");
+                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
+                    } else {
+                        target = targets[point.id];
+                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
+                    }
                     
                     break;
                 }
@@ -529,11 +544,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             } else {
                 return {id: id, v: val / this.radius, dx: this.nx, dy: this.ny};
             }
-        }
+        };
     }
 
     function dasBorderFunction(l, t, r, b, w) {
-        this.l = l; this.t = t; this.r = r; this.b = b; this.w = w;
+        this.l = l; 
+        this.t = t;
+        this.r = r; 
+        this.b = b; 
+        this.w = w;
         this.value = function(x, y) {
             var v = 0, dx = 0, dy = 0;
             if (x < this.l) {
@@ -553,7 +572,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
 
             return {v: v * this.w, dx: dx, dy: dy};
-        }
+        };
     }
 
     function dasSumFunction(sumfuncs) {
@@ -565,7 +584,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 acc.v += val.v; acc.dx += val.dx; acc.dy += val.dy;
                 return acc;
             });
-        }
+        };
     }
 
     function gradient_ascend(func, step, iters, id, x, y) {
@@ -648,7 +667,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 per_threat: per_threat,
                 cumulatives: [ { x: 0, y: 0}, { x: 0, y: 0} ],
             };
-            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass))
+            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
 
             // Avoid walls too
             var wallArray = [];
@@ -839,16 +858,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         var reply = {};
         for (var i = 0; i < results.length; i++) {
-            reply[results[i].id] = {id : -5, x : results[i].x, y : results[i].y};
+            reply[results[i].id] = {id : -5, x : results[i].x, y : results[i].y, v : results[i].v};
         }
-
-        // var coords = _.max(results, "v");
-
-        // var ans = {
-        //     id: -5,
-        //     x: coords.x,
-        //     y: coords.y,
-        // };
 
         return reply;
     }
@@ -880,7 +891,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         });
         if(0 === densityResults.length){
             //console.log("No target found");
-            return avoidThreats(threats, getSelectedBlob());
+            return avoidThreats(threats, cell);
             return -1;
         }
         var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
@@ -936,7 +947,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         blobArray2.forEach(function (element2){
             var distance2 = lineDistance(cell2, element2);
 
-            var cond1 = getMass(element2.size) <= (getMass(getSelectedBlob().size) * 0.4);
+            var cond1 = getMass(element2.size) <= (getMass(cell.size) * 0.4);
             var cond2 = distance2 < MaxDistance2;
             var cond3 = !element2.isVirus;
             //console.log(cond1 + " " + distance2 + " " + cell2.isSafeTarget);
@@ -4763,6 +4774,8 @@ col2.append('<h4>Grazer</h4><div id="grazer-checks" class="checkbox" ></div>');
 var grazerChecks = $("#grazer-checks");
 AppendCheckbox(grazerChecks, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
 AppendCheckbox(grazerChecks, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
+AppendCheckbox(grazerChecks, 'grazer-multiBlob-checkbox', ' Grazer MultiBlob', window.cobbler.grazerMultiBlob, function(val){window.cobbler.grazerMultiBlob = val;});
+
 col2.append('<h5>Hybrid Grazer</h5>' +
     '<div id="hybrid-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
     '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +' placeholder="Default: 300"></div>' +
