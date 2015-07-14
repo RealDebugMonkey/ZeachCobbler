@@ -4,12 +4,14 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.26.0
+// @version      0.26.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.26.0 - Configurable Minimap scale & Agariomod private server location update
+//                   1 - Added ability to lock blob at some pos
+//                     - Added ability to select n-th size blob
 //              0.25.0 - Facebook Update
 //                   1 - Tons of bug fixes
 //              0.24.0 - Switched back to hacky method of loading & added hotkey reference
