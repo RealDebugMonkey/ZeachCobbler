@@ -1714,7 +1714,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             z1.setUint8(0, 16);
             z1.setFloat64(1, x, true);
             z1.setFloat64(9, y, true);
-            z1.setUint32(17, 0, true);
+            z1.setUint32(17, blob.id, true);
             zeach.webSocket.send(z0);
         }
     }
@@ -4018,6 +4018,8 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '   <li><B>R</B> - Fire at virus near selected blob (virus is highlighted in red)</li>' +
     '   <li><B>M</B> - Enables/Disables mouse input</li>' +
     '   <li><B>Z</B> - Zoom in/zoom out</li>' +
+    '   <li><B>1...7</B> - Selecte n-th blob sorted by size</li>' +
+    '   <li><B>Click</B> - Look currently selected blob (if blob locking enabled)</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
         //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
@@ -4695,6 +4697,8 @@ AppendCheckboxP(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gr
 col1.append("<h3>Stats</h3>");
 AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
 AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
+col1.append("<h3>Features</h3>");
+AppendCheckboxP(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function(val) {window.cobbler.enableBlobLock = val;});
 var col2 = $("#col2");
 col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
