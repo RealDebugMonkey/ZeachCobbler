@@ -470,7 +470,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var target;
 
 
-        var targets = findFoodToEat(!cobbler.grazerMultiBlob2);
+        var targets = findFoodToEat();
         for(i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
             
@@ -645,7 +645,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         return blobArray;
     }
-    function findFoodToEat(useGradient) {
+    function findFoodToEat() {
         blobArray = augmentBlobArray(zeach.allItems);
 
         zeach.myPoints.forEach(function(cell) {
@@ -653,7 +653,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         });
 
         var accs = zeach.myPoints.map(function (cell) {
-            
 
             var per_food = [], per_threat = [];
             var acc = {
@@ -667,11 +666,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 per_threat: per_threat,
                 cumulatives: [ { x: 0, y: 0}, { x: 0, y: 0} ],
             };
-            
-            if (!useGradient && cell.grazingMode != 2) {
-                return acc;
-            }
-            
             var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
 
             // Avoid walls too
@@ -828,44 +822,37 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cell.grazeInfo = acc;
             return acc;
         });
-        
-        if (useGradient) {
-            var funcs = accs.map(function(acc) {
-                return new dasMouseSpeedFunction(acc.id, acc.x, acc.y, 200, acc.fx, acc.fy);
-            });
 
-            // Pick gradient ascent step size for better convergence
-            // so that coord jumps don't exceed ~50 units
-            var step = _.sum(accs.map(function(acc) {
-                return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
-            }));
-            step = 50 / step;
-            if(!isFinite(step)) {
-                step = 50;
-            }
+        var funcs = accs.map(function(acc) {
+            return new dasMouseSpeedFunction(acc.id, acc.x, acc.y, 200, acc.fx, acc.fy);
+        });
 
-            var viewport = getViewport(false);
-            funcs.push(
-                new dasBorderFunction(
-                    viewport.x - viewport.dx,
-                    viewport.y - viewport.dy,
-                    viewport.x + viewport.dx,
-                    viewport.y + viewport.dy,
-                    -1000
-                )
-            );
-
-            var func = new dasSumFunction(funcs);
-
-            var results = accs.map(function(acc) {
-                return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
-            });
-        } else {
-            results = accs.map(function(acc) { 
-                var norm = Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
-                return {id: acc.id, x: acc.x + 200 * acc.fx / norm, y: acc.y + 200 * acc.fy / norm };
-            });
+        // Pick gradient ascent step size for better convergence
+        // so that coord jumps don't exceed ~50 units
+        var step = _.sum(accs.map(function(acc) {
+            return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
+        }));
+        step = 50 / step;
+        if(!isFinite(step)) {
+            step = 50;
         }
+
+        var viewport = getViewport(false);
+        funcs.push(
+            new dasBorderFunction(
+                viewport.x - viewport.dx,
+                viewport.y - viewport.dy,
+                viewport.x + viewport.dx,
+                viewport.y + viewport.dy,
+                -1000
+            )
+        );
+
+        var func = new dasSumFunction(funcs);
+
+        var results = accs.map(function(acc) {
+            return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
+        });
 
 
         var reply = {};
