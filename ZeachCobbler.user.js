@@ -197,6 +197,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         _enableBlobLock : GM_getValue('enableBlobLock', true),
         set enableBlobLock(val)       {this._enableBlobLock = val; GM_setValue('enableBlobLock', val);},
         get enableBlobLock()          {return this._enableBlobLock;},
+        _nextOnBlobLock : GM_getValue('nextOnBlobLock', true),
+        set nextOnBlobLock(val)       {this._nextOnBlobLock = val; GM_setValue('nextOnBlobLock', val);},
+        get nextOnBlobLock()          {return this._nextOnBlobLock;},
         
         "displayMiniMap" : true,
         "clickToShoot" : false,
@@ -1523,29 +1526,32 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
 // ======================   Misc    ==================================================================
 
-    function customKeyDownEvents(d)
-    {
+    function switchCurrentBlob() {
+        var myids_sorted = _.pluck(zeach.myPoints, "id").sort(); // sort by id
+        var indexloc = _.indexOf(myids_sorted, selectedBlobID);
+        if(-1 === indexloc){
+            selectedBlobID = zeach.myPoints[0].id;
+            console.log("Had to select new blob. Its id is " + selectedBlobID);
+            return zeach.allNodes[selectedBlobID];
+        }
+        indexloc += 1;
+        if(indexloc >= myids_sorted.length){
+            selectedBlobID = zeach.myPoints[0].id;
+            console.log("Reached array end. Moving to begining with id " + selectedBlobID);
+            return zeach.allNodes[selectedBlobID];
+        }
+        selectedBlobID = zeach.myPoints[indexloc].id;
+        return zeach.allNodes[selectedBlobID];
+    }
+
+    function customKeyDownEvents(d) {
         if(jQuery("#overlays").is(':visible')){
             return;
         }
 
         if(9 === d.keyCode && isPlayerAlive()) {
-            var myids_sorted = _.pluck(zeach.myPoints, "id").sort(); // sort by id
-            var indexloc = _.indexOf(myids_sorted, selectedBlobID);
             d.preventDefault();
-            if(-1 === indexloc){
-                selectedBlobID = zeach.myPoints[0].id;
-                console.log("Had to select new blob. Its id is " + selectedBlobID);
-                return zeach.allNodes[selectedBlobID];
-            }
-            indexloc += 1;
-            if(indexloc >= myids_sorted.length){
-                selectedBlobID = zeach.myPoints[0].id;
-                console.log("Reached array end. Moving to begining with id " + selectedBlobID);
-                return zeach.allNodes[selectedBlobID];
-            }
-            selectedBlobID = zeach.myPoints[indexloc].id;
-            return zeach.allNodes[selectedBlobID];
+            switchCurrentBlob();
         }
         else if('A'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             cobbler.isAcid = !cobbler.isAcid;
@@ -1645,6 +1651,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             selectedBlobID = arr[id].id;
         }
+        else if('S'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            for(var i = 0; i < zeach.myPoints.length; i++) {
+                var point = zeach.myPoints[i];
+                point.locked = false;
+            }
+        }
+        
     }
 
     function onAfterUpdatePacket() {
@@ -1724,6 +1737,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (blob.locked) {
             blob.locked = false;
         } else {
+            if (cobbler.nextOnBlobLock) {
+                switchCurrentBlob();
+            }
             blob.locked = true;
             blob.last_locked = 10;
             blob.locked_x = zeach.mouseX2; 
@@ -4020,6 +4036,7 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '   <li><B>Z</B> - Zoom in/zoom out</li>' +
     '   <li><B>1...7</B> - Selecte n-th blob sorted by size</li>' +
     '   <li><B>Click</B> - Look currently selected blob (if blob locking enabled)</li>' +
+    '   <li><B>S</B> - Unlock all blobs (if blob locking enabled)</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
         //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
@@ -4699,6 +4716,7 @@ AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDi
 AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
 col1.append("<h3>Features</h3>");
 AppendCheckboxP(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function(val) {window.cobbler.enableBlobLock = val;});
+AppendCheckboxP(col1, 'feature-blob-lock-next', ' Switch blob on lock', window.cobbler.nextOnBlobLock, function(val) {window.cobbler.nextOnBlobLock = val;});
 var col2 = $("#col2");
 col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
