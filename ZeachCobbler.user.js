@@ -427,68 +427,69 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     var throttledResetGrazingTargetId = null;
 
     function doGrazing() {
-        if(!isPlayerAlive()){
+        if(!isPlayerAlive()) {
             //isGrazing = false;
             return;
+        }
+        
+        if(null == throttledResetGrazingTargetId){
+            throttledResetGrazingTargetId = _.throttle(function (){
+                grazzerTargetResetRequest = 'all'
+                //console.log(~~(Date.now()/1000));
+            }, 200);
+        }
+        
+        
+        if (grazzerTargetResetRequest == 'all') {
+            grazzerTargetResetRequest = false;
+            
+            for(var i = 0; i < zeach.myPoints.length; i++) {
+                var point = zeach.myPoints[i];
+                point.grazingTargetID = false;
+            }
+        } else if (grazzerTargetResetRequest == 'current') {
+            var pseudoBlob = getMouseCoordsAsPseudoBlob();
+
+            pseudoBlob.size = getSelectedBlob().size;
+            //pseudoBlob.scoreboard = scoreboard;
+            var target = findFoodToEat_old(pseudoBlob,zeach.allItems);
+            if(-1 == target){
+                isGrazing = false;
+                return;
+            }
+            getSelectedBlob().grazingTargetID = target.id;
+        }
+        
+        // with target fixation on, target remains until it's eaten by someone or
+        // otherwise disappears. With it off target is constantly recalculated
+        // at the expense of CPU
+        if(!grazingTargetFixation) {
+            throttledResetGrazingTargetId();
         }
 
         var target;
 
-        if(cobbler.grazerHybridSwitch){
-            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
-            // switch over to new grazer once we pass the threshhold
-            if(1 === isGrazing && totalMass > cobbler.grazerHybridSwitchMass){
-                isGrazing = 2; // We gained enough much mass. Use new grazer.
-            }else if(2 === isGrazing && totalMass < cobbler.grazerHybridSwitchMass ){
-                isGrazing = 1; // We lost too much mass. Use old grazer.
+
+        var targets = findFoodToEat();
+        for(var i = 0; i < zeach.myPoints.length; i++) {
+            var point = zeach.myPoints[i];
+            point.grazingMode = isGrazing;
+            if(cobbler.grazerHybridSwitch) {
+                var mass = getMass(point.nSize);
+                // switch over to new grazer once we pass the threshhold
+                if(1 === point.grazingMode && mass > cobbler.grazerHybridSwitchMass){
+                    point.grazingMode = 2; // We gained enough much mass. Use new grazer.
+                }else if(2 === point.grazingMode && mass < cobbler.grazerHybridSwitchMass ){
+                    point.grazingMode = 1; // We lost too much mass. Use old grazer.
+                }
             }
+            switch(point.grazingMode) {
+                case 1: {
 
-        }
-
-        switch(isGrazing) {
-            case 1: {
-                if (grazzerTargetResetRequest == 'all') {
-                    grazzerTargetResetRequest = false;
-                    
-                    for(var i = 0; i < zeach.myPoints.length; i++) {
-                        var point = zeach.myPoints[i];
-                        point.grazingTargetID = false;
-                    }
-                } else if (grazzerTargetResetRequest == 'current') {
-                    var pseudoBlob = getMouseCoordsAsPseudoBlob();
-        
-                    pseudoBlob.size = getSelectedBlob().size;
-                    //pseudoBlob.scoreboard = scoreboard;
-                    var target = findFoodToEat_old(pseudoBlob,zeach.allItems);
-                    if(-1 == target){
-                        isGrazing = false;
-                        return;
-                    }
-                    getSelectedBlob().grazingTargetID = target.id;
-                }
-                
-                if(null == throttledResetGrazingTargetId){
-                    throttledResetGrazingTargetId = _.throttle(function (){
-                        grazzerTargetResetRequest = 'all'
-                        //console.log(~~(Date.now()/1000));
-                    }, 200);
-                }
-
-                // with target fixation on, target remains until it's eaten by someone or
-                // otherwise disappears. With it off target is constantly recalculated
-                // at the expense of CPU
-                if(!grazingTargetFixation) {
-                    throttledResetGrazingTargetId();
-                }
-
-                
-                for(var i = 0; i < zeach.myPoints.length; i++) {
-                    var point = zeach.myPoints[i];
-                    
                     if(!zeach.allNodes.hasOwnProperty(point.grazingTargetID)) {
                         var target = findFoodToEat_old(point, zeach.allItems);
                         if(-1 == target){
-                            isGrazing = 2;
+                            point.grazingMode = 2;
                             return;
                         }
                         point.grazingTargetID = target.id;
@@ -496,17 +497,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         target = zeach.allNodes[point.grazingTargetID];
                     }
                     sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
-                }
+                
                 break;
-            }
-            case 2: {
-                var targets = findFoodToEat();
-                for(var i = 0; i < zeach.myPoints.length; i++) {
-                    var point = zeach.myPoints[i];
+                }
+                case 2: {
                     target = targets[point.id];
                     sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
+                    
+                    break;
                 }
-                break;
             }
         }
 
@@ -953,11 +952,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function drawRescaledItems(ctx) {
         if (showVisualCues && isPlayerAlive()) {
             drawMapBorders(ctx);
-            if(1 == isGrazing) {
-                drawGrazingLines_old(ctx);
-            } else {
-                drawGrazingLines(ctx);
-            }
+            drawGrazingLines_old(ctx);
+            drawGrazingLines(ctx);
             if(cobbler.drawTail){
                 drawTrailTail(ctx);
             }
@@ -1161,7 +1157,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var oldGlobalAlpha = ctx.globalAlpha;
 
         zeach.myPoints.forEach(function(playerBlob) {
-            if(!playerBlob.grazeInfo) {
+            if(!playerBlob.grazeInfo || playerBlob.grazingMode != 2) {
                 return;
             }
             var grazeInfo = playerBlob.grazeInfo;
@@ -1284,6 +1280,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         ctx.lineWidth = 10;
         for(var i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
+            if (point.grazingMode != 1) {
+                continue;
+            }
         
             if(_.has(zeach.allNodes, point.grazingTargetID)){
                 drawLine(ctx, zeach.allNodes[point.grazingTargetID], point, "green");
@@ -1293,6 +1292,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         ctx.lineWidth = 2;
         for(var i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
+            if (point.grazingMode != 1) {
+                continue;
+            }
             zeach.allItems.forEach(function (element){
                 if (!element.isSafeTarget) {
                 } else if(element.isSafeTarget[point.id] === true) {
