@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.27.0
+// @version      0.27.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -12,7 +12,6 @@
 // @changes     0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
-
 //              0.26.0 - Configurable Minimap scale & Agariomod private server location update
 //              0.25.0 - Facebook Update
 //                   1 - Tons of bug fixes
@@ -73,8 +72,8 @@ var _version_ = GM_info.script.version;
 var debugMonkeyReleaseMessage = "<h3>Multiblob Navigation?!</h3><p>" +
     "Contributer 'angal' has submitted a potentially game-changing feature. You'll find a new click-to-lock feature in the " +
     "extended option screen. When it is enabled you can click to tell the currently selected blob to go to the location " +
-    "clicked and just stop moving. All other cells will continue responding to your mouse as usual. Click again to unlock " +
-    "the currently selected blob. You can cycle between blobs by hitting tab or using buttons 1-7.<br><br>" +
+    "clicked and just stop moving. All other blobs will continue responding to your mouse as usual. Press 'S' to unlock " +
+    "the currently selected blob (or click again if you don't have auto switch-on-click enabled). You can cycle between blobs by hitting tab or using buttons 1-7.<br><br>" +
     "How does this help you? When you're in two pieces you can click on one side of a virus, then navigate the non-selected blob " +
     "around the other way using your mouse, then click again to unlock the first blob.<br><br>This also makes it possible to restore the " +
     "old 'q' functionality which old-timers will remember as the short-lived way to keep your cells from remerging. Of course, " +
@@ -209,7 +208,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         _enableBlobLock : GM_getValue('enableBlobLock', true),
         set enableBlobLock(val)       {this._enableBlobLock = val; GM_setValue('enableBlobLock', val);},
         get enableBlobLock()          {return this._enableBlobLock;},
-        _nextOnBlobLock : GM_getValue('nextOnBlobLock', true),
+        _nextOnBlobLock : GM_getValue('nextOnBlobLock', false),
         set nextOnBlobLock(val)       {this._nextOnBlobLock = val; GM_setValue('nextOnBlobLock', val);},
         get nextOnBlobLock()          {return this._nextOnBlobLock;},
         
@@ -1549,7 +1548,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         indexloc += 1;
         if(indexloc >= myids_sorted.length){
             selectedBlobID = zeach.myPoints[0].id;
-            console.log("Reached array end. Moving to begining with id " + selectedBlobID);
+            console.log("Reached array end. Moving to beginning with id " + selectedBlobID);
             return zeach.allNodes[selectedBlobID];
         }
         selectedBlobID = zeach.myPoints[indexloc].id;
@@ -1634,27 +1633,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             zoomFactor = (zoomFactor == 10 ? 11 : 10);
         }
-        //else if('8'.charCodeAt(0) === d.keyCode && isPlayerAlive()) { // SELF DESTRUCT
-        //    zeach.fireFunction(20);
-        //}
         else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
             var id = d.keyCode - '1'.charCodeAt(0);
-            var arr = [];
-            var amount = 0;
-            for(var i = 0; i < zeach.myPoints.length; i++) {
-                var point = zeach.myPoints[i];
-                var mass = getMass(point.nSize);
-                for (var j = 0; j < arr.length; j++) {
-                    var current = arr[j];
-                    var cMass = getMass(current.nSize);
-                    if (cMass < mass) {
-                        arr[j] = point;
-                        mass = cMass;
-                        point = current;
-                    }
-                }
-                arr.push(point);
-            }
+            if(id >= _.size(zeach.myPoints)) {return; }
+            var arr =  _.sortBy(zeach.myPoints, "nSize").reverse();
             selectedBlobID = arr[id].id;
         }
         else if('S'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
@@ -1753,9 +1735,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
 
-    //window.setLiteBrite = function (val){
-    //    isLiteBrite = val;
-    //};
     window.setLeftMouseButtonFires = function (val){
         rightClickFires = val;
     };
@@ -4023,9 +4002,9 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '</div>' +
     '<div id="page2" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
-    '<div id="col1" class="col-sm-4" style="padding-left: 5%; padding-right: 1%;"></div>' +
+    '<div id="col1" class="col-sm-4 checkbox" style="padding-left: 5%; padding-right: 1%;"></div>' +
     '<div id="col2" class="col-sm-4" style="padding-left: 5%; padding-right: 2%;"></div>' +
-    '<div id="col3" class="col-sm-4" style="padding-left: 0%; padding-right: 5%;"></div>' +
+    '<div id="col3" class="col-sm-4" style="padding-left: 2%; padding-right: 5%;"></div>' +
     '</div>' +
     '</div>'+
     '<div id="page3" role="tabpanel" class="tab-pane">' +
@@ -4093,7 +4072,7 @@ var display_stats = LS_getValue('display_stats', 'false') === 'true';
 
 function AppendCheckbox(e, id, label, checked, on_change)
 {
-    e.append('<label><input type="checkbox" id="'+id+'">'+label+'</label>');
+    e.append('<label><input type="checkbox" id="'+id+'">'+label+'</label><br>');
     jQuery('#'+id).attr('checked', checked);
     jQuery('#'+id).change(function(){
         on_change(!!this.checked);
@@ -4707,22 +4686,22 @@ jQuery(document)
 uiOnLoadTweaks();
 
 var col1 = $("#col1");
-col1.append("<h3>Modes</h3>");
+col1.append("<h4>Modes</h4>");
+AppendCheckbox(col1, 'isacid-checkbox', ' Enable Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
+AppendCheckbox(col1, 'litebrite-checkbox', ' Enable Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
+col1.append("<h4>Options</h4>");
+AppendCheckbox(col1, 'trailingtail-checkbox', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
+AppendCheckbox(col1, 'splitguide-checkbox', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
+AppendCheckbox(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
+AppendCheckbox(col1, 'namesunder-checkbox', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
+AppendCheckbox(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gridLines, function(val){window.cobbler.gridLines = val;});
+col1.append("<h4>Stats</h4>");
+AppendCheckbox(col1, 'chart-checkbox', ' Show in-game chart', display_chart, OnChangeDisplayChart);
+AppendCheckbox(col1, 'stats-checkbox', ' Show in-game stats', display_stats, OnChangeDisplayStats);
+col1.append("<h4>Features</h4>");
+AppendCheckbox(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function(val) {window.cobbler.enableBlobLock = val;});
+AppendCheckbox(col1, 'feature-blob-lock-next', ' Switch blob on lock', window.cobbler.nextOnBlobLock, function(val) {window.cobbler.nextOnBlobLock = val;});
 
-AppendCheckboxP(col1, 'option1', ' Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
-AppendCheckboxP(col1, 'litebrite-checkbox', ' Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
-col1.append("<h3>Options</h3>");
-AppendCheckboxP(col1, 'option3', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
-AppendCheckboxP(col1, 'option4', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
-AppendCheckboxP(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
-AppendCheckboxP(col1, 'option7', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
-AppendCheckboxP(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gridLines, function(val){window.cobbler.gridLines = val;});
-col1.append("<h3>Stats</h3>");
-AppendCheckboxP(col1, 'chart-checkbox', ' Show chart', display_chart, OnChangeDisplayChart);
-AppendCheckboxP(col1, 'stats-checkbox', ' Show stats', display_stats, OnChangeDisplayStats);
-col1.append("<h3>Features</h3>");
-AppendCheckboxP(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function(val) {window.cobbler.enableBlobLock = val;});
-AppendCheckboxP(col1, 'feature-blob-lock-next', ' Switch blob on lock', window.cobbler.nextOnBlobLock, function(val) {window.cobbler.nextOnBlobLock = val;});
 var col2 = $("#col2");
 col2.append('<h3>Debug Level</h3><div class="btn-group-sm" role="group" data-toggle="buttons">' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugNone" autocomplete="off" value=0>None</label>' +
@@ -4734,8 +4713,8 @@ $('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(
 
 
 col2.append('<h4>Minimap Scale</h4>' +
-    '<div id="minimap-group" class="input-group"><span class="input-group-addon"><input id="minimap-checkbox" type="checkbox"></span>' +
-    '<input id="minimap-textbox" type="text" class="form-control" value='+ cobbler.miniMapScaleValue +'></div>');
+    '<div id="minimap-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="minimap-checkbox" type="checkbox"></span>' +
+    '<input id="minimap-textbox" type="text" placeholder="64 = 1/64 scale" class="form-control" value='+ cobbler.miniMapScaleValue +'></div>');
 $('#minimap-checkbox').change(function(){
     if(!!this.checked){
         $('#minimap-textbox').removeAttr("disabled");
@@ -4760,7 +4739,7 @@ col2.append('<h3>Grazer</h3>');
 AppendCheckboxP(col2, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
 AppendCheckboxP(col2, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
 col2.append('<h4>Hybrid Grazer</h4>' +
-    '<div id="hybrid-group" class="input-group"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
+    '<div id="hybrid-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
     '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +'></div>' +
     '<p>Starts with old grazer and at specified mass switches to new grazer</p>');
 $('#hybrid-checkbox').change(function(){
@@ -4799,8 +4778,8 @@ $("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bott
     "title": "Leaves blob centers empty except for skins."});
 
 // Ugly ass hack to fix effects of official code loading before mod
-$("#canvas").remove();
-$("body").prepend('<canvas id="canvas" width="800" height="600"></canvas>');
+//$("#canvas").remove();
+//$("body").prepend('<canvas id="canvas" width="800" height="600"></canvas>');
 // enable tooltops
 //setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
 
