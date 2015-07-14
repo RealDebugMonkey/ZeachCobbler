@@ -500,15 +500,19 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 break;
             }
             case 2: {
-                target = findFoodToEat();
-                sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
+                var targets = findFoodToEat();
+                for(var i = 0; i < zeach.myPoints.length; i++) {
+                    var point = zeach.myPoints[i];
+                    target = targets[point.id];
+                    sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
+                }
                 break;
             }
         }
 
     }
 
-    function dasMouseSpeedFunction(cx, cy, radius, nx, ny) {
+    function dasMouseSpeedFunction(id, cx, cy, radius, nx, ny) {
         this.cx = cx; this.cy = cy; this.radius = radius; this.nx = nx; this.ny = ny;
         this.value = function(x, y) {
             x -= this.cx; y -= this.cy;
@@ -518,12 +522,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var val = x * this.nx + y * this.ny;
             if (len > this.radius) {
                 return {
+                    id : id,
                     v: val / len,
                     dx: y * (this.nx * y - this.ny * x) / (lensq * len),
                     dy: x * (this.ny * x - this.nx * y) / (lensq * len),
                 };
             } else {
-                return {v: val / this.radius, dx: this.nx, dy: this.ny};
+                return {id: id, v: val / this.radius, dx: this.nx, dy: this.ny};
             }
         }
     }
@@ -564,7 +569,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
 
-    function gradient_ascend(func, step, iters, x, y) {
+    function gradient_ascend(func, step, iters, id, x, y) {
         var max_step = step;
 
         var last = func.value(x, y);
@@ -587,7 +592,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             last.dy = (last.dy + tmp.dy)/2.0;
         }
 
-        return {x: x, y: y, v: last.v};
+        return {id: id, x: x, y: y, v: last.v};
     }
 
     function augmentBlobArray(blobArray) {
@@ -634,6 +639,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
             var per_food = [], per_threat = [];
             var acc = {
+                id : cell.id,
                 fx: 0,
                 fy: 0,
                 x: cell.nx,
@@ -801,7 +807,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         });
 
         var funcs = accs.map(function(acc) {
-            return new dasMouseSpeedFunction(acc.x, acc.y, 200, acc.fx, acc.fy);
+            return new dasMouseSpeedFunction(acc.id, acc.x, acc.y, 200, acc.fx, acc.fy);
         });
 
         // Pick gradient ascent step size for better convergence
@@ -828,18 +834,24 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var func = new dasSumFunction(funcs);
 
         var results = accs.map(function(acc) {
-            return gradient_ascend(func, step, 100, acc.x, acc.y);
+            return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
         });
 
-        var coords = _.max(results, "v");
 
-        var ans = {
-            id: -5,
-            x: coords.x,
-            y: coords.y,
-        };
+        var reply = {};
+        for (var i = 0; i < results.length; i++) {
+            reply[results[i].id] = {id : -5, x : results[i].x, y : results[i].y};
+        }
 
-        return ans;
+        // var coords = _.max(results, "v");
+
+        // var ans = {
+        //     id: -5,
+        //     x: coords.x,
+        //     y: coords.y,
+        // };
+
+        return reply;
     }
 
 
@@ -3285,7 +3297,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 b : 0
             };
             aa.prototype = {
-                /*new_angal*/ locked : false,
+                /*new*/ locked : false,
                 id : 0,
                 a : null,
                 name : null,
