@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.27.4
+// @version      0.27.5
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -73,8 +73,8 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-alert("Changes to the official client broke everything again Seems to be affecting multiple mods, not just mine. " +
-    "You'll need to use a different mod until I can fix the problem. Or you can play the vanilla version. Sorry. - debugmonkey")
+_.once(function(){alert("Changes to the official client broke everything again Seems to be affecting multiple mods, not just mine. " +
+    "You'll need to use a different mod until I can fix the problem. Or you can play the vanilla version. Sorry. - debugmonkey")});
 
 if(false){
     var debugMonkeyReleaseMessage = "<h3>Multiblob Navigation?!</h3><p>" +
