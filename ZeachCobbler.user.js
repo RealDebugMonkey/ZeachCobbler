@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.27.6
+// @version      0.27.7
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -17,6 +17,7 @@
 //                     - shots per ms field added
 //                     - options screen cleanup/reorg
 //                   6 - Hack to get mod loading again.
+//                   7 - proper fix for xp bar rename
 //              0.26.0 - Configurable Minimap scale & Agariomod private server location update
 //              0.25.0 - Facebook Update
 //                   1 - Tons of bug fixes
@@ -2747,9 +2748,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             e.e = a.e;
             d.localStorage.loginCache = JSON.stringify(e);
         }
-        /*new*/if (false) {
-            var l = +f("#agario-exp-bar .progress-bar-text").text().split("/")[0];
-            b$$0 = +f("#agario-exp-bar .progress-bar-text").text().split("/")[1].split(" ")[0];
+        if (b$$0) {
+            var l = +f(".agario-exp-bar .progress-bar-text").text().split("/")[0];
+            b$$0 = +f(".agario-exp-bar .progress-bar-text").text().split("/")[1].split(" ")[0];
             e = f(".agario-profile-panel .progress-bar-star").text();
             if (e != a.e) {
                 R({
@@ -2758,12 +2759,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     e : e
                 }, function() {
                     f(".agario-profile-panel .progress-bar-star").text(a.e);
-                    f("#agario-exp-bar .progress-bar").css("width", "100%");
+                    f(".agario-exp-bar .progress-bar").css("width", "100%");
                     f(".progress-bar-star").addClass("animated tada").one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", function() {
                         f(".progress-bar-star").removeClass("animated tada");
                     });
                     setTimeout(function() {
-                        f("#agario-exp-bar .progress-bar-text").text(a.d + "/" + a.d + " XP");
+                        f(".agario-exp-bar .progress-bar-text").text(a.d + "/" + a.d + " XP");
                         R({
                             f : 0,
                             d : a.d,
@@ -2780,8 +2781,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     b = (Date.now() - p) / 1E3;
                     b = 0 > b ? 0 : 1 < b ? 1 : b;
                     b = b * b * (3 - 2 * b);
-                    f("#agario-exp-bar .progress-bar-text").text(~~(l + (a.f - l) * b) + "/" + a.d + " XP");
-                    f("#agario-exp-bar .progress-bar").css("width", (88 * (l + (a.f - l) * b) / a.d).toFixed(2) + "%");
+                    f(".agario-exp-bar .progress-bar-text").text(~~(l + (a.f - l) * b) + "/" + a.d + " XP");
+                    f(".agario-exp-bar .progress-bar").css("width", (88 * (l + (a.f - l) * b) / a.d).toFixed(2) + "%");
                     if (1 > b) {
                         d.requestAnimationFrame(h);
                     } else {
@@ -2794,8 +2795,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
         } else {
             f(".agario-profile-panel .progress-bar-star").text(a.e);
-            f("#agario-exp-bar .progress-bar-text").text(a.f + "/" + a.d + " XP");
-            f("#agario-exp-bar .progress-bar").css("width", (88 * a.f / a.d).toFixed(2) + "%");
+            f(".agario-exp-bar .progress-bar-text").text(a.f + "/" + a.d + " XP");
+            f(".agario-exp-bar .progress-bar").css("width", (88 * a.f / a.d).toFixed(2) + "%");
             if (c) {
                 c();
             }
