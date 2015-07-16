@@ -75,6 +75,7 @@ It was chosen on a whim. And I like Peach Cobbler.
 * Angal - For the original Server select UI (now unused), click-to-lock multiblob feature, and multiblob grazer feature 
 * Apostolique - debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
 * Electronoob - Imgur skins, Agariomods.com skins, connect.agariomod.com skins
+* Ephemerality - Code review
 * GamerLio - Minimap from his awesome bot -- https://github.com/leomwu/agario-bot
 * Gjum - Bug fixes
 * Incompetech - For KSP soundtrack music - http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
