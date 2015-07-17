@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.27.7
+// @version      0.27.8
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -18,6 +18,8 @@
 //                     - options screen cleanup/reorg
 //                   6 - Hack to get mod loading again.
 //                   7 - proper fix for xp bar rename
+//                   8 - added isAgitated
+//                     - changed multiblob grazer var name to reset multiblob default to 'false'
 //              0.26.0 - Configurable Minimap scale & Agariomod private server location update
 //              0.25.0 - Facebook Update
 //                   1 - Tons of bug fixes
@@ -169,7 +171,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "amExtendedSkins"   : true,
             "amConnectSkins"    : true,
             "namesUnderBlobs"   : false,
-            "grazerMultiBlob"   : false,
+            "grazerMultiBlob2"  : false,
             "grazerHybridSwitch": false,
             "grazerHybridSwitchMass" : 300,
             "gridLines"         : true,
@@ -255,6 +257,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             'maxNameSize' : 'l', //
             'massText'    : 'O', //
             'nameCache'   : 'o', //
+            'isAgitated'  : 'n'
         };
         _.forEach(pointPropMap, function(newPropName,oldPropName){
             Object.defineProperty(objPrototype, oldPropName, {
@@ -463,11 +466,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var target;
 
 
-        var targets = findFoodToEat(!cobbler.grazerMultiBlob);
+        var targets = findFoodToEat(!cobbler.grazerMultiBlob2);
         for(i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
             
-            if (!cobbler.grazerMultiBlob && point.id != getSelectedBlob().id) {
+            if (!cobbler.grazerMultiBlob2 && point.id != getSelectedBlob().id) {
                 continue;
             }
                     
@@ -494,7 +497,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     } else {
                         target = zeach.allNodes[point.grazingTargetID];
                     }
-                    if (!cobbler.grazerMultiBlob) {
+                    if (!cobbler.grazerMultiBlob2) {
                         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
                     } else {
                         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
@@ -503,7 +506,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 break;
                 }
                 case 2: {
-                    if (!cobbler.grazerMultiBlob) {
+                    if (!cobbler.grazerMultiBlob2) {
                         target = _.max(targets, "v");
                         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
                     } else {
@@ -4779,7 +4782,7 @@ col2.append('<h4>Grazer</h4><div id="grazer-checks" class="checkbox" ></div>');
 var grazerChecks = $("#grazer-checks");
 AppendCheckbox(grazerChecks, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
 AppendCheckbox(grazerChecks, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
-AppendCheckbox(grazerChecks, 'grazer-multiBlob-checkbox', ' Grazer MultiBlob', window.cobbler.grazerMultiBlob, function(val){window.cobbler.grazerMultiBlob = val;});
+AppendCheckbox(grazerChecks, 'grazer-multiBlob-checkbox', ' Grazer MultiBlob', window.cobbler.grazerMultiBlob2, function(val){window.cobbler.grazerMultiBlob2 = val;});
 
 col2.append('<h5>Hybrid Grazer</h5>' +
     '<div id="hybrid-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
