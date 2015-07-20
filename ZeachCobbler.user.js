@@ -4,12 +4,14 @@
 // @updateURL    http://bit.do/ZeachCobblerJS
 // @downloadURL  http://bit.do/ZeachCobblerJS
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.27.8
+// @version      0.28.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.27.0 - Click-to-lock added
+// @changes     0.28.0 - Revamped UI
+//                     - Stats now detects viruses being eaten
+//              0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
 //                   2 - Fixed virus shot counter, improved shots remaining calculation
@@ -1754,6 +1756,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function lockCurrentBlob() {
+        if(!isPlayerAlive()){
+            return;
+        }
         var blob = getSelectedBlob();
         if (blob.locked) {
             blob.locked = false;
@@ -2743,6 +2748,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
     function R(a, c) {
         var b$$0 = "1" == f("#helloContainer").attr("data-has-account-data");
+        /*new*/var b$$0 = "1" == f("#ZCOverlay").attr("data-has-account-data");
+
         f("#helloContainer").attr("data-has-account-data", "1");
         if (null == c && d.localStorage.loginCache) {
             var e = JSON.parse(d.localStorage.loginCache);
@@ -3999,11 +4006,37 @@ var chart_update_interval = 10;
 jQuery('body').append('<div id="chart-container" style="display:none; position:absolute; height:176px; width:300px; left:10px; bottom:44px"></div>');
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
 
-jQuery("#helloContainer").css('left','230px');
-//jQuery(".agario-profile-panel").css({'left': '100%', "top":"-120px", "position":"absolute"});
-jQuery(".agario-promo").hide();
-jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; left: 450px; width: 750px; height:673px; background-color: #FFFFFF; ' +
-    'border-radius: 15px; padding: 5px 15px 5px 15px; transform: translate(0,-50%)">'+
+
+unsafeWindow.hideZCOverlay = function(){
+    jQuery('#ZCoverlay').fadeOut();
+}
+unsafeWindow.showZCOverlay = function (){
+    jQuery('#ZCoverlay').fadeIn();
+    OnShowOverlay(false);
+};
+jQuery('body').append('<div id="ZCoverlay" class="bs-example-modal-lg" style="position:relative; z-index: 300;">'+
+'<div class="modal-dialog modal-lg">'+
+'    <div class="modal-content">'+
+'    <div class="modal-header">'+
+'    <button type="button" class="close" onclick="hideZCOverlay();")><span>×</span></button>'+
+'<h4 class="modal-title">Zeach Cobbler v' +GM_info.script.version + '</h4>'+
+'</div>'+
+'<div id="ZCoverlayBody" class="modal-body">'+
+'    </div>'+
+'    <div class="modal-footer">'+
+'    <button type="button" class="btn btn-default" onclick="hideZCOverlay();">Close</button>'+
+'    <button type="button" class="btn btn-primary" onclick="hideZCOverlay();setNick(document.getElementById(\'nick\').value); return false;">Play</button>'+
+'</div>'+
+'</div><!-- /.modal-content -->'+
+'</div><!-- /.modal-dialog -->'+
+'</div><!-- /.modal -->');
+//jQuery("#testmodal").hide();
+jQuery("#agario-main-buttons")
+    .append('<button type="button" class="btn btn-danger" id="opnZC" onclick="showZCOverlay()" style="margin-top:5px;position:relative;width:100%;">ZeachCobbler Options</button>');
+jQuery("#agario-main-buttons")
+    .append('<button type="button" id="opnBrowser" onclick="openServerbrowser();" style="margin-top:5px;position:relative;width:100%" class="btn btn-success">Agariomods Private Servers</button><br>');
+
+jQuery('#ZCoverlayBody').append('<div id="stats" style="position:relative;width:100%; background-color: #FFFFFF; border-radius: 15px; padding: 5px 15px 5px 15px;">'+
     '<ul class="nav nav-pills" role="tablist">' +
     '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
     '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
@@ -4054,11 +4087,10 @@ jQuery('#overlays').append('<div id="stats" style="position: absolute; top:50%; 
     '   <li><B>S</B> - Unlock all blobs (if blob locking enabled)</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
-        //'<div id="page3" role="tabpanel" class="tab-pane"><h3>gcommer IP connect</h3></div>' +
     '</div>' +
     '</div>');
 jQuery(".agario-profile-panel").appendTo("#XPArea");
-
+jQuery("#statsTab").click(function(){OnShowOverlay(false);});
 function LS_getValue(aKey, aDefault) {
     var val = localStorage.getItem(__STORAGE_PREFIX + aKey);
     if (null === val && 'undefined' != typeof aDefault) return aDefault;
@@ -4218,7 +4250,7 @@ function ResetStats()
 function OnGainMass(me, other)
 {
     var mass = other.size * other.size;
-    if (other.d){
+    if (other.isVirus){
         stats.viruses.num++;
         stats.viruses.mass += mass; //TODO: shouldn't add if  game mode is teams
         sfx_event("virushit");
@@ -4375,7 +4407,7 @@ function DrawStats(game_over) {
     }
     else {
         jQuery('#chartArea').height(200);
-        jQuery('#chartArea')[0].height= 200;
+        jQuery('#chartArea')[0].height=200;
     }
 }
 
@@ -4587,14 +4619,11 @@ bgmusic.onended = function() {
 };
 
 function uiOnLoadTweaks(){
-    $("label:contains(' Dark Theme') input").prop('checked', true);
+    $("label:contains('Dark theme') input").prop('checked', true);
     setDarkTheme(true);
-    $("label:contains(' Show mass') input").prop('checked', true);
+    $("label:contains('Show mass') input").prop('checked', true);
     setShowMass(true);
 
-    // default helloDialog has a margin of 10 px. take that away to make it line up with our other dialogs.
-    $("#helloDialog").css("marginTop", "0px");
-    $("#settings").show(); $("#instructions").hide();
     $('#nick').val(GM_getValue("nick", ""));
 }
 //================================  AgarioMods Private Servers  ========================================================
@@ -4707,8 +4736,6 @@ jQuery(document)
     .ready(function () {
         jQuery("body")
             .append('<div id="serverBrowser" class="overlay" style="display:none"><div class="valign"><div class="popupbox"><div class="popheader"><h3>Agariomods Ogar Server Browser</h3></div>\t<div class="scrollable"><center style="border-right:1px solid #e8e8e8;float:left;width:50%;"><div id="serverlist1"></div></center><center style="float:right;width:50%;"><div id="serverlist2"></div></center></div><div class="popupbuttons"><button onclick="closeServerbrowser()" type="button" style="transform:translateX(72%);margin:4px"\tclass="btn btn-danger">Back</button><button id="rsb" onclick="openServerbrowser(true)" class="btn btn-info" type="button" style="float:right;margin:4px;">Refresh <i class="glyphicon glyphicon-refresh"></i></button></div></div></div></div>');
-        jQuery("#settings")
-            .prepend('<button type="button" id="opnBrowser" onclick="openServerbrowser();" style="position:relative;top:-8px;width:100%" class="btn btn-success">Agariomods Private Servers</button><br>');
         jQuery("body")
             .append('<div id="chat" style="display:none"><div id="chatlines"></div><div id="chatinput" style="display:none" class="input-group">\t<input type="text" id="chatinputfield" class="form-control" maxlength="120"><span class="input-group-btn">\t<button onclick="sendMSG()" class="btn btn-default" type="button">Send</button></span></div></div>');
     });
@@ -4817,17 +4844,18 @@ col3.append('<h4>Skins Support</h4>');
 AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function(val){window.cobbler.amConnectSkins = val;});
 AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function(val){window.cobbler.amExtendedSkins = val;});
 AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function(val){window.cobbler.imgurSkins = val;});
-//AppendCheckboxP(col3, 'bitdo-checkbox', ' Bit.do `skins', window.cobbler.bitdoSkins, function(val){window.cobbler.bitdoSkins = val;});
-$("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
+
+// ---- Tooltips
+$("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right",
     "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"});
-$("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "bottom",
+$("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right",
     "title": "Leaves blob centers empty except for skins."});
+setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
 
 // Ugly ass hack to fix effects of official code loading before mod
 //$("#canvas").remove();
 //$("body").prepend('<canvas id="canvas" width="800" height="600"></canvas>');
 // enable tooltops
-//setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
 
 
 
