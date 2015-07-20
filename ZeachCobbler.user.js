@@ -2049,7 +2049,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         alert(c[2]);
                     }
                     Aa("ws://" + c[0], c[1]);
-                    /*new*/ serverIP = a[0];
+                    /*new*/ serverIP = c[0];
                 }
             },
             dataType : "text",
