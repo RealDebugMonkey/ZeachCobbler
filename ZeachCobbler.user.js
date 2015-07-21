@@ -185,6 +185,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "enableBlobLock"    : false,
             'nextOnBlobLock'    : false,
             'rightClickFires'   : false,
+            'showZcStats'       : true,
         };
         simpleSavedSettings(optionsAndDefaults);
     }
@@ -1602,6 +1603,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function customKeyDownEvents(d) {
+        //if('X'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        //        jQuery("#overlays").hide();
+        //        jQuery("#ZCOverlay").hide();
+        //        isGrazing = 0;
+        //        showVisualCues = true;
+        //        suspendMouseUpdates = false;
+        //        cobbler.enableBlobLock = false;
+        //}
         if(jQuery("#overlays").is(':visible')){
             return;
         }
@@ -1664,7 +1673,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         else if('V'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             cobbler.visualizeGrazing = !cobbler.visualizeGrazing;
         }
-
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             zoomFactor = (zoomFactor == 10 ? 11 : 10);
         }
@@ -1680,7 +1688,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 point.locked = false;
             }
         }
-        
     }
 
     function onAfterUpdatePacket() {
@@ -4006,37 +4013,45 @@ var chart_update_interval = 10;
 jQuery('body').append('<div id="chart-container" style="display:none; position:absolute; height:176px; width:300px; left:10px; bottom:44px"></div>');
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
 
+// make sure player sees ads at least once so Zeach doesn't go medieval on me.
+var PlayerHasSeenOfficialAds =_.once(function (){
+    jQuery("#ZCPlay").show();
+    jQuery("#ZCClose").text("Close");
+});
 
 unsafeWindow.hideZCOverlay = function(){
-    jQuery('#ZCoverlay').fadeOut();
+    PlayerHasSeenOfficialAds();
+    jQuery('#ZCOverlay').fadeOut();
 }
 unsafeWindow.showZCOverlay = function (){
-    jQuery('#ZCoverlay').fadeIn();
+    jQuery('#ZCOverlay').fadeIn();
     OnShowOverlay(false);
 };
-jQuery('body').append('<div id="ZCoverlay" class="bs-example-modal-lg" style="position:relative; z-index: 300;">'+
+jQuery('body').append('<div id="ZCOverlay" class="bs-example-modal-lg" style="position:relative;z-index: 300;">'+
 '<div class="modal-dialog modal-lg">'+
 '    <div class="modal-content">'+
 '    <div class="modal-header">'+
 '    <button type="button" class="close" onclick="hideZCOverlay();")><span>×</span></button>'+
 '<h4 class="modal-title">Zeach Cobbler v' +GM_info.script.version + '</h4>'+
 '</div>'+
-'<div id="ZCoverlayBody" class="modal-body">'+
+'<div id="ZCOverlayBody" class="modal-body" style="height:675px;">'+
 '    </div>'+
 '    <div class="modal-footer">'+
-'    <button type="button" class="btn btn-default" onclick="hideZCOverlay();">Close</button>'+
-'    <button type="button" class="btn btn-primary" onclick="hideZCOverlay();setNick(document.getElementById(\'nick\').value); return false;">Play</button>'+
+'    <button type="button" id="ZCClose" class="btn btn-default" onclick="hideZCOverlay();">Let\'s Roll</button>'+
+'    <button type="button" id="ZCPlay" class="btn btn-primary" onclick="hideZCOverlay();setNick(document.getElementById(\'nick\').value); return false;">Play</button>'+
 '</div>'+
 '</div><!-- /.modal-content -->'+
 '</div><!-- /.modal-dialog -->'+
 '</div><!-- /.modal -->');
-//jQuery("#testmodal").hide();
+
+jQuery("#ZCPlay").hide();
+
 jQuery("#agario-main-buttons")
     .append('<button type="button" class="btn btn-danger" id="opnZC" onclick="showZCOverlay()" style="margin-top:5px;position:relative;width:100%;">ZeachCobbler Options</button>');
 jQuery("#agario-main-buttons")
     .append('<button type="button" id="opnBrowser" onclick="openServerbrowser();" style="margin-top:5px;position:relative;width:100%" class="btn btn-success">Agariomods Private Servers</button><br>');
 
-jQuery('#ZCoverlayBody').append('<div id="stats" style="position:relative;width:100%; background-color: #FFFFFF; border-radius: 15px; padding: 5px 15px 5px 15px;">'+
+jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;width:100%; background-color: #FFFFFF; border-radius: 15px; padding: 5px 15px 5px 15px;">'+
     '<ul class="nav nav-pills" role="tablist">' +
     '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
     '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
@@ -4345,6 +4360,14 @@ function AppendTopN(n, p, list) {
     return a.length > 0;
 }
 
+function ShowZCStats(){
+    if(cobbler.showZcStats){
+        jQuery("#ZCOverlay").fadeIn();
+        jQuery('#statsTab').tab('show');
+    }
+
+}
+
 function DrawStats(game_over) {
     if (!stats) return;
 
@@ -4353,12 +4376,13 @@ function DrawStats(game_over) {
     jQuery('#gainArea').empty();
     jQuery('#lossArea').empty();
     jQuery('#chartArea').empty();
-    jQuery('#statsTab').tab('show');
+    //jQuery('#statsTab').tab('show');
 
     if (game_over){
         stats.time_of_death = Date.now();
         sfx_play(1);
         StopBGM();
+        ShowZCStats();
         if(window.cobbler.autoRespawn && window.cobbler.grazingMode){setTimeout(function(){jQuery(".btn-play-guest").click();},3000);}
     }
     var time = stats.time_of_death ? stats.time_of_death : Date.now();
@@ -4743,10 +4767,12 @@ jQuery(document)
 uiOnLoadTweaks();
 
 var col1 = $("#col1");
+col1.append("<h4>Options</h4>");
+AppendCheckbox(col1, 'showZcStats-checkbox', ' Show ZC Stats On Death', window.cobbler.showZcStats, function(val){window.cobbler.showZcStats = val;});
 col1.append("<h4>Modes</h4>");
 AppendCheckbox(col1, 'isacid-checkbox', ' Enable Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
 AppendCheckbox(col1, 'litebrite-checkbox', ' Enable Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
-col1.append("<h4>Options</h4>");
+col1.append("<h4>Visual</h4>");
 AppendCheckbox(col1, 'trailingtail-checkbox', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
 AppendCheckbox(col1, 'splitguide-checkbox', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
 AppendCheckbox(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
@@ -4855,7 +4881,6 @@ setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})},
 // Ugly ass hack to fix effects of official code loading before mod
 //$("#canvas").remove();
 //$("body").prepend('<canvas id="canvas" width="800" height="600"></canvas>');
-// enable tooltops
 
 
 
