@@ -287,17 +287,16 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return !!zeach.myPoints.length;
     }
 
-    function sendMouseUpdate(ws, mouseX2, mouseY2, blob) {
+    function sendMouseUpdate(ws, mouseX2, mouseY2, blobId) {
         lastMouseCoords = {x: mouseX2, y: mouseY2};
 
         if (ws && ws.readyState == ws.OPEN) {
-            var blobId = blob ? blob.id : 0;
             var z0 = new ArrayBuffer(21);
             var z1 = new DataView(z0);
             z1.setUint8(0, 16);
             z1.setFloat64(1, mouseX2, true);
             z1.setFloat64(9, mouseY2, true);
-            z1.setUint32(17, blobId, true);
+            z1.setUint32(17, blobId || 0, true);
             ws.send(z0);
         }
     }
@@ -459,7 +458,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             getSelectedBlob().grazingTargetID = newTarget.id;
         }
-        
+
         // with target fixation on, target remains until it's eaten by someone or
         // otherwise disappears. With it off target is constantly recalculated
         // at the expense of CPU
@@ -467,17 +466,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             throttledResetGrazingTargetId();
         }
 
-        var target;
-
-
-        var targets = findFoodToEat(!cobbler.grazerMultiBlob2);
+        // Perform grazer mode switching if necessary
         for(i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
-            
+
             if (!cobbler.grazerMultiBlob2 && point.id != getSelectedBlob().id) {
                 continue;
             }
-                    
+
             point.grazingMode = isGrazing;
             if(cobbler.grazerHybridSwitch) {
                 var mass = getMass(point.nSize);
@@ -488,41 +484,50 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     point.grazingMode = 1; // We lost too much mass. Use old grazer.
                 }
             }
-            switch(point.grazingMode) {
-                case 1: {
-
-                    if(!zeach.allNodes.hasOwnProperty(point.grazingTargetID)) {
-                        target = findFoodToEat_old(point, zeach.allItems);
-                        if(-1 == target){
-                            point.grazingMode = 2;
-                            return;
-                        }
-                        point.grazingTargetID = target.id;
-                    } else {
-                        target = zeach.allNodes[point.grazingTargetID];
-                    }
-                    if (!cobbler.grazerMultiBlob2) {
-                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
-                    } else {
-                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
-                    }
-                
-                break;
-                }
-                case 2: {
-                    if (!cobbler.grazerMultiBlob2) {
-                        target = _.max(targets, "v");
-                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random());
-                    } else {
-                        target = targets[point.id];
-                        sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
-                    }
-                    
-                    break;
-                }
-            }
         }
 
+        var pointsByMode;
+        if (cobbler.grazerMultiBlob2) {
+            pointsByMode = _.groupBy(zeach.myPoints, "grazingMode");
+        } else {
+            // Can't navigate independently anyway, so leave only one algorithm,
+            // which is in charge of the currently selected blob.
+            var sb = getSelectedBlob();
+            pointsByMode = {};
+            pointsByMode[sb.grazingMode] = [sb.id];
+        }
+
+        // Old grazer
+        if(pointsByMode[1] && (pointsByMode[1].length > 0)) {
+            pointsByMode[1].forEach(function(point) {
+                var target;
+                if(!zeach.allNodes.hasOwnProperty(point.grazingTargetID)) {
+                    target = findFoodToEat_old(point, zeach.allItems);
+                    if(-1 == target){
+                        point.grazingMode = 2;
+                        return;
+                    }
+                    point.grazingTargetID = target.id;
+                } else {
+                    target = zeach.allNodes[point.grazingTargetID];
+                }
+
+                sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), cobbler.grazerMultiBlob2 ? point.id : null);
+            });
+        }
+
+        // New grazer
+        if(pointsByMode[2] && (pointsByMode[2].length > 0)) {
+            // If we're in singleblob nav mode, then we're going to control all blobs anyway,
+            // in that case let's compute a solution that takes into account all points.
+            var controlledCells = cobbler.grazerMultiBlob2 ? pointsByMode[2] : zeach.myPoints;
+            var targets = findFoodToEat(controlledCells, cobbler.grazerMultiBlob2);
+
+            // targets array would really contain only one target when in singleblob nav mode
+            targets.forEach(function(target) {
+                sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), cobbler.grazerMultiBlob2 ? target.id : null);
+            });
+        }
     }
 
     function dasMouseSpeedFunction(id, cx, cy, radius, nx, ny) {
@@ -645,15 +650,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         return blobArray;
     }
-    function findFoodToEat(useGradient) {
+    function findFoodToEat(controlledCells, moveIndependently) {
         blobArray = augmentBlobArray(zeach.allItems);
 
         zeach.myPoints.forEach(function(cell) {
             cell.gr_is_mine = true;
         });
+        var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
 
-        var accs = zeach.myPoints.map(function (cell) {
-            
+        var accs = controlledCells.map(function (cell) {
 
             var per_food = [], per_threat = [];
             var acc = {
@@ -667,12 +672,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 per_threat: per_threat,
                 cumulatives: [ { x: 0, y: 0}, { x: 0, y: 0} ],
             };
-            
-            if (!useGradient && cell.grazingMode != 2) {
-                return acc;
-            }
-            
-            var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
 
             // Avoid walls too
             var wallArray = [];
@@ -828,52 +827,51 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cell.grazeInfo = acc;
             return acc;
         });
-        
-        if (useGradient) {
-            var funcs = accs.map(function(acc) {
-                return new dasMouseSpeedFunction(acc.id, acc.x, acc.y, 200, acc.fx, acc.fy);
-            });
 
-            // Pick gradient ascent step size for better convergence
-            // so that coord jumps don't exceed ~50 units
-            var step = _.sum(accs.map(function(acc) {
-                return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
-            }));
-            step = 50 / step;
-            if(!isFinite(step)) {
-                step = 50;
-            }
+        var viewport = getViewport(false);
 
-            var viewport = getViewport(false);
-            funcs.push(
-                new dasBorderFunction(
-                    viewport.x - viewport.dx,
-                    viewport.y - viewport.dy,
-                    viewport.x + viewport.dx,
-                    viewport.y + viewport.dy,
-                    -1000
-                )
-            );
+        var borderFunc = new dasBorderFunction(
+            viewport.x - viewport.dx,
+            viewport.y - viewport.dy,
+            viewport.x + viewport.dx,
+            viewport.y + viewport.dy,
+            -1000
+        );
 
-            var func = new dasSumFunction(funcs);
+        // Pick gradient ascent step size for better convergence
+        // so that coord jumps don't exceed ~50 units
+        var step = _.sum(accs.map(function(acc) {
+            return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
+        }));
+        step = 50 / step;
+        if(!isFinite(step)) {
+            step = 50;
+        }
 
-            var results = accs.map(function(acc) {
+        var results;
+        if(moveIndependently) {
+             results = accs.map(function(acc) {
+                var funcs = [
+                    new dasMouseSpeedFunction(acc.id, acc.x, acc.y, 200, acc.fx, acc.fy),
+                    borderFunc,
+                ];
+                var func = new dasSumFunction(funcs);
                 return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
             });
         } else {
-            results = accs.map(function(acc) { 
-                var norm = Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
-                return {id: acc.id, x: acc.x + 200 * acc.fx / norm, y: acc.y + 200 * acc.fy / norm };
+            var funcs = accs.map(function(acc) {
+                return new dasMouseSpeedFunction(acc.id, acc.x, acc.y, 200, acc.fx, acc.fy);
             });
+            funcs.push(borderFunc);
+            var func = new dasSumFunction(funcs);
+            results = accs.map(function(acc) {
+                return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
+            });
+            // Pick the best gradient run for the single target.
+            results = [_.max(results, "v")];
         }
 
-
-        var reply = {};
-        for (var i = 0; i < results.length; i++) {
-            reply[results[i].id] = {id : -5, x : results[i].x, y : results[i].y, v : results[i].v};
-        }
-
-        return reply;
+        return results;
     }
 
 
