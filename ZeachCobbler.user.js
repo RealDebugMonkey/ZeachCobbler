@@ -1,16 +1,17 @@
 // ==UserScript==
 // @name         Zeach Cobbler
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
-// @updateURL    http://bit.do/ZeachCobblerJS
-// @downloadURL  http://bit.do/ZeachCobblerJS
+// @updateURL    http://bit.do/ZeachCobblerJS2
+// @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.28.0
+// @version      0.28.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
 // @changes     0.28.0 - Revamped UI
 //                     - Stats now detects viruses being eaten
+//                   1 - Updated @updateURL and @downloadURL to not use rawgit
 //              0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
@@ -79,12 +80,12 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>No one sneeze!</h3><p>" +
-"The code base for ZC is a house of cards right now. Changes to the official code base can break the code at any time. " +
-    "For now, you'll have to live with some  differences between this mod and the official client." +
-"<br><br>debugmonkey</p><br>PS. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
-"I can. Only one of me and I gotta keep food on the table before working on this hobby.<br>" +
-"<img src='http://i.imgur.com/p4zv6vx.jpg'>";
+var debugMonkeyReleaseMessage = "<h3>New UI</h3><p>" +
+    "I hope you like the new UI. Party Play dialogs should now be accessible from the game mode dropdown.<br> " +
+    "There is also a new option to disable the automatic display of the ZC stats window." +
+    "<br><br>debugmonkey</p><br>PS. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
+    "I can. Only one of me and I gotta keep food on the table before working on this hobby.<br>" +
+    "<img src='http://i.imgur.com/p4zv6vx.jpg'>";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
