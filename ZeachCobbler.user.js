@@ -98,7 +98,7 @@ unsafeWindow.connect2 = unsafeWindow.connect;
 jQuery("#canvas").remove();
 jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canvas>');
 
-(function(d, f) {
+(function (d, f) {
 
 
     // Options that will always be reset on reload
@@ -124,15 +124,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     var Huge_Color = "#FF3C3C",
         Large_Color = "#FFBF3D",
         Same_Color = "#FFFF00",
-        Small_Color  = "#00AA00",
+        Small_Color = "#00AA00",
         Tiny_Color = "#CC66FF",
-        myColor ="#3371FF",
-        virusColor ="#666666";
+        myColor = "#3371FF",
+        virusColor = "#666666";
     var lastMouseCoords = { x: 0, y: 0 };
     var ghostBlobs = [];
 
 
-    var miniMapCtx=jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
+    var miniMapCtx = jQuery('<canvas id="mini-map" width="175" height="175" style="border:2px solid #999;text-align:center;position:fixed;bottom:5px;right:5px;"></canvas>')
         .appendTo(jQuery('body'))
         .get(0)
         .getContext("2d");
@@ -140,53 +140,53 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     // cobbler is the object that holds all user options. Options that should never be persisted can be defined here.
     // If an option setting should be remembered it can
     var cobbler = {
-        set grazingMode(val)    {isGrazing = val;},
-        get grazingMode()       {return isGrazing;},
-        _isAcid : false,
-        set isAcid(val)         {this._isAcid = val; setAcid(val);},
-        get isAcid()            {return this._isAcid;},
-        minimapScaleCurrentValue : 1,
-        "displayMiniMap" : true,
+        set grazingMode(val) { isGrazing = val; },
+        get grazingMode() { return isGrazing; },
+        _isAcid: false,
+        set isAcid(val) { this._isAcid = val; setAcid(val); },
+        get isAcid() { return this._isAcid; },
+        minimapScaleCurrentValue: 1,
+        "displayMiniMap": true,
 
     };
     // utility function to simplify creation of options whose state should be persisted to disk
-    function simpleSavedSettings(optionsObject){
-        _.forEach(optionsObject, function(defaultValue, settingName){
+    function simpleSavedSettings(optionsObject) {
+        _.forEach(optionsObject, function (defaultValue, settingName) {
             var backingVar = '_' + settingName;
             cobbler[backingVar] = GM_getValue(settingName, defaultValue),
             Object.defineProperty(cobbler, settingName, {
-                get: function()     { return this[backingVar];},
-                set: function(val)  { this[backingVar] = val; GM_setValue(settingName, val); }
+                get: function () { return this[backingVar]; },
+                set: function (val) { this[backingVar] = val; GM_setValue(settingName, val); }
             });
         });
     }
     // defines all options that should be persisted along with their default values.
-    function makeCobbler(){
+    function makeCobbler() {
         var optionsAndDefaults = {
-            "isLiteBrite"       : true,
-            "sfxVol"            : 0.5,
-            "bgmVol"            : 0.5,
-            "drawTail"          : false,
-            "splitGuide"        : true,
-            "rainbowPellets"    : true,
-            "debugLevel"        : 1,
-            "imgurSkins"        : true,
-            "amExtendedSkins"   : true,
-            "amConnectSkins"    : true,
-            "namesUnderBlobs"   : false,
-            "grazerMultiBlob2"  : false,
+            "isLiteBrite": true,
+            "sfxVol": 0.5,
+            "bgmVol": 0.5,
+            "drawTail": false,
+            "splitGuide": true,
+            "rainbowPellets": true,
+            "debugLevel": 1,
+            "imgurSkins": true,
+            "amExtendedSkins": true,
+            "amConnectSkins": true,
+            "namesUnderBlobs": false,
+            "grazerMultiBlob2": false,
             "grazerHybridSwitch": false,
-            "grazerHybridSwitchMass" : 300,
-            "gridLines"         : true,
-            "autoRespawn"       : false,
-            "visualizeGrazing"  : true,
-            "msDelayBetweenShots" : 100,
-            "miniMapScale"      : false,
-            "miniMapScaleValue" : 64,
-            "enableBlobLock"    : false,
-            'nextOnBlobLock'    : false,
-            'rightClickFires'   : false,
-            'showZcStats'       : true,
+            "grazerHybridSwitchMass": 300,
+            "gridLines": true,
+            "autoRespawn": false,
+            "visualizeGrazing": true,
+            "msDelayBetweenShots": 100,
+            "miniMapScale": false,
+            "miniMapScaleValue": 64,
+            "enableBlobLock": false,
+            'nextOnBlobLock': false,
+            'rightClickFires': false,
+            'showZcStats': true,
         };
         simpleSavedSettings(optionsAndDefaults);
     }
@@ -196,99 +196,99 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     // ======================   Property & Var Name Restoration  =======================================================
     var zeach = {
-        get connect()       {return Aa;},        // Connect
-        get ctx()           {return g;},        // g_context
-        get webSocket()     {return r;},        // g_socket
-        get myIDs()         {return K;},        // g_playerCellIds
-        get myPoints()      {return m;},        // g_playerCells
-        get allNodes()      {return D;},        // g_cellsById
-        get allItems()      {return v;},        // g_cells
-        get mouseX2()       {return fa;},       // g_moveX
-        get mouseY2()       {return ga;},       // g_moveY
-        get mapLeft()       {return oa;},       // g_minX
-        get mapTop()        {return pa;},       // g_minY
-        get mapRight()      {return qa;},       // g_maxX
-        get mapBottom()     {return ra;},       // g_maxY
-        get isShowSkins()   {return fb;},       // g_showSkins
+        get connect() { return Aa; },        // Connect
+        get ctx() { return g; },        // g_context
+        get webSocket() { return r; },        // g_socket
+        get myIDs() { return K; },        // g_playerCellIds
+        get myPoints() { return m; },        // g_playerCells
+        get allNodes() { return D; },        // g_cellsById
+        get allItems() { return v; },        // g_cells
+        get mouseX2() { return fa; },       // g_moveX
+        get mouseY2() { return ga; },       // g_moveY
+        get mapLeft() { return oa; },       // g_minX
+        get mapTop() { return pa; },       // g_minY
+        get mapRight() { return qa; },       // g_maxX
+        get mapBottom() { return ra; },       // g_maxY
+        get isShowSkins() { return fb; },       // g_showSkins
         // "g_showNames": "va",
-        get isNightMode()   {return sa;},       // ??
-        get isShowMass()    {return gb;},       // ??
-        get gameMode()      {return O;},        // g_mode
-        get fireFunction()  {return G;},        // SendCmd
-        get isColors()      {return Ka;},       // g_noColors
-        get defaultSkins()  {return jb;},       // g_skinNamesA
-        get imgCache()      {return T;},       // ???
-        get textFunc()      {return ua;},       // CachedCanvas
-        get textBlobs()     {return Bb;},       // g_skinNamesB
-        get hasNickname()   {return va;},        // g_showNames
-        get scale()   {return k;},        //
+        get isNightMode() { return sa; },       // ??
+        get isShowMass() { return gb; },       // ??
+        get gameMode() { return O; },        // g_mode
+        get fireFunction() { return G; },        // SendCmd
+        get isColors() { return Ka; },       // g_noColors
+        get defaultSkins() { return jb; },       // g_skinNamesA
+        get imgCache() { return T; },       // ???
+        get textFunc() { return ua; },       // CachedCanvas
+        get textBlobs() { return Bb; },       // g_skinNamesB
+        get hasNickname() { return va; },        // g_showNames
+        get scale() { return k; },        //
         // Classes
-        get CachedCanvas()  {return ua;},       // CachedCanvas
-        get Cell()          {return aa;},        //
+        get CachedCanvas() { return ua; },       // CachedCanvas
+        get Cell() { return aa; },        //
         // These never existed before but are useful
-        get mapWidth()      {return  ~~(Math.abs(zeach.mapLeft) + zeach.mapRight);},
-        get mapHeight()  {return  ~~(Math.abs(zeach.mapTop) + zeach.mapBottom);},
+        get mapWidth() { return ~~(Math.abs(zeach.mapLeft) + zeach.mapRight); },
+        get mapHeight() { return ~~(Math.abs(zeach.mapTop) + zeach.mapBottom); },
     };
 
 
-    function restoreCanvasElementObj(objPrototype){
+    function restoreCanvasElementObj(objPrototype) {
         var canvasElementPropMap = {
-            'setValue'   : 'C',                 //
-            'render'     : 'L',                 //
-            'setScale'   : 'ea',                //
-            'setSize'    : 'M',                 //
+            'setValue': 'C',                 //
+            'render': 'L',                 //
+            'setScale': 'ea',                //
+            'setSize': 'M',                 //
         };
-        _.forEach(canvasElementPropMap, function(newPropName,oldPropName){
+        _.forEach(canvasElementPropMap, function (newPropName, oldPropName) {
             Object.defineProperty(objPrototype, oldPropName, {
-                get: function()     { return this[newPropName];},
-                set: function(val)  { this[newPropName] = val; }
+                get: function () { return this[newPropName]; },
+                set: function (val) { this[newPropName] = val; }
             });
         });
     }
 
     // Cell
-    function restorePointObj(objPrototype){
+    function restorePointObj(objPrototype) {
         var pointPropMap = {
-            'isVirus'     : 'h', //
-            'nx'          : 'J', //
-            'ny'          : 'K', //
-            'setName'     : 'B', //
-            'nSize'       : 'q', //
-            'ox'          : 's', //
-            'oy'          : 't', //
-            'oSize'       : 'r', //
-            'destroy'     : 'X', //
-            'maxNameSize' : 'l', //
-            'massText'    : 'O', //
-            'nameCache'   : 'o', //
-            'isAgitated'  : 'n'
+            'isVirus': 'h', //
+            'nx': 'J', //
+            'ny': 'K', //
+            'setName': 'B', //
+            'nSize': 'q', //
+            'ox': 's', //
+            'oy': 't', //
+            'oSize': 'r', //
+            'destroy': 'X', //
+            'maxNameSize': 'l', //
+            'massText': 'O', //
+            'nameCache': 'o', //
+            'isAgitated': 'n'
         };
-        _.forEach(pointPropMap, function(newPropName,oldPropName){
+        _.forEach(pointPropMap, function (newPropName, oldPropName) {
             Object.defineProperty(objPrototype, oldPropName, {
-                get: function()     { return this[newPropName];},
-                set: function(val)  { this[newPropName] = val; }
+                get: function () { return this[newPropName]; },
+                set: function (val) { this[newPropName] = val; }
             });
         });
     }
 
     // ======================   Utility code    ==================================================================
-    function isFood(blob){
+    function isFood(blob) {
         return (blob.nSize < 15);
     }
-    function getSelectedBlob(){
-        if(!_.contains(zeach.myIDs, selectedBlobID)){
+    function getSelectedBlob() {
+        if (!_.contains(zeach.myIDs, selectedBlobID)) {
             selectedBlobID = zeach.myPoints[0].id;
             //console.log("Had to select new blob. Its id is " + selectedBlobID);
         }
         return zeach.allNodes[selectedBlobID];
     }
 
-    function isPlayerAlive(){
+    function isPlayerAlive() {
         return !!zeach.myPoints.length;
     }
 
     function sendMouseUpdate(ws, mouseX2, mouseY2, blob) {
-        lastMouseCoords = {x: mouseX2, y: mouseY2};
+        lastMouseCoords = { x: mouseX2, y: mouseY2 };
 
         if (ws && ws.readyState == ws.OPEN) {
             var blobId = blob ? blob.id : 0;
@@ -302,29 +302,29 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
 
-    function getMass(x){
-        return x*x/100;
+    function getMass(x) {
+        return x * x / 100;
     }
 
-    function lineDistance( point1, point2 ){
+    function lineDistance(point1, point2) {
         var xs = point2.nx - point1.nx;
         var ys = point2.ny - point1.ny;
 
-        return Math.sqrt( xs * xs + ys * ys );
+        return Math.sqrt(xs * xs + ys * ys);
     }
 
-    function getVirusShotsNeededForSplit(cellSize){
-        return ~~((149-cellSize)/7);
+    function getVirusShotsNeededForSplit(cellSize) {
+        return ~~((149 - cellSize) / 7);
     }
 
-    function calcTTR(element){
+    function calcTTR(element) {
 
         var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
-        return ~~((((totalMass*0.02)*1000)+30000) / 1000) - ~~((Date.now() - element.splitTime) / 1000);
+        return ~~((((totalMass * 0.02) * 1000) + 30000) / 1000) - ~~((Date.now() - element.splitTime) / 1000);
     }
 
     function getBlobShotsAvailable(blob) {
-        return ~~(Math.max(0, (getMass(blob.nSize)-(35-18))/18));
+        return ~~(Math.max(0, (getMass(blob.nSize) - (35 - 18)) / 18));
     }
 
     function distanceFromCellZero(blob) {
@@ -333,16 +333,16 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function getViewport(interpolated) {
-        var x =  _.sum(_.pluck(zeach.myPoints, interpolated ? "x" : "nx")) / zeach.myPoints.length;
-        var y =  _.sum(_.pluck(zeach.myPoints, interpolated ? "y" : "ny")) / zeach.myPoints.length;
-        var totalRadius =  _.sum(_.pluck(zeach.myPoints, interpolated ? "size" : "nSize"));
+        var x = _.sum(_.pluck(zeach.myPoints, interpolated ? "x" : "nx")) / zeach.myPoints.length;
+        var y = _.sum(_.pluck(zeach.myPoints, interpolated ? "y" : "ny")) / zeach.myPoints.length;
+        var totalRadius = _.sum(_.pluck(zeach.myPoints, interpolated ? "size" : "nSize"));
         var zoomFactor = Math.pow(Math.min(64.0 / totalRadius, 1), 0.4);
         var deltaX = 1024 / zoomFactor;
         var deltaY = 600 / zoomFactor;
         return { x: x, y: y, dx: deltaX, dy: deltaY };
     }
 
-    function getMouseCoordsAsPseudoBlob(){
+    function getMouseCoordsAsPseudoBlob() {
         return {
             "x": zeach.mouseX2,
             "y": zeach.mouseY2,
@@ -353,27 +353,27 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     // ======================   Grazing code    ==================================================================
 
-    function checkCollision(myBlob, targetBlob, potential){
+    function checkCollision(myBlob, targetBlob, potential) {
         // Calculate distance to target
         var dtt = lineDistance(myBlob, targetBlob);
         // Slope and normal slope
-        var sl = (targetBlob.ny-myBlob.ny)/(targetBlob.nx-myBlob.nx);
-        var ns = -1/sl;
+        var sl = (targetBlob.ny - myBlob.ny) / (targetBlob.nx - myBlob.nx);
+        var ns = -1 / sl;
         // y-int of ptt
-        var yint1 = myBlob.ny - myBlob.nx*sl;
-        if(!(lineDistance(myBlob, potential) < dtt)){
+        var yint1 = myBlob.ny - myBlob.nx * sl;
+        if (!(lineDistance(myBlob, potential) < dtt)) {
             // get second y-int
             var yint2 = potential.ny - potential.nx * ns;
-            var interx = (yint2-yint1)/(sl-ns);
-            var intery = sl*interx + yint1;
+            var interx = (yint2 - yint1) / (sl - ns);
+            var intery = sl * interx + yint1;
             var pseudoblob = {};
             pseudoblob.nx = interx;
             pseudoblob.ny = intery;
             if (((targetBlob.nx < myBlob.nx && targetBlob.nx < interx && interx < myBlob.nx) ||
                 (targetBlob.nx > myBlob.nx && targetBlob.nx > interx && interx > myBlob.nx)) &&
                 ((targetBlob.ny < myBlob.ny && targetBlob.ny < intery && intery < myBlob.ny) ||
-                (targetBlob.ny > myBlob.ny && targetBlob.ny > intery && intery > myBlob.ny))){
-                if(lineDistance(potential, pseudoblob) < potential.size+100){
+                (targetBlob.ny > myBlob.ny && targetBlob.ny > intery && intery > myBlob.ny))) {
+                if (lineDistance(potential, pseudoblob) < potential.size + 100) {
                     return true;
                 }
             }
@@ -381,20 +381,20 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return false;
     }
 
-    function isSafeTarget(myBlob, targetBlob, threats){
+    function isSafeTarget(myBlob, targetBlob, threats) {
         var isSafe = true;
         // check target against each enemy to make sure no collision is possible
-        threats.forEach(function (threat){
-            if(isSafe) {
-                if(threat.isVirus) {
+        threats.forEach(function (threat) {
+            if (isSafe) {
+                if (threat.isVirus) {
                     //todo once we are big enough, our center might still be far enough
                     // away that it doesn't cross virus but we still pop
-                    if(checkCollision(myBlob, targetBlob, threat) )  {
+                    if (checkCollision(myBlob, targetBlob, threat)) {
                         isSafe = false;
                     }
                 }
                 else {
-                    if ( checkCollision(myBlob, targetBlob, threat) || lineDistance(threat, targetBlob) <= threat.size + 200) {
+                    if (checkCollision(myBlob, targetBlob, threat) || lineDistance(threat, targetBlob) <= threat.size + 200) {
                         isSafe = false;
                     }
                 }
@@ -404,7 +404,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     // All blobs that aren't mine
-    function getOtherBlobs(){
+    function getOtherBlobs() {
         return _.omit(zeach.allNodes, zeach.myIDs);
     }
 
@@ -412,10 +412,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function getThreats(blobArray, myMass) {
         // start by omitting all my IDs
         // then look for viruses smaller than us and blobs substantially bigger than us
-        return _.filter(getOtherBlobs(), function(possibleThreat){
+        return _.filter(getOtherBlobs(), function (possibleThreat) {
             var possibleThreatMass = getMass(possibleThreat.size);
 
-            if(possibleThreat.isVirus) {
+            if (possibleThreat.isVirus) {
                 // Viruses are only a threat if we are bigger than them
                 return myMass >= possibleThreatMass;
             }
@@ -428,23 +428,23 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     function doGrazing() {
         var i;
-        if(!isPlayerAlive()) {
+        if (!isPlayerAlive()) {
             //isGrazing = false;
             return;
         }
-        
-        if(null === throttledResetGrazingTargetId){
-            throttledResetGrazingTargetId = _.throttle(function (){
+
+        if (null === throttledResetGrazingTargetId) {
+            throttledResetGrazingTargetId = _.throttle(function () {
                 grazzerTargetResetRequest = 'all';
                 //console.log(~~(Date.now()/1000));
             }, 200);
         }
-        
-        
+
+
         if (grazzerTargetResetRequest == 'all') {
             grazzerTargetResetRequest = false;
-            
-            for(i = 0; i < zeach.myPoints.length; i++) {
+
+            for (i = 0; i < zeach.myPoints.length; i++) {
                 zeach.myPoints[i].grazingTargetID = false;
             }
         } else if (grazzerTargetResetRequest == 'current') {
@@ -452,18 +452,18 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
             pseudoBlob.size = getSelectedBlob().size;
             //pseudoBlob.scoreboard = scoreboard;
-            var newTarget = findFoodToEat_old(pseudoBlob,zeach.allItems);
-            if(-1 == newTarget){
+            var newTarget = findFoodToEat_old(pseudoBlob, zeach.allItems);
+            if (-1 == newTarget) {
                 isGrazing = false;
                 return;
             }
             getSelectedBlob().grazingTargetID = newTarget.id;
         }
-        
+
         // with target fixation on, target remains until it's eaten by someone or
         // otherwise disappears. With it off target is constantly recalculated
         // at the expense of CPU
-        if(!grazingTargetFixation) {
+        if (!grazingTargetFixation) {
             throttledResetGrazingTargetId();
         }
 
@@ -471,29 +471,29 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
 
         var targets = findFoodToEat(!cobbler.grazerMultiBlob2);
-        for(i = 0; i < zeach.myPoints.length; i++) {
+        for (i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
-            
+
             if (!cobbler.grazerMultiBlob2 && point.id != getSelectedBlob().id) {
                 continue;
             }
-                    
+
             point.grazingMode = isGrazing;
-            if(cobbler.grazerHybridSwitch) {
+            if (cobbler.grazerHybridSwitch) {
                 var mass = getMass(point.nSize);
                 // switch over to new grazer once we pass the threshhold
-                if(1 === point.grazingMode && mass > cobbler.grazerHybridSwitchMass){
+                if (1 === point.grazingMode && mass > cobbler.grazerHybridSwitchMass) {
                     point.grazingMode = 2; // We gained enough much mass. Use new grazer.
-                }else if(2 === point.grazingMode && mass < cobbler.grazerHybridSwitchMass ){
+                } else if (2 === point.grazingMode && mass < cobbler.grazerHybridSwitchMass) {
                     point.grazingMode = 1; // We lost too much mass. Use old grazer.
                 }
             }
-            switch(point.grazingMode) {
+            switch (point.grazingMode) {
                 case 1: {
 
-                    if(!zeach.allNodes.hasOwnProperty(point.grazingTargetID)) {
+                    if (!zeach.allNodes.hasOwnProperty(point.grazingTargetID)) {
                         target = findFoodToEat_old(point, zeach.allItems);
-                        if(-1 == target){
+                        if (-1 == target) {
                             point.grazingMode = 2;
                             return;
                         }
@@ -506,8 +506,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     } else {
                         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
                     }
-                
-                break;
+
+                    break;
                 }
                 case 2: {
                     if (!cobbler.grazerMultiBlob2) {
@@ -517,7 +517,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         target = targets[point.id];
                         sendMouseUpdate(zeach.webSocket, target.x + Math.random(), target.y + Math.random(), point);
                     }
-                    
+
                     break;
                 }
             }
@@ -527,32 +527,32 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     function dasMouseSpeedFunction(id, cx, cy, radius, nx, ny) {
         this.cx = cx; this.cy = cy; this.radius = radius; this.nx = nx; this.ny = ny;
-        this.value = function(x, y) {
+        this.value = function (x, y) {
             x -= this.cx; y -= this.cy;
-            var lensq = x*x + y*y;
+            var lensq = x * x + y * y;
             var len = Math.sqrt(lensq);
 
             var val = x * this.nx + y * this.ny;
             if (len > this.radius) {
                 return {
-                    id : id,
+                    id: id,
                     v: val / len,
                     dx: y * (this.nx * y - this.ny * x) / (lensq * len),
                     dy: x * (this.ny * x - this.nx * y) / (lensq * len),
                 };
             } else {
-                return {id: id, v: val / this.radius, dx: this.nx, dy: this.ny};
+                return { id: id, v: val / this.radius, dx: this.nx, dy: this.ny };
             }
         };
     }
 
     function dasBorderFunction(l, t, r, b, w) {
-        this.l = l; 
+        this.l = l;
         this.t = t;
-        this.r = r; 
-        this.b = b; 
+        this.r = r;
+        this.b = b;
         this.w = w;
-        this.value = function(x, y) {
+        this.value = function (x, y) {
             var v = 0, dx = 0, dy = 0;
             if (x < this.l) {
                 v += this.l - x;
@@ -570,14 +570,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 dy = this.w;
             }
 
-            return {v: v * this.w, dx: dx, dy: dy};
+            return { v: v * this.w, dx: dx, dy: dy };
         };
     }
 
     function dasSumFunction(sumfuncs) {
         this.sumfuncs = sumfuncs;
-        this.value = function(x, y) {
-            return sumfuncs.map(function(func) {
+        this.value = function (x, y) {
+            return sumfuncs.map(function (func) {
                 return func.value(x, y);
             }).reduce(function (acc, val) {
                 acc.v += val.v; acc.dx += val.dx; acc.dy += val.dy;
@@ -591,7 +591,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         var last = func.value(x, y);
 
-        while(iters > 0) {
+        while (iters > 0) {
             iters -= 1;
 
             x += last.dx * step;
@@ -605,11 +605,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             //console.log([x, y, tmp[0], step]);
 
             last.v = tmp.v;
-            last.dx = (last.dx + tmp.dx)/2.0;
-            last.dy = (last.dy + tmp.dy)/2.0;
+            last.dx = (last.dx + tmp.dx) / 2.0;
+            last.dy = (last.dy + tmp.dy) / 2.0;
         }
 
-        return {id: id, x: x, y: y, v: last.v};
+        return { id: id, x: x, y: y, v: last.v };
     }
 
     function augmentBlobArray(blobArray) {
@@ -648,39 +648,39 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function findFoodToEat(useGradient) {
         blobArray = augmentBlobArray(zeach.allItems);
 
-        zeach.myPoints.forEach(function(cell) {
+        zeach.myPoints.forEach(function (cell) {
             cell.gr_is_mine = true;
         });
 
         var accs = zeach.myPoints.map(function (cell) {
-            
+
 
             var per_food = [], per_threat = [];
             var acc = {
-                id : cell.id,
+                id: cell.id,
                 fx: 0,
                 fy: 0,
                 x: cell.nx,
                 y: cell.ny,
-                size : cell.nSize,
+                size: cell.nSize,
                 per_food: per_food,
                 per_threat: per_threat,
-                cumulatives: [ { x: 0, y: 0}, { x: 0, y: 0} ],
+                cumulatives: [{ x: 0, y: 0 }, { x: 0, y: 0 }],
             };
-            
+
             if (!useGradient && cell.grazingMode != 2) {
                 return acc;
             }
-            
+
             var totalMass = _.sum(_.pluck(zeach.myPoints, "nSize").map(getMass));
 
             // Avoid walls too
             var wallArray = [];
-            wallArray.push({id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30});
-            wallArray.push({id: -3, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30});
-            wallArray.push({id: -4, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30});
-            wallArray.push({id: -5, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30});
-            wallArray.forEach(function(el) {
+            wallArray.push({ id: -2, nx: cell.nx, ny: zeach.mapTop - 1, nSize: cell.nSize * 30 });
+            wallArray.push({ id: -3, nx: cell.nx, ny: zeach.mapBottom + 1, nSize: cell.nSize * 30 });
+            wallArray.push({ id: -4, ny: cell.ny, nx: zeach.mapLeft - 1, nSize: cell.nSize * 30 });
+            wallArray.push({ id: -5, ny: cell.ny, nx: zeach.mapRight + 1, nSize: cell.nSize * 30 });
+            wallArray.forEach(function (el) {
                 // Calculate repulsion vector
                 var vec = { id: el.id, gr_type: true, x: cell.nx - el.nx, y: cell.ny - el.ny };
                 var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
@@ -704,7 +704,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 vec.x /= dist;
                 vec.y /= dist;
 
-                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                if (!isFinite(vec.x) || !isFinite(vec.y)) {
                     return;
                 }
 
@@ -716,12 +716,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 acc.fy += vec.y;
             });
 
-            blobArray.forEach(function(el) {
+            blobArray.forEach(function (el) {
                 var vec = { id: el.id, x: cell.nx - el.nx, y: cell.ny - el.ny };
 
-                if(el.gr_is_mine) {
+                if (el.gr_is_mine) {
                     return; //our cell, ignore
-                } else if( !el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
+                } else if (!el.isVirus && (getMass(el.nSize) * 4 <= getMass(cell.nSize) * 3)) {
                     //if(!el.isVirus && (getMass(el.nSize) <= 9)) {
                     //vec.gr_type = null; //edible
                 } else if (!el.isVirus && (getMass(el.nSize) * 3 < (getMass(cell.nSize) * 4))) {
@@ -738,21 +738,21 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 vec.x /= dist;
                 vec.y /= dist;
 
-                if(el.nSize > cell.nSize) {
-                    if(el.isVirus) {
+                if (el.nSize > cell.nSize) {
+                    if (el.isVirus) {
                         // Viruses are only a threat if they're smaller than us
                         return;
                     }
 
                     // Distance till consuming
                     dist -= el.nSize;
-                    dist += cell.nSize /　3.0;
+                    dist += cell.nSize / 3.0;
                     dist -= 11;
 
                     dist = Math.max(dist, 0.01);
 
                     // Prioritize targets by size
-                    if(!vec.gr_type) {
+                    if (!vec.gr_type) {
                         //Non-threat
                         dist /= el.nSize;
                     } else {
@@ -764,12 +764,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         // how cells a lot bigger than us can be interested in us as a conglomerate of mass.
                         // So calculate threat index for our total mass too.
                         var ratio2 = getMass(el.nSize) / totalMass;
-                        if(ratio2 < 4.5 && ratio > 4.5) {
+                        if (ratio2 < 4.5 && ratio > 4.5) {
                             ratio2 = 4.5;
                         }
 
-                        ratio = Math.min(5, Math.max(0, - (ratio - 1) * (ratio - 8))) + 1;
-                        ratio2 = Math.min(5, Math.max(0, - (ratio2 - 1) * (ratio2 - 8))) + 1;
+                        ratio = Math.min(5, Math.max(0, -(ratio - 1) * (ratio - 8))) + 1;
+                        ratio2 = Math.min(5, Math.max(0, -(ratio2 - 1) * (ratio2 - 8))) + 1;
                         ratio = Math.max(ratio, ratio2);
 
                         // The more we're split and the more we're to lose, the more we should be afraid.
@@ -782,8 +782,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     dist -= cell.nSize;
                     dist -= 11;
 
-                    if(el.isVirus) {
-                        if(zeach.myPoints.length >= 16 ) {
+                    if (el.isVirus) {
+                        if (zeach.myPoints.length >= 16) {
                             // Can't split anymore so viruses are actually a good food!
                             delete vec.gr_type; //vec.gr_type = null;
                         } else {
@@ -798,7 +798,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     dist /= el.nSize;
                 }
 
-                if(!vec.gr_type) {
+                if (!vec.gr_type) {
                     //Not a threat. Make it attractive.
                     dist = -dist;
                 }
@@ -807,7 +807,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 vec.x /= dist;
                 vec.y /= dist;
 
-                if(!isFinite(vec.x) || !isFinite(vec.y)) {
+                if (!isFinite(vec.x) || !isFinite(vec.y)) {
                     return;
                 }
 
@@ -828,19 +828,19 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cell.grazeInfo = acc;
             return acc;
         });
-        
+
         if (useGradient) {
-            var funcs = accs.map(function(acc) {
+            var funcs = accs.map(function (acc) {
                 return new dasMouseSpeedFunction(acc.id, acc.x, acc.y, 200, acc.fx, acc.fy);
             });
 
             // Pick gradient ascent step size for better convergence
             // so that coord jumps don't exceed ~50 units
-            var step = _.sum(accs.map(function(acc) {
+            var step = _.sum(accs.map(function (acc) {
                 return Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
             }));
             step = 50 / step;
-            if(!isFinite(step)) {
+            if (!isFinite(step)) {
                 step = 50;
             }
 
@@ -857,68 +857,68 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
             var func = new dasSumFunction(funcs);
 
-            var results = accs.map(function(acc) {
+            var results = accs.map(function (acc) {
                 return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
             });
         } else {
-            results = accs.map(function(acc) { 
+            results = accs.map(function (acc) {
                 var norm = Math.sqrt(acc.fx * acc.fx + acc.fy * acc.fy);
-                return {id: acc.id, x: acc.x + 200 * acc.fx / norm, y: acc.y + 200 * acc.fy / norm };
+                return { id: acc.id, x: acc.x + 200 * acc.fx / norm, y: acc.y + 200 * acc.fy / norm };
             });
         }
 
 
         var reply = {};
         for (var i = 0; i < results.length; i++) {
-            reply[results[i].id] = {id : -5, x : results[i].x, y : results[i].y, v : results[i].v};
+            reply[results[i].id] = { id: -5, x: results[i].x, y: results[i].y, v: results[i].v };
         }
 
         return reply;
     }
 
 
-    function findFoodToEat_old(cell, blobArray){
+    function findFoodToEat_old(cell, blobArray) {
         var edibles = [];
         var densityResults = [];
         var threats = getThreats(blobArray, getMass(cell.size));
-        blobArray.forEach(function (element){
+        blobArray.forEach(function (element) {
             var distance = lineDistance(cell, element);
             if (!element.isSafeTarget) {
                 element.isSafeTarget = {};
             }
             element.isSafeTarget[cell.id] = null;
-            if( getMass(element.size) <= (getMass(cell.size) * 0.4) && !element.isVirus){
-                if(isSafeTarget(cell, element, threats)){
-                    edibles.push({"distance":distance, "id":element.id});
+            if (getMass(element.size) <= (getMass(cell.size) * 0.4) && !element.isVirus) {
+                if (isSafeTarget(cell, element, threats)) {
+                    edibles.push({ "distance": distance, "id": element.id });
                     element.isSafeTarget[cell.id] = true;
                 } else {
                     element.isSafeTarget[cell.id] = false;
                 }
             }
         });
-        edibles = edibles.sort(function(x,y){return x.distance<y.distance?-1:1;});
-        edibles.forEach(function (element){
-            var density = calcFoodDensity(cell, zeach.allNodes[element.id], blobArray)/(element.distance*2);
-            densityResults.push({"density":density, "id":element.id});
+        edibles = edibles.sort(function (x, y) { return x.distance < y.distance ? -1 : 1; });
+        edibles.forEach(function (element) {
+            var density = calcFoodDensity(cell, zeach.allNodes[element.id], blobArray) / (element.distance * 2);
+            densityResults.push({ "density": density, "id": element.id });
         });
-        if(0 === densityResults.length){
+        if (0 === densityResults.length) {
             //console.log("No target found");
             return avoidThreats(threats, cell);
             return -1;
         }
-        var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
+        var target = densityResults.sort(function (x, y) { return x.density > y.density ? -1 : 1; });
         //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
         return zeach.allNodes[target[0].id];
     }
 
-    function avoidThreats(threats, cell){
+    function avoidThreats(threats, cell) {
         // Avoid walls too
-        threats.push({x: cell.x, y: zeach.mapTop - 1, size: 1});
-        threats.push({x: cell.x, y: zeach.mapBottom + 1, size: 1});
-        threats.push({y: cell.y, x: zeach.mapLeft - 1, size: 1});
-        threats.push({y: cell.y, x: zeach.mapRight + 1, size: 1});
+        threats.push({ x: cell.x, y: zeach.mapTop - 1, size: 1 });
+        threats.push({ x: cell.x, y: zeach.mapBottom + 1, size: 1 });
+        threats.push({ y: cell.y, x: zeach.mapLeft - 1, size: 1 });
+        threats.push({ y: cell.y, x: zeach.mapRight + 1, size: 1 });
 
-        var direction = threats.reduce(function(acc, el) {
+        var direction = threats.reduce(function (acc, el) {
             // Calculate repulsion vector
             var vec = { x: cell.x - el.x, y: cell.y - el.y };
             var dist = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
@@ -939,45 +939,45 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             acc.y += vec.y;
 
             return acc;
-        }, {x: 0, y: 0});
+        }, { x: 0, y: 0 });
 
         // Normalize force to unit direction vector
         var dir_norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
         direction.x /= dir_norm;
         direction.y /= dir_norm;
 
-        if(!isFinite(direction.x) || !isFinite(direction.y)) {
+        if (!isFinite(direction.x) || !isFinite(direction.y)) {
             return -1;
         }
 
         return { id: -5, x: cell.x + direction.x * cell.size * 5, y: cell.y + direction.y * cell.size * 5 };
     }
 
-    function calcFoodDensity(cell, cell2, blobArray2){
+    function calcFoodDensity(cell, cell2, blobArray2) {
         var MaxDistance2 = 250;
         var pelletCount = 0;
-        blobArray2.forEach(function (element2){
+        blobArray2.forEach(function (element2) {
             var distance2 = lineDistance(cell2, element2);
 
             var cond1 = getMass(element2.size) <= (getMass(cell.size) * 0.4);
             var cond2 = distance2 < MaxDistance2;
             var cond3 = !element2.isVirus;
             //console.log(cond1 + " " + distance2 + " " + cell2.isSafeTarget);
-            if( cond1 && cond2 && cond3 && cell2.isSafeTarget[cell.id] ){
-                pelletCount +=1;
+            if (cond1 && cond2 && cond3 && cell2.isSafeTarget[cell.id]) {
+                pelletCount += 1;
             }
         });
 
         return pelletCount;
     }
-// ======================   UI stuff    ==================================================================
+    // ======================   UI stuff    ==================================================================
 
     function drawRescaledItems(ctx) {
         if (showVisualCues && isPlayerAlive()) {
             drawMapBorders(ctx);
             drawGrazingLines_old(ctx);
             drawGrazingLines(ctx);
-            if(cobbler.drawTail){
+            if (cobbler.drawTail) {
                 drawTrailTail(ctx);
             }
 
@@ -1009,7 +1009,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 else if (distanceFromCellZero(this) < distanceFromCellZero(zeach.allNodes[nearestVirusID]))
                     nearestVirusID = this.id;
             }
-            if(noColors) {
+            if (noColors) {
                 ctx.fillStyle = "#FFFFFF";
                 ctx.strokeStyle = "#AAAAAA"
             }
@@ -1034,7 +1034,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function drawSplitGuide(ctx, cell) {
-        if( !isPlayerAlive() || !cobbler.splitGuide){
+        if (!isPlayerAlive() || !cobbler.splitGuide) {
             return;
         }
         var radius = 660;
@@ -1042,7 +1042,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var centerY = cell.y;
         var hold = ctx.globalAlpha;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius+cell.size, 0, 2 * Math.PI, false);
+        ctx.arc(centerX, centerY, radius + cell.size, 0, 2 * Math.PI, false);
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#FF0000';
         ctx.stroke();
@@ -1055,20 +1055,20 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         ctx.globalAlpha = hold;
     }
 
-    function isTeamMode(){
+    function isTeamMode() {
         return (zeach.gameMode === ":teams");
     }
-    function setCellColors(cell,myPoints){
-        if(!showVisualCues){
+    function setCellColors(cell, myPoints) {
+        if (!showVisualCues) {
             return cell.color;
         }
-        if(cobbler.rainbowPellets && isFood(cell)){
+        if (cobbler.rainbowPellets && isFood(cell)) {
             return cell.color;
         }
         var color = cell.color;
         if (myPoints.length > 0 && !isTeamMode()) {
-            var size_this =  getMass(cell.size);
-            var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
+            var size_this = getMass(cell.size);
+            var size_that = ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
             if (cell.isVirus || myPoints.length === 0) {
                 color = virusColor;
             } else if (~myPoints.indexOf(cell)) {
@@ -1090,22 +1090,22 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     function displayDebugText(ctx, agarTextFunction) {
 
-        if(0 >= cobbler.debugLevel) {
+        if (0 >= cobbler.debugLevel) {
             return;
         }
 
         var textSize = 15;
         var debugStrings = [];
-        if(1 <= cobbler.debugLevel) {
+        if (1 <= cobbler.debugLevel) {
             debugStrings.push("v " + _version_);
             debugStrings.push("Server: " + serverIP);
 
             debugStrings.push("G - grazing: " + (isGrazing ? (1 == isGrazing) ? "Old" : "New" : "Off"));
         }
-        if(2 <= cobbler.debugLevel) {
+        if (2 <= cobbler.debugLevel) {
             debugStrings.push("M - suspend mouse: " + (suspendMouseUpdates ? "On" : "Off"));
             debugStrings.push("P - grazing target fixation :" + (grazingTargetFixation ? "On" : "Off"));
-            if(grazingTargetFixation){ debugStrings.push("  (T) to retarget");}
+            if (grazingTargetFixation) { debugStrings.push("  (T) to retarget"); }
             debugStrings.push("O - right click: " + (cobbler.rightClickFires ? "Fires @ virus" : "Default"))
             debugStrings.push("Z - zoom: " + zoomFactor.toString());
             if (isPlayerAlive()) {
@@ -1125,13 +1125,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     // Probably isn't necessary to throttle it ... but what the hell.
-    var rescaleMinimap = _.throttle(function(){
+    var rescaleMinimap = _.throttle(function () {
         var minimapScale = cobbler.miniMapScaleValue;
-        var scaledWidth = ~~(zeach.mapWidth/minimapScale);
-        var scaledHeight = ~~(zeach.mapHeight/minimapScale);
+        var scaledWidth = ~~(zeach.mapWidth / minimapScale);
+        var scaledHeight = ~~(zeach.mapHeight / minimapScale);
         var minimap = jQuery("#mini-map");
 
-        if(minimap.width() != scaledWidth || minimap.height() != scaledHeight || cobbler.minimapScaleCurrentValue != minimapScale){
+        if (minimap.width() != scaledWidth || minimap.height() != scaledHeight || cobbler.minimapScaleCurrentValue != minimapScale) {
             // rescale the div
             minimap.width(scaledWidth);
             minimap.height(scaledHeight);
@@ -1140,28 +1140,28 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             minimap[0].height = scaledHeight;
             cobbler.minimapScaleCurrentValue = minimapScale;
         }
-    }, 5*1000);
+    }, 5 * 1000);
 
     function drawMiniMap() {
         rescaleMinimap();
         var minimapScale = cobbler.miniMapScaleValue;
-        miniMapCtx.clearRect(0, 0, ~~(zeach.mapWidth/minimapScale), ~~(zeach.mapHeight/minimapScale));
+        miniMapCtx.clearRect(0, 0, ~~(zeach.mapWidth / minimapScale), ~~(zeach.mapHeight / minimapScale));
 
-        _.forEach(_.values(getOtherBlobs()), function(blob){
-            miniMapCtx.strokeStyle = blob.isVirus ?  "#33FF33" : 'rgb(52,152,219)' ;
+        _.forEach(_.values(getOtherBlobs()), function (blob) {
+            miniMapCtx.strokeStyle = blob.isVirus ? "#33FF33" : 'rgb(52,152,219)';
             miniMapCtx.beginPath();
-            miniMapCtx.arc((blob.nx+Math.abs(zeach.mapLeft)) / minimapScale, (blob.ny+Math.abs(zeach.mapTop)) / minimapScale, blob.size / minimapScale, 0, 2 * Math.PI);
+            miniMapCtx.arc((blob.nx + Math.abs(zeach.mapLeft)) / minimapScale, (blob.ny + Math.abs(zeach.mapTop)) / minimapScale, blob.size / minimapScale, 0, 2 * Math.PI);
             miniMapCtx.stroke();
         });
 
-        _.forEach(zeach.myPoints, function(myBlob){
+        _.forEach(zeach.myPoints, function (myBlob) {
             miniMapCtx.strokeStyle = "#FFFFFF";
             miniMapCtx.beginPath();
-            miniMapCtx.arc((myBlob.nx+Math.abs(zeach.mapLeft)) / minimapScale, (myBlob.ny+Math.abs(zeach.mapTop)) / minimapScale, myBlob.size / minimapScale, 0, 2 * Math.PI);
+            miniMapCtx.arc((myBlob.nx + Math.abs(zeach.mapLeft)) / minimapScale, (myBlob.ny + Math.abs(zeach.mapTop)) / minimapScale, myBlob.size / minimapScale, 0, 2 * Math.PI);
             miniMapCtx.stroke();
         });
     }
-    function drawLine(ctx, point1, point2, color){
+    function drawLine(ctx, point1, point2, color) {
         ctx.strokeStyle = color;
         ctx.beginPath();
         ctx.moveTo(point1.x, point1.y);
@@ -1170,8 +1170,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function drawGrazingLines(ctx) {
-        if(!isGrazing || !cobbler.visualizeGrazing ||  !isPlayerAlive())
-        {
+        if (!isGrazing || !cobbler.visualizeGrazing || !isPlayerAlive()) {
             //console.log("returning early");
             return;
         }
@@ -1179,8 +1178,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var oldColor = ctx.color;
         var oldGlobalAlpha = ctx.globalAlpha;
 
-        zeach.myPoints.forEach(function(playerBlob) {
-            if(!playerBlob.grazeInfo || playerBlob.grazingMode != 2) {
+        zeach.myPoints.forEach(function (playerBlob) {
+            if (!playerBlob.grazeInfo || playerBlob.grazingMode != 2) {
                 return;
             }
             var grazeInfo = playerBlob.grazeInfo;
@@ -1190,14 +1189,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var maxSize = 0.001;
 
             // Render threat forces
-            grazeInfo.per_threat.forEach(function (grazeVec){
+            grazeInfo.per_threat.forEach(function (grazeVec) {
                 var element = zeach.allNodes[grazeVec.id];
 
-                if(!element) return; //Wall or dead or something
+                if (!element) return; //Wall or dead or something
 
                 //drawLine(ctx,element, playerBlob, "red" );
                 //drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "red" );
-                drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "red" );
+                drawLine(ctx, playerBlob, { x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "red");
 
                 var grazeVecLen = Math.sqrt(grazeVec.x * grazeVec.x + grazeVec.y * grazeVec.y);
 
@@ -1212,15 +1211,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 ctx.globalAlpha = 1;
             });
 
-            if(zeach.myPoints.length <= 1) {
+            if (zeach.myPoints.length <= 1) {
                 // If we're not fragmented, render fancy food forces
-                grazeInfo.per_food.forEach(function (grazeVec){
+                grazeInfo.per_food.forEach(function (grazeVec) {
                     var element = zeach.allNodes[grazeVec.id];
 
-                    if(!element) return; //Wall or dead or something
+                    if (!element) return; //Wall or dead or something
 
                     //drawLine(ctx,element, playerBlob, "white" );
-                    drawLine(ctx,element, {x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "green" );
+                    drawLine(ctx, element, { x: element.x + grazeVec.x / maxSize, y: element.y + grazeVec.y / maxSize }, "green");
                     //drawLine(ctx,playerBlob, {x: playerBlob.x + grazeVec.x / maxSize, y: playerBlob.y + grazeVec.y / maxSize }, "green" );
                 });
             }
@@ -1232,7 +1231,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             ctx.lineWidth = 10;
 
             // Render summary force without special forces, like walls
-            drawLine(ctx,playerBlob,
+            drawLine(ctx, playerBlob,
                 {
                     x: playerBlob.x + (cumulatives[0].x + cumulatives[1].x) / maxSize,
                     y: playerBlob.y + (cumulatives[0].y + cumulatives[1].y) / maxSize,
@@ -1240,14 +1239,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             );
 
             // Render foods and threats force cumulatives
-            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[1].x / maxSize, y: playerBlob.y + cumulatives[1].y / maxSize }, "green" );
-            drawLine(ctx,playerBlob, {x: playerBlob.x + cumulatives[0].x / maxSize, y: playerBlob.y + cumulatives[0].y / maxSize }, "red" );
+            drawLine(ctx, playerBlob, { x: playerBlob.x + cumulatives[1].x / maxSize, y: playerBlob.y + cumulatives[1].y / maxSize }, "green");
+            drawLine(ctx, playerBlob, { x: playerBlob.x + cumulatives[0].x / maxSize, y: playerBlob.y + cumulatives[0].y / maxSize }, "red");
 
             // Render summary force with special forces, like walls
             ctx.lineWidth = 5;
-            drawLine(ctx,playerBlob, {x: playerBlob.x + (grazeInfo.fx) / maxSize, y: playerBlob.y + (grazeInfo.fy) / maxSize }, "orange" );
+            drawLine(ctx, playerBlob, { x: playerBlob.x + (grazeInfo.fx) / maxSize, y: playerBlob.y + (grazeInfo.fy) / maxSize }, "orange");
             ctx.lineWidth = 1;
-            drawLine(ctx,playerBlob, {x: playerBlob.x + 300 * (grazeInfo.fx) / maxSize, y: playerBlob.y + 300 * (grazeInfo.fy) / maxSize }, "orange" );
+            drawLine(ctx, playerBlob, { x: playerBlob.x + 300 * (grazeInfo.fx) / maxSize, y: playerBlob.y + 300 * (grazeInfo.fy) / maxSize }, "orange");
         });
 
         var viewport = getViewport(true);
@@ -1284,46 +1283,45 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         // Render trailing tail that indicates real movement,
         // based on the difference between client-interpolated and real coords.
         var trailScale = 5;
-        zeach.myPoints.forEach(function(playerBlob) {
+        zeach.myPoints.forEach(function (playerBlob) {
             var d = { x: playerBlob.nx - playerBlob.x, y: playerBlob.ny - playerBlob.y };
-            drawLine(ctx,playerBlob, {x: playerBlob.x - d.x * trailScale, y: playerBlob.y - d.y * trailScale }, myColor );
+            drawLine(ctx, playerBlob, { x: playerBlob.x - d.x * trailScale, y: playerBlob.y - d.y * trailScale }, myColor);
             //drawLine(ctx,{x: playerBlob.ox, y: playerBlob.oy }, {x: playerBlob.nx, y: playerBlob.ny }, "green" );
         });
     }
 
     function drawGrazingLines_old(ctx) {
-        if(!isGrazing || !cobbler.visualizeGrazing ||  !isPlayerAlive())
-        {
+        if (!isGrazing || !cobbler.visualizeGrazing || !isPlayerAlive()) {
             //console.log("returning early");
             return;
         }
         var oldLineWidth = ctx.lineWidth;
         var oldColor = ctx.color;
-        
+
         ctx.lineWidth = 10;
-        for(var i = 0; i < zeach.myPoints.length; i++) {
+        for (var i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
             if (point.grazingMode != 1) {
                 continue;
             }
-        
-            if(_.has(zeach.allNodes, point.grazingTargetID)){
+
+            if (_.has(zeach.allNodes, point.grazingTargetID)) {
                 drawLine(ctx, zeach.allNodes[point.grazingTargetID], point, "green");
             }
         }
-        
+
         ctx.lineWidth = 2;
-        for(var i = 0; i < zeach.myPoints.length; i++) {
+        for (var i = 0; i < zeach.myPoints.length; i++) {
             var point = zeach.myPoints[i];
             if (point.grazingMode != 1) {
                 continue;
             }
-            zeach.allItems.forEach(function (element){
+            zeach.allItems.forEach(function (element) {
                 if (!element.isSafeTarget) {
-                } else if(element.isSafeTarget[point.id] === true) {
-                    drawLine(ctx, element, point, "white" );
+                } else if (element.isSafeTarget[point.id] === true) {
+                    drawLine(ctx, element, point, "white");
                 } else if (element.isSafeTarget[point.id] === false) {
-                    drawLine(ctx, element, point, "red" );
+                    drawLine(ctx, element, point, "red");
                 } else {
                     //drawLine(ctx,element, getSelectedBlob(), "blue" );
                 }
@@ -1334,13 +1332,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     }
 
-// ======================   Virus Popper    ==================================================================
-    function findNearestVirus(cell, blobArray){
-        var nearestVirus = _.min(_.filter(blobArray, "isVirus", true), function(element) {
+    // ======================   Virus Popper    ==================================================================
+    function findNearestVirus(cell, blobArray) {
+        var nearestVirus = _.min(_.filter(blobArray, "isVirus", true), function (element) {
             return lineDistance(cell, element);
         });
 
-        if( Infinity == nearestVirus){
+        if (Infinity == nearestVirus) {
             //console.log("No nearby viruses");
             return -1;
         }
@@ -1352,7 +1350,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var msDelayBetweenShots = cobbler.msDelayBetweenShots;
         nearestVirus = findNearestVirus(blob, blobArray);
 
-        if(-1 == nearestVirus){
+        if (-1 == nearestVirus) {
             console.log("No Nearby Virus Found");
             console.log(blobArray);
             console.log(blob);
@@ -1362,77 +1360,77 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         // TODO: count availableshots and limit shots sent to  Math.min(shotsNeeded, ShotsAvailable)
         var shotsNeeded = getVirusShotsNeededForSplit(nearestVirus.size);
         var shotsFired = 0 / zeach.myPoints.length;
-        if(shotsNeeded <= 0){
+        if (shotsNeeded <= 0) {
             return;
         }
 
         suspendMouseUpdates = true;
-        console.log("Nearest Virus at: ("+ nearestVirus.x + "," + nearestVirus.y + ") requires " + shotsNeeded + " shots.");
+        console.log("Nearest Virus at: (" + nearestVirus.x + "," + nearestVirus.y + ") requires " + shotsNeeded + " shots.");
         // two mouse updates in a row to make sure new position is locked in.
         sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
         window.setTimeout(function () { sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random()); }, 25);
 
         // schedules all shots needed spaced evenly apart by of 'msDelayBetweenShots'
-        for ( ; shotsFired < shotsNeeded; shotsFired++){
+        for (; shotsFired < shotsNeeded; shotsFired++) {
             window.setTimeout(function () {
                 sendMouseUpdate(zeach.webSocket, nearestVirus.x + Math.random(), nearestVirus.y + Math.random());
                 zeach.fireFunction(21);
-            }, msDelayBetweenShots *(shotsFired+1));
+            }, msDelayBetweenShots * (shotsFired + 1));
         }
-        window.setTimeout(function () { suspendMouseUpdates = false;}, msDelayBetweenShots *(shotsFired+1));
+        window.setTimeout(function () { suspendMouseUpdates = false; }, msDelayBetweenShots * (shotsFired + 1));
     }
 
 
-    function fireAtVirusNearestToCursor(){
+    function fireAtVirusNearestToCursor() {
         fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), zeach.allItems);
     }
 
-// ======================   Skins    ==================================================================
+    // ======================   Skins    ==================================================================
     /* AgarioMod.com skins have been moved to the very end of the file */
     var extendedSkins = {
-        "billy mays" : "http://i.imgur.com/HavxFJu.jpg",
+        "billy mays": "http://i.imgur.com/HavxFJu.jpg",
         "stannis": "http://i.imgur.com/JyZr0CI.jpg",
-        "shrek is love" : "http://i.imgur.com/QDhkr4C.jpg",
-        "shrek is life" : "http://i.imgur.com/QDhkr4C.jpg",
-        "blueeyes" : "http://i.imgur.com/wxCfUws.jpg",
-        "ygritte"  : "http://i.imgur.com/lDIFCT1.png",
-        "lord kience" : "http://i.imgur.com/b2UXk15.png",
+        "shrek is love": "http://i.imgur.com/QDhkr4C.jpg",
+        "shrek is life": "http://i.imgur.com/QDhkr4C.jpg",
+        "blueeyes": "http://i.imgur.com/wxCfUws.jpg",
+        "ygritte": "http://i.imgur.com/lDIFCT1.png",
+        "lord kience": "http://i.imgur.com/b2UXk15.png",
     }
 
     var skinsSpecial = {
         "white  light": "https://i.imgur.com/4y8szAE.png",
-        "tubbymcfatfuck" : "http://tinyurl.com/TubbyMcFatFuck",
-        "texas  doge" : "http://i.imgur.com/MVsLldL.jpg",
-        "doge  helper" : "http://i.imgur.com/FzZebpk.jpg",
-        "controless " : "https://i.imgur.com/uD5SW8X.jpg",
-        "sqochit" : "http://i.imgur.com/AnowvFI.jpg",
-        "drunken" : "http://i.imgur.com/JeKNRss.png",
+        "tubbymcfatfuck": "http://tinyurl.com/TubbyMcFatFuck",
+        "texas  doge": "http://i.imgur.com/MVsLldL.jpg",
+        "doge  helper": "http://i.imgur.com/FzZebpk.jpg",
+        "controless ": "https://i.imgur.com/uD5SW8X.jpg",
+        "sqochit": "http://i.imgur.com/AnowvFI.jpg",
+        "drunken": "http://i.imgur.com/JeKNRss.png",
     };
 
 
     // special skins are defined in this script by me and are never translucent
-    function isSpecialSkin(targetName){
+    function isSpecialSkin(targetName) {
         return skinsSpecial.hasOwnProperty(targetName.toLowerCase());
     }
     // special skins are defined in this script by me and can be translucent
-    function isExtendedSkin(targetName){
+    function isExtendedSkin(targetName) {
         return _.has(extendedSkins, targetName.toLowerCase());
     }
 
-    function isAgarioModsSkin(targetName){
-        if(!cobbler.amExtendedSkins){
+    function isAgarioModsSkin(targetName) {
+        if (!cobbler.amExtendedSkins) {
             return false;
         }
         return _.includes(agariomodsSkins, targetName)
     }
-    function isImgurSkin(targetName){
-        if(!cobbler.imgurSkins){
+    function isImgurSkin(targetName) {
+        if (!cobbler.imgurSkins) {
             return false;
         }
         return _.startsWith(targetName, "i/");
     }
-    function isAMConnectSkin(targetName){
-        if(!cobbler.amConnectSkins){
+    function isAMConnectSkin(targetName) {
+        if (!cobbler.amConnectSkins) {
             return false;
         }
         return _.startsWith(targetName, "*");
@@ -1443,42 +1441,41 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var retval = null;
         var userName = cell.name;
         var userNameLowerCase = userName.toLowerCase();
-        if(":teams" ==  gameMode)
-        {
+        if (":teams" == gameMode) {
             retval = null;
         }
-        else if(!cell.isAgitated && showSkins ){
-            if(-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
-                    isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
-                if (!imgCache.hasOwnProperty(userNameLowerCase)){
-                    if(isSpecialSkin(userNameLowerCase)) {
+        else if (!cell.isAgitated && showSkins) {
+            if (-1 != defaultSkins.indexOf(userNameLowerCase) || isSpecialSkin(userNameLowerCase) || isImgurSkin(userNameLowerCase) ||
+                    isAgarioModsSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)) {
+                if (!imgCache.hasOwnProperty(userNameLowerCase)) {
+                    if (isSpecialSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = skinsSpecial[userNameLowerCase];
                     }
-                    else if(isExtendedSkin(userNameLowerCase)) {
+                    else if (isExtendedSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = extendedSkins[userNameLowerCase];
                     }
-                    else if(isAgarioModsSkin(userNameLowerCase)) {
+                    else if (isAgarioModsSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://skins.agariomods.com/i/" + userNameLowerCase + ".png";
                     }
-                    else if(isAMConnectSkin(userNameLowerCase)) {
+                    else if (isAMConnectSkin(userNameLowerCase)) {
                         console.log("is AmConnect skin")
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://connect.agariomods.com/img_" + userNameLowerCase.slice(1) + ".png";
                     }
-                    else if(isImgurSkin(userNameLowerCase)){
+                    else if (isImgurSkin(userNameLowerCase)) {
                         imgCache[userNameLowerCase] = new Image;
-                        imgCache[userNameLowerCase].src = "http://i.imgur.com/"+ userName.slice(2) +".png";
+                        imgCache[userNameLowerCase].src = "http://i.imgur.com/" + userName.slice(2) + ".png";
                     }
 
-                    else{
+                    else {
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "skins/" + userNameLowerCase + ".png";
                     }
                 }
-                if(0 != imgCache[userNameLowerCase].width && imgCache[userNameLowerCase].complete) {
+                if (0 != imgCache[userNameLowerCase].width && imgCache[userNameLowerCase].complete) {
                     retval = imgCache[userNameLowerCase];
                 } else {
                     retval = null;
@@ -1495,31 +1492,31 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
 
-// ======================   Draw Functions    ==================================================================
-    function shouldRelocateName(){
-        if(cobbler.namesUnderBlobs && !this.isVirus) {
+    // ======================   Draw Functions    ==================================================================
+    function shouldRelocateName() {
+        if (cobbler.namesUnderBlobs && !this.isVirus) {
             return true;
         }
-        return ((isExtendedSkin(this.name)|| isSpecialSkin(this.name) || /*isBitDoSkin(this.name)||*/ isAMConnectSkin(this.name)));
+        return ((isExtendedSkin(this.name) || isSpecialSkin(this.name) || /*isBitDoSkin(this.name)||*/ isAMConnectSkin(this.name)));
     }
 
-    function drawCellName(isMyCell, kbIndex, itemToDraw){
+    function drawCellName(isMyCell, kbIndex, itemToDraw) {
         var yBasePos;
         var nameCache = this.nameCache;
         yBasePos = ~~this.y;
         // Viruses have empty name caches. If this is a virus with an empty name cache
         // then give it a name of the # of shots needed to split it.
-        if(null == nameCache) {
+        if (null == nameCache) {
             if (this.isVirus) {
                 var virusSize = this.nSize;
                 var shotsNeeded = getVirusShotsNeededForSplit(virusSize).toString();
                 this.setName(shotsNeeded);
-            } else if(!isFood(this)) {
+            } else if (!isFood(this)) {
                 this.setName(this.nSize.toString()); // Stupid blank cells. Give them a name.
             }
         }
 
-        if((zeach.hasNickname || isMyCell) && (this.name && (nameCache && (null == itemToDraw || -1 == zeach.textBlobs.indexOf(kbIndex)))) ) {
+        if ((zeach.hasNickname || isMyCell) && (this.name && (nameCache && (null == itemToDraw || -1 == zeach.textBlobs.indexOf(kbIndex))))) {
 
             itemToDraw = nameCache;
             itemToDraw.setValue(this.name);
@@ -1533,9 +1530,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var xPos = ~~(itemToDraw.width / scale);
             var yPos = ~~(itemToDraw.height / scale);
 
-            if(shouldRelocateName.call(this)) {
+            if (shouldRelocateName.call(this)) {
                 // relocate names to UNDER the cell rather than on top of it
-                zeach.ctx.drawImage(itemToDraw, ~~this.x - ~~(xPos / 2), yBasePos + ~~(yPos ), xPos, yPos);
+                zeach.ctx.drawImage(itemToDraw, ~~this.x - ~~(xPos / 2), yBasePos + ~~(yPos), xPos, yPos);
                 yBasePos += itemToDraw.height / 2 / scale + 8;
             }
             else {
@@ -1546,17 +1543,17 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return yBasePos;
     }
 
-    function drawCellMass(yBasePos, itemToDraw){
+    function drawCellMass(yBasePos, itemToDraw) {
         var massValue = (~~(getMass(this.size))).toString();
         // Append shots to mass if visual cues are enabled
-        if(showVisualCues && _.contains(zeach.myIDs, this.id)){
+        if (showVisualCues && _.contains(zeach.myIDs, this.id)) {
             massValue += " (" + getBlobShotsAvailable(this).toString() + ")";
         }
 
-        if(zeach.isShowMass) {
+        if (zeach.isShowMass) {
             var scale;
-            if(itemToDraw || 0 == zeach.myPoints.length && ((!this.isVirus || this.isAgitated) && 20 < this.size)) {
-                if(null == this.massText) {
+            if (itemToDraw || 0 == zeach.myPoints.length && ((!this.isVirus || this.isAgitated) && 20 < this.size)) {
+                if (null == this.massText) {
                     this.massText = new zeach.CachedCanvas(this.maxNameSize() / 2, "#FFFFFF", true, "#000000");
                 }
                 itemToDraw = this.massText;
@@ -1566,12 +1563,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 itemToDraw.setScale(scale);
 
                 // Tweak : relocated mass is line is bigger than stock
-                itemToDraw.setScale(scale * ( shouldRelocateName.call(this) ? 2 : 1));
+                itemToDraw.setScale(scale * (shouldRelocateName.call(this) ? 2 : 1));
 
                 var e = itemToDraw.render();
                 var xPos = ~~(e.width / scale);
                 var yPos = ~~(e.height / scale);
-                if(shouldRelocateName.call(this)) {
+                if (shouldRelocateName.call(this)) {
                     // relocate mass to UNDER the cell rather than on top of it
                     zeach.ctx.drawImage(e, ~~this.x - ~~(xPos / 2), yBasePos + ~~(yPos), xPos, yPos);
                 }
@@ -1583,18 +1580,18 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
     }
 
-// ======================   Misc    ==================================================================
+    // ======================   Misc    ==================================================================
 
     function switchCurrentBlob() {
         var myids_sorted = _.pluck(zeach.myPoints, "id").sort(); // sort by id
         var indexloc = _.indexOf(myids_sorted, selectedBlobID);
-        if(-1 === indexloc){
+        if (-1 === indexloc) {
             selectedBlobID = zeach.myPoints[0].id;
             console.log("Had to select new blob. Its id is " + selectedBlobID);
             return zeach.allNodes[selectedBlobID];
         }
         indexloc += 1;
-        if(indexloc >= myids_sorted.length){
+        if (indexloc >= myids_sorted.length) {
             selectedBlobID = zeach.myPoints[0].id;
             console.log("Reached array end. Moving to beginning with id " + selectedBlobID);
             return zeach.allNodes[selectedBlobID];
@@ -1612,79 +1609,78 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         //        suspendMouseUpdates = false;
         //        cobbler.enableBlobLock = false;
         //}
-        if(jQuery("#overlays").is(':visible')){
+        if (jQuery("#overlays").is(':visible')) {
             return;
         }
 
-        if(9 === d.keyCode && isPlayerAlive()) {
+        if (9 === d.keyCode && isPlayerAlive()) {
             d.preventDefault();
             switchCurrentBlob();
         }
-        else if('A'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+        else if ('A'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             cobbler.isAcid = !cobbler.isAcid;
             setAcid(cobbler.isAcid);
         }
-        else if('C'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if ('C'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazzerTargetResetRequest = "all";
             showVisualCues = !showVisualCues;
-            if(!showVisualCues) {
+            if (!showVisualCues) {
                 zoomFactor = 10;
                 jQuery("#mini-map").hide();
             }
-            else
-            {
+            else {
                 jQuery("#mini-map").show();
             }
         }
-        else if('E'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+        else if ('E'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             fireAtVirusNearestToCursor();
         }
-        else if('G'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            if(cobbler.grazerHybridSwitch && isGrazing){
+        else if ('G'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            if (cobbler.grazerHybridSwitch && isGrazing) {
                 isGrazing = 0;
                 return;
             }
             grazzerTargetResetRequest = "all";
             isGrazing = (2 == isGrazing) ? false : 2;
         }
-        else if('H'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            if(cobbler.grazerHybridSwitch && isGrazing){
+        else if ('H'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            if (cobbler.grazerHybridSwitch && isGrazing) {
                 isGrazing = 0;
                 return;
             }
             grazzerTargetResetRequest = "all";
             isGrazing = (1 == isGrazing) ? false : 1;
         }
-        else if('M'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+        else if ('M'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             suspendMouseUpdates = !suspendMouseUpdates;
         }
-        else if('O'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if ('O'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             cobbler.rightClickFires = !cobbler.rightClickFires;
         }
-        else if('P'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if ('P'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazingTargetFixation = !grazingTargetFixation;
         }
-        else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
-            fireAtVirusNearestToBlob(getSelectedBlob(),zeach.allItems);
+        else if ('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            fireAtVirusNearestToBlob(getSelectedBlob(), zeach.allItems);
         }
-        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing)) {
+        else if ('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing)) {
             console.log("Retarget requested");
             grazzerTargetResetRequest = "current";
         }
-        else if('V'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if ('V'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             cobbler.visualizeGrazing = !cobbler.visualizeGrazing;
         }
-        else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if ('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             zoomFactor = (zoomFactor == 10 ? 11 : 10);
         }
-        else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
+        else if ('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
             var id = d.keyCode - '1'.charCodeAt(0);
-            if(id >= _.size(zeach.myPoints)) {return; }
-            var arr =  _.sortBy(zeach.myPoints, "nSize").reverse();
+            if (id >= _.size(zeach.myPoints)) { return; }
+            var arr = _.sortBy(zeach.myPoints, "nSize").reverse();
             selectedBlobID = arr[id].id;
         }
-        else if('S'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            for(var i = 0; i < zeach.myPoints.length; i++) {
+        else if ('S'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+            for (var i = 0; i < zeach.myPoints.length; i++) {
                 var point = zeach.myPoints[i];
                 point.locked = false;
             }
@@ -1692,16 +1688,16 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function onAfterUpdatePacket() {
-        if (!isPlayerAlive()){
+        if (!isPlayerAlive()) {
             timeSpawned = null;
         }
-        if(null == timeSpawned && isPlayerAlive()) {
+        if (null == timeSpawned && isPlayerAlive()) {
             timeSpawned = Date.now(); // it's been reported we miss some instances of player spawning
         }
     }
 
     function onBeforeNewPointPacket() {
-        if (0 == _.size(zeach.myPoints)){
+        if (0 == _.size(zeach.myPoints)) {
             timeSpawned = Date.now();
         }
     }
@@ -1711,11 +1707,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var pct;
             if (_.size(zeach.myPoints) > 1 && _.contains(zeach.myIDs, cell.id)) {
                 var oldestSplitTime = _.min(zeach.myPoints, "splitTime");
-                if(oldestSplitTime.id == cell.id){
+                if (oldestSplitTime.id == cell.id) {
                     d.setValue(cell.name);
                 } else {
                     pct = (cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize);
-                    d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");}
+                    d.setValue(calcTTR(cell) + " ttr" + " " + ~~(pct) + "%");
+                }
             } else if (!cell.isVirus && isPlayerAlive()) {
                 pct = ~~((cell.nSize * cell.nSize) * 100 / (getSelectedBlob().nSize * getSelectedBlob().nSize));
                 d.setValue(cell.name + " " + pct.toString() + "%");
@@ -1764,7 +1761,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function lockCurrentBlob() {
-        if(!isPlayerAlive()){
+        if (!isPlayerAlive()) {
             return;
         }
         var blob = getSelectedBlob();
@@ -1782,7 +1779,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
 
-// ======================   Start main    ==================================================================
+    // ======================   Start main    ==================================================================
 
     function kb() {
         wa = true;
@@ -1790,10 +1787,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         setInterval(La, 18E4);
         F = xa = document.getElementById("canvas");
         g = F.getContext("2d");
-        /*new*//*remap*/ F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
-        F.onmousedown = function(a) {
-            /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob();}
-            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor();}return;
+        /*new*//*remap*/ F.onmousewheel = function (e) { zoomFactor = e.wheelDelta > 0 ? 10 : 11; }
+        F.onmousedown = function (a) {
+            /*new*/if (cobbler.enableBlobLock) { lockCurrentBlob(); }
+            /*new*/if (isPlayerAlive() && cobbler.rightClickFires) { fireAtVirusNearestToCursor(); } return;
             if (Ma) {
                 var c = a.clientX - (5 + q / 5 / 2);
                 var b = a.clientY - (5 + q / 5 / 2);
@@ -1808,12 +1805,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             ya();
             U();
         };
-        F.onmousemove = function(a) {
+        F.onmousemove = function (a) {
             ca = a.clientX;
             da = a.clientY;
             ya();
         };
-        F.onmouseup = function() {
+        F.onmouseup = function () {
         };
         if (/firefox/i.test(navigator.userAgent)) {
             document.addEventListener("DOMMouseScroll", Na, false);
@@ -1823,7 +1820,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var a = false;
         var c = false;
         var b = false;
-        d.onkeydown = function(e) {
+        d.onkeydown = function (e) {
             if (!(32 != e.keyCode)) {
                 if (!a) {
                     U();
@@ -1849,7 +1846,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             /*new*/customKeyDownEvents(e);
         };
-        d.onkeyup = function(e) {
+        d.onkeyup = function (e) {
             if (32 == e.keyCode) {
                 a = false;
             }
@@ -1863,7 +1860,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 }
             }
         };
-        d.onblur = function() {
+        d.onblur = function () {
             G(19);
             b = c = a = false;
         };
@@ -1903,7 +1900,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var e = Number.NEGATIVE_INFINITY;
             var l = 0;
             var p = 0;
-            for (;p < v.length;p++) {
+            for (; p < v.length; p++) {
                 var h = v[p];
                 if (!!h.N()) {
                     if (!h.R) {
@@ -1918,18 +1915,18 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 }
             }
             W = mb.ja({
-                ca : a - (l + 100),
-                da : c - (l + 100),
-                ma : b + (l + 100),
-                na : e + (l + 100),
-                ka : 2,
-                la : 4
+                ca: a - (l + 100),
+                da: c - (l + 100),
+                ma: b + (l + 100),
+                na: e + (l + 100),
+                ka: 2,
+                la: 4
             });
             p = 0;
-            for (;p < v.length;p++) {
+            for (; p < v.length; p++) {
                 if (h = v[p], h.N() && !(20 >= h.size * k)) {
                     a = 0;
-                    for (;a < h.a.length;++a) {
+                    for (; a < h.a.length; ++a) {
                         c = h.a[a].x;
                         b = h.a[a].y;
                         if (!(c < t - q / 2 / k)) {
@@ -1953,7 +1950,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function La() {
         if (null == ha) {
             ha = {};
-            f("#region").children().each(function() {
+            f("#region").children().each(function () {
                 var a = f(this);
                 var c = a.val();
                 if (c) {
@@ -1961,7 +1958,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 }
             });
         }
-        f.get("https://m.agar.io/info", function(a) {
+        f.get("https://m.agar.io/info", function (a) {
             var c = {};
             var b;
             for (b in a.regions) {
@@ -2035,7 +2032,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function nb() {
         if (ja) {
             ja = false;
-            setTimeout(function() {
+            setTimeout(function () {
                 ja = true;
             }, 6E4 * Ta);
             if (d.googletag) {
@@ -2052,10 +2049,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var a = ++za;
         console.log("Find " + x + O);
         f.ajax("https://m.agar.io/", {
-            error : function() {
+            error: function () {
                 setTimeout(Ua, 1E3);
             },
-            success : function(c) {
+            success: function (c) {
                 if (a == za) {
                     c = c.split("\n");
                     if (c[2]) {
@@ -2065,11 +2062,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     /*new*/ serverIP = c[0];
                 }
             },
-            dataType : "text",
-            method : "POST",
-            cache : false,
-            crossDomain : true,
-            data : (x + O || "?") + "\n154669603"
+            dataType: "text",
+            method: "POST",
+            cache: false,
+            crossDomain: true,
+            data: (x + O || "?") + "\n154669603"
         });
     }
     function N() {
@@ -2093,7 +2090,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         if (null != J) {
             var e = J;
-            J = function() {
+            J = function () {
                 e(c);
             };
         }
@@ -2113,7 +2110,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         console.log("Connecting to " + a$$0);
         r = new WebSocket(a$$0);
         r.binaryType = "arraybuffer";
-        r.onopen = function() {
+        r.onopen = function () {
             var a;
             console.log("socket open");
             a = L(5);
@@ -2127,7 +2124,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             a = L(1 + c.length);
             a.setUint8(0, 80);
             var b = 0;
-            for (;b < c.length;++b) {
+            for (; b < c.length; ++b) {
                 a.setUint8(b + 1, c.charCodeAt(b));
             }
             M(a);
@@ -2135,7 +2132,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         };
         r.onmessage = pb;
         r.onclose = qb;
-        r.onerror = function() {
+        r.onerror = function () {
             console.log("socket error");
         };
     }
@@ -2159,7 +2156,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function rb(a) {
         function c$$0() {
             var c = "";
-            for (;;) {
+            for (; ;) {
                 var e = a.getUint16(b, true);
                 b += 2;
                 if (0 == e) {
@@ -2173,7 +2170,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (240 == a.getUint8(b)) {
             b += 5;
         }
-        switch(a.getUint8(b++)) {
+        switch (a.getUint8(b++)) {
             case 16:
                 sb(a, b);
                 /*new*/onAfterUpdatePacket();
@@ -2214,12 +2211,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 b = b + 4;
                 E = [];
                 var l = 0;
-                for (;l < e$$0;++l) {
+                for (; l < e$$0; ++l) {
                     var p = a.getUint32(b, true);
                     b = b + 4;
                     E.push({
-                        id : p,
-                        name : c$$0()
+                        id: p,
+                        name: c$$0()
                     });
                 }
                 Wa();
@@ -2229,7 +2226,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 e$$0 = a.getUint32(b, true);
                 b += 4;
                 l = 0;
-                for (;l < e$$0;++l) {
+                for (; l < e$$0; ++l) {
                     z.push(a.getFloat32(b, true));
                     b += 4;
                 }
@@ -2260,11 +2257,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 b = b + 4;
                 var f = a.getUint32(b, true);
                 b = b + 4;
-                setTimeout(function() {
+                setTimeout(function () {
                     R({
-                        e : h,
-                        f : d,
-                        d : f
+                        e: h,
+                        f: d,
+                        d: f
                     });
                 }, 1200);
         }
@@ -2285,15 +2282,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var e = a.getUint16(c, true);
         c += 2;
         var l = 0;
-        for (;l < e;++l) {
+        for (; l < e; ++l) {
             var p = D[a.getUint32(c, true)];
             var h = D[a.getUint32(c + 4, true)];
             c += 8;
             if (p) {
                 if (h) {
-                    /*new*//*mikey*//*remap*/OnCellEaten(p,h);
+                    /*new*//*mikey*//*remap*/OnCellEaten(p, h);
                     /*new*/// Remove from 10-sec-remembered cells list by id
-                    /*new*//*remap*/_.remove(ghostBlobs, {id: h.id});
+                    /*new*//*remap*/_.remove(ghostBlobs, { id: h.id });
                     h.X();
                     h.s = h.x;
                     h.t = h.y;
@@ -2306,7 +2303,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
         }
         l = 0;
-        for (;;) {
+        for (; ;) {
             e = a.getUint32(c, true);
             c += 4;
             if (0 == e) {
@@ -2324,7 +2321,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var k = a.getUint8(c++);
             var q = a.getUint8(c++);
             g = (g << 16 | k << 8 | q).toString(16);
-            for (;6 > g.length;) {
+            for (; 6 > g.length;) {
                 g = "0" + g;
             }
             g = "#" + g;
@@ -2342,7 +2339,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             var r;
             var n = "";
-            for (;;) {
+            for (; ;) {
                 r = a.getUint16(c, true);
                 c += 2;
                 if (0 == r) {
@@ -2393,7 +2390,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         b = a.getUint32(c, true);
         c += 4;
         l = 0;
-        for (;l < b;l++) {
+        for (; l < b; l++) {
             e = a.getUint32(c, true);
             c += 4;
             n = D[e];
@@ -2408,8 +2405,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
     function U() {
-        /*new*/if(isGrazing){ doGrazing(); return; }
-        /*new*/if(suspendMouseUpdates){return;}
+        /*new*/if (isGrazing) { doGrazing(); return; }
+        /*new*/if (suspendMouseUpdates) { return; }
         /*new*/var send_normal = false;;
         var a;
         if (S()) {
@@ -2418,7 +2415,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             if (!(64 > a * a + c * c)) {
                 if (!(0.01 > Math.abs($a - fa) && 0.01 > Math.abs(ab - ga))) {
                     send_normal = true;
-                    /*new*/if(!cobbler.enableBlobLock) {
+                    /*new*/if (!cobbler.enableBlobLock) {
                         $a = fa;
                         ab = ga;
                         a = L(21);
@@ -2427,18 +2424,19 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         a.setFloat64(9, ga, true);
                         a.setUint32(17, 0, true);
                         M(a);
-                        /*new*/}
+                        /*new*/
+                    }
                 }
             }
         }
-        /*new*/ if(cobbler.enableBlobLock) {sendMultyMouseUpdate(send_normal);}
+        /*new*/ if (cobbler.enableBlobLock) { sendMultyMouseUpdate(send_normal); }
     }
     function Ya() {
         if (S() && null != I) {
             var a = L(1 + 2 * I.length);
             a.setUint8(0, 0);
             var c = 0;
-            for (;c < I.length;++c) {
+            for (; c < I.length; ++c) {
                 a.setUint16(1 + 2 * c, I.charCodeAt(c), true);
             }
             M(a);
@@ -2459,7 +2457,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var a = L(1 + B.length);
             a.setUint8(0, 81);
             var c = 0;
-            for (;c < B.length;++c) {
+            for (; c < B.length; ++c) {
                 a.setUint8(c + 1, B.charCodeAt(c));
             }
             M(a);
@@ -2490,7 +2488,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (0 != m.length) {
             var a = 0;
             var c = 0;
-            for (;c < m.length;c++) {
+            for (; c < m.length; c++) {
                 a += m[c].size;
             }
             a = Math.pow(Math.min(64 / a, 1), 0.4) * cb();
@@ -2507,7 +2505,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             tb();
             var b = a$$0 = 0;
             var e = 0;
-            for (;e < m.length;e++) {
+            for (; e < m.length; e++) {
                 m[e].P();
                 a$$0 += m[e].x / m.length;
                 b += m[e].y / m.length;
@@ -2535,7 +2533,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         } else {
             vb();
         }
-        v.sort(function(a, c) {
+        v.sort(function (a, c) {
             return a.size == c.size ? a.id - c.id : a.size - c.size;
         });
         g.save();
@@ -2543,11 +2541,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         g.scale(k, k);
         g.translate(-t, -u);
         e = 0;
-        for (;e < P.length;e++) {
+        for (; e < P.length; e++) {
             P[e].w(g);
         }
         e = 0;
-        for (;e < v.length;e++) {
+        for (; e < v.length; e++) {
             v[e].w(g);
         }
         /*new*/drawRescaledItems(zeach.ctx);
@@ -2562,7 +2560,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             g.globalAlpha = 0.5;
             g.beginPath();
             e = 0;
-            for (;e < m.length;e++) {
+            for (; e < m.length; e++) {
                 g.moveTo(m[e].x, m[e].y);
                 g.lineTo(ma, na);
             }
@@ -2591,7 +2589,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             g.fillRect(10, s$$0 - 10 - 24 - 10, a$$0 + 10, 34);
             g.globalAlpha = 1;
             g.drawImage(b, 15, s$$0 - 10 - 24 - 5);
-            /*new*//*mikey*//*remap*/(zeach.myPoints&&zeach.myPoints[0]&&OnUpdateMass(wb()));
+            /*new*//*mikey*//*remap*/(zeach.myPoints && zeach.myPoints[0] && OnUpdateMass(wb()));
         }
         xb();
         c$$0 = Date.now() - c$$0;
@@ -2627,26 +2625,26 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             g.globalAlpha = 1;
         }
         db = A;
-        /*new*/displayDebugText(zeach.ctx,zeach.textFunc);
+        /*new*/displayDebugText(zeach.ctx, zeach.textFunc);
     }
     function vb() {
         g.fillStyle = sa ? "#111111" : "#F2FBFF";
         g.fillRect(0, 0, q, s$$0);
-        /*new*/if(!cobbler.gridLines){return;}
+        /*new*/if (!cobbler.gridLines) { return; }
         g.save();
         g.strokeStyle = sa ? "#AAAAAA" : "#000000";
         g.globalAlpha = 0.2 * k;
         var a = q / k;
         var c = s$$0 / k;
         var b = (-t + a / 2) % 50;
-        for (;b < a;b += 50) {
+        for (; b < a; b += 50) {
             g.beginPath();
             g.moveTo(b * k - 0.5, 0);
             g.lineTo(b * k - 0.5, c * k);
             g.stroke();
         }
         b = (-u + c / 2) % 50;
-        for (;b < c;b += 50) {
+        for (; b < c; b += 50) {
             g.beginPath();
             g.moveTo(0, b * k - 0.5);
             g.lineTo(a * k, b * k - 0.5);
@@ -2663,7 +2661,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function wb() {
         var a = 0;
         var c = 0;
-        for (;c < m.length;c++) {
+        for (; c < m.length; c++) {
             a += m[c].q * m[c].q;
         }
         return a;
@@ -2692,7 +2690,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 if (null == z) {
                     a.font = "20px Ubuntu";
                     c = 0;
-                    for (;c < E.length;++c) {
+                    for (; c < E.length; ++c) {
                         b = E[c].name || X("unnamed_cell");
                         if (!va) {
                             b = X("unnamed_cell");
@@ -2702,7 +2700,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                                 b = m[0].name;
                             }
                             a.fillStyle = "#FFAAAA";
-                            /*new*//*mikey*//*remap*/OnLeaderboard(c+1);
+                            /*new*//*mikey*//*remap*/OnLeaderboard(c + 1);
                         } else {
                             a.fillStyle = "#FFFFFF";
                         }
@@ -2711,7 +2709,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     }
                 } else {
                     c = b = 0;
-                    for (;c < z.length;++c) {
+                    for (; c < z.length; ++c) {
                         var e = b + z[c] * Math.PI * 2;
                         a.fillStyle = yb[c + 1];
                         a.beginPath();
@@ -2772,29 +2770,29 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             e = f(".agario-profile-panel .progress-bar-star").text();
             if (e != a.e) {
                 R({
-                    f : b$$0,
-                    d : b$$0,
-                    e : e
-                }, function() {
+                    f: b$$0,
+                    d: b$$0,
+                    e: e
+                }, function () {
                     f(".agario-profile-panel .progress-bar-star").text(a.e);
                     f(".agario-exp-bar .progress-bar").css("width", "100%");
-                    f(".progress-bar-star").addClass("animated tada").one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", function() {
+                    f(".progress-bar-star").addClass("animated tada").one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", function () {
                         f(".progress-bar-star").removeClass("animated tada");
                     });
-                    setTimeout(function() {
+                    setTimeout(function () {
                         f(".agario-exp-bar .progress-bar-text").text(a.d + "/" + a.d + " XP");
                         R({
-                            f : 0,
-                            d : a.d,
-                            e : a.e
-                        }, function() {
+                            f: 0,
+                            d: a.d,
+                            e: a.e
+                        }, function () {
                             R(a, c);
                         });
                     }, 1E3);
                 });
             } else {
                 var p = Date.now();
-                var h = function() {
+                var h = function () {
                     var b;
                     b = (Date.now() - p) / 1E3;
                     b = 0 > b ? 0 : 1 < b ? 1 : b;
@@ -2832,9 +2830,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             f(".agario-profile-name").text(a.name);
             Va();
             R({
-                f : a.f,
-                d : a.d,
-                e : a.e
+                f: a.f,
+                d: a.d,
+                e: a.e
             });
             f("#helloContainer").attr("data-logged-in", "1");
         }
@@ -2842,55 +2840,55 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function zb(a) {
         a = a.split("\n");
         eb({
-            name : a[0],
-            ra : a[1],
-            fa : a[2],
-            ia : 1E3 * +a[3],
-            e : +a[4],
-            f : +a[5],
-            d : +a[6]
+            name: a[0],
+            ra: a[1],
+            fa: a[2],
+            ia: 1E3 * +a[3],
+            e: +a[4],
+            f: +a[5],
+            d: +a[6]
         });
     }
     function Ia(a$$0) {
         if ("connected" == a$$0.status) {
             var c = a$$0.authResponse.accessToken;
-            d.FB.api("/me/picture?width=180&height=180", function(a) {
+            d.FB.api("/me/picture?width=180&height=180", function (a) {
                 d.localStorage.fbPictureCache = a.data.url;
                 f(".agario-profile-picture").attr("src", a.data.url);
             });
             f("#helloContainer").attr("data-logged-in", "1");
             if (null != B) {
                 f.ajax("https://m.agar.io/checkToken", {
-                    error : function() {
+                    error: function () {
                         B = null;
                         Ia(a$$0);
                     },
-                    success : function(a) {
+                    success: function (a) {
                         a = a.split("\n");
                         R({
-                            e : +a[0],
-                            f : +a[1],
-                            d : +a[2]
+                            e: +a[0],
+                            f: +a[1],
+                            d: +a[2]
                         });
                     },
-                    dataType : "text",
-                    method : "POST",
-                    cache : false,
-                    crossDomain : true,
-                    data : B
+                    dataType: "text",
+                    method: "POST",
+                    cache: false,
+                    crossDomain: true,
+                    data: B
                 });
             } else {
                 f.ajax("https://m.agar.io/facebookLogin", {
-                    error : function() {
+                    error: function () {
                         B = null;
                         f("#helloContainer").attr("data-logged-in", "0");
                     },
-                    success : zb,
-                    dataType : "text",
-                    method : "POST",
-                    cache : false,
-                    crossDomain : true,
-                    data : c
+                    success: zb,
+                    dataType: "text",
+                    method: "POST",
+                    cache: false,
+                    crossDomain: true,
+                    data: c
                 });
             }
         }
@@ -2964,7 +2962,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         } else {
 
             var ha = null;
-            d.setNick = function(a) {
+            d.setNick = function (a) {
                 Sa();
                 I = a;
                 Ya();
@@ -2973,27 +2971,27 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 /*new*/console.log("Storing '" + a + "' as nick");
             };
             d.setRegion = ea;
-            d.setSkins = function(a) {
+            d.setSkins = function (a) {
                 fb = a;
             };
-            d.setNames = function(a) {
+            d.setNames = function (a) {
                 va = a;
             };
-            d.setDarkTheme = function(a) {
+            d.setDarkTheme = function (a) {
                 sa = a;
             };
-            d.setColors = function(a) {
+            d.setColors = function (a) {
                 Ka = a;
             };
-            d.setShowMass = function(a) {
+            d.setShowMass = function (a) {
                 gb = a;
             };
-            d.spectate = function() {
+            d.spectate = function () {
                 I = null;
                 G(1);
                 Sa();
             };
-            d.setGameMode = function(a) {
+            d.setGameMode = function (a) {
                 if (a != O) {
                     if (":party" == O) {
                         f("#helloContainer").attr("data-party-state", "0");
@@ -3004,7 +3002,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     }
                 }
             };
-            d.setAcid = function(a) {
+            d.setAcid = function (a) {
                 Fa = a;
             };
             if (null != d.localStorage) {
@@ -3014,7 +3012,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 hb = +d.localStorage.AB9;
                 d.ABGroup = hb;
             }
-            f.get(Ja + "//gc.agar.io", function(a) {
+            f.get(Ja + "//gc.agar.io", function (a) {
                 var c = a.split(" ");
                 a = c[0];
                 c = c[1] || "";
@@ -3043,257 +3041,257 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }, "text");
             var ja = false;
             var Ta = 0;
-            setTimeout(function() {
+            setTimeout(function () {
                 ja = true;
             }, Math.max(6E4 * Ta, 1E4));
             var ba = {
-                AF : "JP-Tokyo",
-                AX : "EU-London",
-                AL : "EU-London",
-                DZ : "EU-London",
-                AS : "SG-Singapore",
-                AD : "EU-London",
-                AO : "EU-London",
-                AI : "US-Atlanta",
-                AG : "US-Atlanta",
-                AR : "BR-Brazil",
-                AM : "JP-Tokyo",
-                AW : "US-Atlanta",
-                AU : "SG-Singapore",
-                AT : "EU-London",
-                AZ : "JP-Tokyo",
-                BS : "US-Atlanta",
-                BH : "JP-Tokyo",
-                BD : "JP-Tokyo",
-                BB : "US-Atlanta",
-                BY : "EU-London",
-                BE : "EU-London",
-                BZ : "US-Atlanta",
-                BJ : "EU-London",
-                BM : "US-Atlanta",
-                BT : "JP-Tokyo",
-                BO : "BR-Brazil",
-                BQ : "US-Atlanta",
-                BA : "EU-London",
-                BW : "EU-London",
-                BR : "BR-Brazil",
-                IO : "JP-Tokyo",
-                VG : "US-Atlanta",
-                BN : "JP-Tokyo",
-                BG : "EU-London",
-                BF : "EU-London",
-                BI : "EU-London",
-                KH : "JP-Tokyo",
-                CM : "EU-London",
-                CA : "US-Atlanta",
-                CV : "EU-London",
-                KY : "US-Atlanta",
-                CF : "EU-London",
-                TD : "EU-London",
-                CL : "BR-Brazil",
-                CN : "CN-China",
-                CX : "JP-Tokyo",
-                CC : "JP-Tokyo",
-                CO : "BR-Brazil",
-                KM : "EU-London",
-                CD : "EU-London",
-                CG : "EU-London",
-                CK : "SG-Singapore",
-                CR : "US-Atlanta",
-                CI : "EU-London",
-                HR : "EU-London",
-                CU : "US-Atlanta",
-                CW : "US-Atlanta",
-                CY : "JP-Tokyo",
-                CZ : "EU-London",
-                DK : "EU-London",
-                DJ : "EU-London",
-                DM : "US-Atlanta",
-                DO : "US-Atlanta",
-                EC : "BR-Brazil",
-                EG : "EU-London",
-                SV : "US-Atlanta",
-                GQ : "EU-London",
-                ER : "EU-London",
-                EE : "EU-London",
-                ET : "EU-London",
-                FO : "EU-London",
-                FK : "BR-Brazil",
-                FJ : "SG-Singapore",
-                FI : "EU-London",
-                FR : "EU-London",
-                GF : "BR-Brazil",
-                PF : "SG-Singapore",
-                GA : "EU-London",
-                GM : "EU-London",
-                GE : "JP-Tokyo",
-                DE : "EU-London",
-                GH : "EU-London",
-                GI : "EU-London",
-                GR : "EU-London",
-                GL : "US-Atlanta",
-                GD : "US-Atlanta",
-                GP : "US-Atlanta",
-                GU : "SG-Singapore",
-                GT : "US-Atlanta",
-                GG : "EU-London",
-                GN : "EU-London",
-                GW : "EU-London",
-                GY : "BR-Brazil",
-                HT : "US-Atlanta",
-                VA : "EU-London",
-                HN : "US-Atlanta",
-                HK : "JP-Tokyo",
-                HU : "EU-London",
-                IS : "EU-London",
-                IN : "JP-Tokyo",
-                ID : "JP-Tokyo",
-                IR : "JP-Tokyo",
-                IQ : "JP-Tokyo",
-                IE : "EU-London",
-                IM : "EU-London",
-                IL : "JP-Tokyo",
-                IT : "EU-London",
-                JM : "US-Atlanta",
-                JP : "JP-Tokyo",
-                JE : "EU-London",
-                JO : "JP-Tokyo",
-                KZ : "JP-Tokyo",
-                KE : "EU-London",
-                KI : "SG-Singapore",
-                KP : "JP-Tokyo",
-                KR : "JP-Tokyo",
-                KW : "JP-Tokyo",
-                KG : "JP-Tokyo",
-                LA : "JP-Tokyo",
-                LV : "EU-London",
-                LB : "JP-Tokyo",
-                LS : "EU-London",
-                LR : "EU-London",
-                LY : "EU-London",
-                LI : "EU-London",
-                LT : "EU-London",
-                LU : "EU-London",
-                MO : "JP-Tokyo",
-                MK : "EU-London",
-                MG : "EU-London",
-                MW : "EU-London",
-                MY : "JP-Tokyo",
-                MV : "JP-Tokyo",
-                ML : "EU-London",
-                MT : "EU-London",
-                MH : "SG-Singapore",
-                MQ : "US-Atlanta",
-                MR : "EU-London",
-                MU : "EU-London",
-                YT : "EU-London",
-                MX : "US-Atlanta",
-                FM : "SG-Singapore",
-                MD : "EU-London",
-                MC : "EU-London",
-                MN : "JP-Tokyo",
-                ME : "EU-London",
-                MS : "US-Atlanta",
-                MA : "EU-London",
-                MZ : "EU-London",
-                MM : "JP-Tokyo",
-                NA : "EU-London",
-                NR : "SG-Singapore",
-                NP : "JP-Tokyo",
-                NL : "EU-London",
-                NC : "SG-Singapore",
-                NZ : "SG-Singapore",
-                NI : "US-Atlanta",
-                NE : "EU-London",
-                NG : "EU-London",
-                NU : "SG-Singapore",
-                NF : "SG-Singapore",
-                MP : "SG-Singapore",
-                NO : "EU-London",
-                OM : "JP-Tokyo",
-                PK : "JP-Tokyo",
-                PW : "SG-Singapore",
-                PS : "JP-Tokyo",
-                PA : "US-Atlanta",
-                PG : "SG-Singapore",
-                PY : "BR-Brazil",
-                PE : "BR-Brazil",
-                PH : "JP-Tokyo",
-                PN : "SG-Singapore",
-                PL : "EU-London",
-                PT : "EU-London",
-                PR : "US-Atlanta",
-                QA : "JP-Tokyo",
-                RE : "EU-London",
-                RO : "EU-London",
-                RU : "RU-Russia",
-                RW : "EU-London",
-                BL : "US-Atlanta",
-                SH : "EU-London",
-                KN : "US-Atlanta",
-                LC : "US-Atlanta",
-                MF : "US-Atlanta",
-                PM : "US-Atlanta",
-                VC : "US-Atlanta",
-                WS : "SG-Singapore",
-                SM : "EU-London",
-                ST : "EU-London",
-                SA : "EU-London",
-                SN : "EU-London",
-                RS : "EU-London",
-                SC : "EU-London",
-                SL : "EU-London",
-                SG : "JP-Tokyo",
-                SX : "US-Atlanta",
-                SK : "EU-London",
-                SI : "EU-London",
-                SB : "SG-Singapore",
-                SO : "EU-London",
-                ZA : "EU-London",
-                SS : "EU-London",
-                ES : "EU-London",
-                LK : "JP-Tokyo",
-                SD : "EU-London",
-                SR : "BR-Brazil",
-                SJ : "EU-London",
-                SZ : "EU-London",
-                SE : "EU-London",
-                CH : "EU-London",
-                SY : "EU-London",
-                TW : "JP-Tokyo",
-                TJ : "JP-Tokyo",
-                TZ : "EU-London",
-                TH : "JP-Tokyo",
-                TL : "JP-Tokyo",
-                TG : "EU-London",
-                TK : "SG-Singapore",
-                TO : "SG-Singapore",
-                TT : "US-Atlanta",
-                TN : "EU-London",
-                TR : "TK-Turkey",
-                TM : "JP-Tokyo",
-                TC : "US-Atlanta",
-                TV : "SG-Singapore",
-                UG : "EU-London",
-                UA : "EU-London",
-                AE : "EU-London",
-                GB : "EU-London",
-                US : "US-Atlanta",
-                UM : "SG-Singapore",
-                VI : "US-Atlanta",
-                UY : "BR-Brazil",
-                UZ : "JP-Tokyo",
-                VU : "SG-Singapore",
-                VE : "BR-Brazil",
-                VN : "JP-Tokyo",
-                WF : "SG-Singapore",
-                EH : "EU-London",
-                YE : "JP-Tokyo",
-                ZM : "EU-London",
-                ZW : "EU-London"
+                AF: "JP-Tokyo",
+                AX: "EU-London",
+                AL: "EU-London",
+                DZ: "EU-London",
+                AS: "SG-Singapore",
+                AD: "EU-London",
+                AO: "EU-London",
+                AI: "US-Atlanta",
+                AG: "US-Atlanta",
+                AR: "BR-Brazil",
+                AM: "JP-Tokyo",
+                AW: "US-Atlanta",
+                AU: "SG-Singapore",
+                AT: "EU-London",
+                AZ: "JP-Tokyo",
+                BS: "US-Atlanta",
+                BH: "JP-Tokyo",
+                BD: "JP-Tokyo",
+                BB: "US-Atlanta",
+                BY: "EU-London",
+                BE: "EU-London",
+                BZ: "US-Atlanta",
+                BJ: "EU-London",
+                BM: "US-Atlanta",
+                BT: "JP-Tokyo",
+                BO: "BR-Brazil",
+                BQ: "US-Atlanta",
+                BA: "EU-London",
+                BW: "EU-London",
+                BR: "BR-Brazil",
+                IO: "JP-Tokyo",
+                VG: "US-Atlanta",
+                BN: "JP-Tokyo",
+                BG: "EU-London",
+                BF: "EU-London",
+                BI: "EU-London",
+                KH: "JP-Tokyo",
+                CM: "EU-London",
+                CA: "US-Atlanta",
+                CV: "EU-London",
+                KY: "US-Atlanta",
+                CF: "EU-London",
+                TD: "EU-London",
+                CL: "BR-Brazil",
+                CN: "CN-China",
+                CX: "JP-Tokyo",
+                CC: "JP-Tokyo",
+                CO: "BR-Brazil",
+                KM: "EU-London",
+                CD: "EU-London",
+                CG: "EU-London",
+                CK: "SG-Singapore",
+                CR: "US-Atlanta",
+                CI: "EU-London",
+                HR: "EU-London",
+                CU: "US-Atlanta",
+                CW: "US-Atlanta",
+                CY: "JP-Tokyo",
+                CZ: "EU-London",
+                DK: "EU-London",
+                DJ: "EU-London",
+                DM: "US-Atlanta",
+                DO: "US-Atlanta",
+                EC: "BR-Brazil",
+                EG: "EU-London",
+                SV: "US-Atlanta",
+                GQ: "EU-London",
+                ER: "EU-London",
+                EE: "EU-London",
+                ET: "EU-London",
+                FO: "EU-London",
+                FK: "BR-Brazil",
+                FJ: "SG-Singapore",
+                FI: "EU-London",
+                FR: "EU-London",
+                GF: "BR-Brazil",
+                PF: "SG-Singapore",
+                GA: "EU-London",
+                GM: "EU-London",
+                GE: "JP-Tokyo",
+                DE: "EU-London",
+                GH: "EU-London",
+                GI: "EU-London",
+                GR: "EU-London",
+                GL: "US-Atlanta",
+                GD: "US-Atlanta",
+                GP: "US-Atlanta",
+                GU: "SG-Singapore",
+                GT: "US-Atlanta",
+                GG: "EU-London",
+                GN: "EU-London",
+                GW: "EU-London",
+                GY: "BR-Brazil",
+                HT: "US-Atlanta",
+                VA: "EU-London",
+                HN: "US-Atlanta",
+                HK: "JP-Tokyo",
+                HU: "EU-London",
+                IS: "EU-London",
+                IN: "JP-Tokyo",
+                ID: "JP-Tokyo",
+                IR: "JP-Tokyo",
+                IQ: "JP-Tokyo",
+                IE: "EU-London",
+                IM: "EU-London",
+                IL: "JP-Tokyo",
+                IT: "EU-London",
+                JM: "US-Atlanta",
+                JP: "JP-Tokyo",
+                JE: "EU-London",
+                JO: "JP-Tokyo",
+                KZ: "JP-Tokyo",
+                KE: "EU-London",
+                KI: "SG-Singapore",
+                KP: "JP-Tokyo",
+                KR: "JP-Tokyo",
+                KW: "JP-Tokyo",
+                KG: "JP-Tokyo",
+                LA: "JP-Tokyo",
+                LV: "EU-London",
+                LB: "JP-Tokyo",
+                LS: "EU-London",
+                LR: "EU-London",
+                LY: "EU-London",
+                LI: "EU-London",
+                LT: "EU-London",
+                LU: "EU-London",
+                MO: "JP-Tokyo",
+                MK: "EU-London",
+                MG: "EU-London",
+                MW: "EU-London",
+                MY: "JP-Tokyo",
+                MV: "JP-Tokyo",
+                ML: "EU-London",
+                MT: "EU-London",
+                MH: "SG-Singapore",
+                MQ: "US-Atlanta",
+                MR: "EU-London",
+                MU: "EU-London",
+                YT: "EU-London",
+                MX: "US-Atlanta",
+                FM: "SG-Singapore",
+                MD: "EU-London",
+                MC: "EU-London",
+                MN: "JP-Tokyo",
+                ME: "EU-London",
+                MS: "US-Atlanta",
+                MA: "EU-London",
+                MZ: "EU-London",
+                MM: "JP-Tokyo",
+                NA: "EU-London",
+                NR: "SG-Singapore",
+                NP: "JP-Tokyo",
+                NL: "EU-London",
+                NC: "SG-Singapore",
+                NZ: "SG-Singapore",
+                NI: "US-Atlanta",
+                NE: "EU-London",
+                NG: "EU-London",
+                NU: "SG-Singapore",
+                NF: "SG-Singapore",
+                MP: "SG-Singapore",
+                NO: "EU-London",
+                OM: "JP-Tokyo",
+                PK: "JP-Tokyo",
+                PW: "SG-Singapore",
+                PS: "JP-Tokyo",
+                PA: "US-Atlanta",
+                PG: "SG-Singapore",
+                PY: "BR-Brazil",
+                PE: "BR-Brazil",
+                PH: "JP-Tokyo",
+                PN: "SG-Singapore",
+                PL: "EU-London",
+                PT: "EU-London",
+                PR: "US-Atlanta",
+                QA: "JP-Tokyo",
+                RE: "EU-London",
+                RO: "EU-London",
+                RU: "RU-Russia",
+                RW: "EU-London",
+                BL: "US-Atlanta",
+                SH: "EU-London",
+                KN: "US-Atlanta",
+                LC: "US-Atlanta",
+                MF: "US-Atlanta",
+                PM: "US-Atlanta",
+                VC: "US-Atlanta",
+                WS: "SG-Singapore",
+                SM: "EU-London",
+                ST: "EU-London",
+                SA: "EU-London",
+                SN: "EU-London",
+                RS: "EU-London",
+                SC: "EU-London",
+                SL: "EU-London",
+                SG: "JP-Tokyo",
+                SX: "US-Atlanta",
+                SK: "EU-London",
+                SI: "EU-London",
+                SB: "SG-Singapore",
+                SO: "EU-London",
+                ZA: "EU-London",
+                SS: "EU-London",
+                ES: "EU-London",
+                LK: "JP-Tokyo",
+                SD: "EU-London",
+                SR: "BR-Brazil",
+                SJ: "EU-London",
+                SZ: "EU-London",
+                SE: "EU-London",
+                CH: "EU-London",
+                SY: "EU-London",
+                TW: "JP-Tokyo",
+                TJ: "JP-Tokyo",
+                TZ: "EU-London",
+                TH: "JP-Tokyo",
+                TL: "JP-Tokyo",
+                TG: "EU-London",
+                TK: "SG-Singapore",
+                TO: "SG-Singapore",
+                TT: "US-Atlanta",
+                TN: "EU-London",
+                TR: "TK-Turkey",
+                TM: "JP-Tokyo",
+                TC: "US-Atlanta",
+                TV: "SG-Singapore",
+                UG: "EU-London",
+                UA: "EU-London",
+                AE: "EU-London",
+                GB: "EU-London",
+                US: "US-Atlanta",
+                UM: "SG-Singapore",
+                VI: "US-Atlanta",
+                UY: "BR-Brazil",
+                UZ: "JP-Tokyo",
+                VU: "SG-Singapore",
+                VE: "BR-Brazil",
+                VN: "JP-Tokyo",
+                WF: "SG-Singapore",
+                EH: "EU-London",
+                YE: "JP-Tokyo",
+                ZM: "EU-London",
+                ZW: "EU-London"
             };
             /*new*/// Hack to kill an established websocket
-            /*new*//*remap*/d.connect2 = d.connect;d.connect = zeach.connect;setTimeout(function(){try {d.connect2("Killing_original_websocket","");}catch(err){}} ,1500);
+            /*new*//*remap*/d.connect2 = d.connect; d.connect = zeach.connect; setTimeout(function () { try { d.connect2("Killing_original_websocket", ""); } catch (err) { } }, 1500);
 
             var J = null;
             d.connect = Aa;
@@ -3303,10 +3301,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var y = null;
             var C = 1;
             var ta = null;
-            var Qa = function() {
+            var Qa = function () {
                 var a = Date.now();
                 var c = 1E3 / 60;
-                return function() {
+                return function () {
                     d.requestAnimationFrame(Qa);
                     var b = Date.now();
                     var e = b - a;
@@ -3326,41 +3324,41 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var Bb = ["8", "nasa"];
             var Cb = ["m'blob"];
             Ha.prototype = {
-                V : null,
-                x : 0,
-                y : 0,
-                i : 0,
-                b : 0
+                V: null,
+                x: 0,
+                y: 0,
+                i: 0,
+                b: 0
             };
             aa.prototype = {
-                /*new*/ locked : false,
-                id : 0,
-                a : null,
-                name : null,
-                o : null,
-                O : null,
-                x : 0,
-                y : 0,
-                size : 0,
-                s : 0,
-                t : 0,
-                r : 0,
-                J : 0,
-                K : 0,
-                q : 0,
-                ba : 0,
-                Q : 0,
-                qa : 0,
-                ha : 0,
-                G : false,
-                h : false,
-                n : false,
-                R : true,
-                Y : 0,
-                X : function() {
+                /*new*/ locked: false,
+                id: 0,
+                a: null,
+                name: null,
+                o: null,
+                O: null,
+                x: 0,
+                y: 0,
+                size: 0,
+                s: 0,
+                t: 0,
+                r: 0,
+                J: 0,
+                K: 0,
+                q: 0,
+                ba: 0,
+                Q: 0,
+                qa: 0,
+                ha: 0,
+                G: false,
+                h: false,
+                n: false,
+                R: true,
+                Y: 0,
+                X: function () {
                     var a;
                     a = 0;
-                    for (;a < v.length;a++) {
+                    for (; a < v.length; a++) {
                         if (v[a] == this) {
                             v.splice(a, 1);
                             break;
@@ -3381,10 +3379,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         P.push(this);
                     }
                 },
-                l : function() {
+                l: function () {
                     return Math.max(~~(0.3 * this.size), 24);
                 },
-                B : function(a) {
+                B: function (a) {
                     if (this.name = a) {
                         if (null == this.o) {
                             this.o = new ua(this.l(), "#FFFFFF", true, "#000000");
@@ -3394,9 +3392,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         this.o.C(this.name);
                     }
                 },
-                W : function() {
+                W: function () {
                     var a = this.I();
-                    for (;this.a.length > a;) {
+                    for (; this.a.length > a;) {
                         var c = ~~(Math.random() * this.a.length);
                         this.a.splice(c, 1);
                     }
@@ -3405,13 +3403,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             this.a.push(new Ha(this, this.x, this.y, this.size, Math.random() - 0.5));
                         }
                     }
-                    for (;this.a.length < a;) {
+                    for (; this.a.length < a;) {
                         c = ~~(Math.random() * this.a.length);
                         c = this.a[c];
                         this.a.push(new Ha(this, c.x, c.y, c.i, c.b));
                     }
                 },
-                I : function() {
+                I: function () {
                     var a = 10;
                     if (20 > this.size) {
                         a = 0;
@@ -3427,14 +3425,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     if (this.ba & 32) {
                         c *= 0.25;
                     }
-                    return~~Math.max(c, a);
+                    return ~~Math.max(c, a);
                 },
-                oa : function() {
+                oa: function () {
                     this.W();
                     var a$$0 = this.a;
                     var c = a$$0.length;
                     var b = 0;
-                    for (;b < c;++b) {
+                    for (; b < c; ++b) {
                         var e = a$$0[(b - 1 + c) % c].b;
                         var l = a$$0[(b + 1) % c].b;
                         a$$0[b].b += (Math.random() - 0.5) * (this.n ? 3 : 1);
@@ -3450,7 +3448,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     var p = this;
                     var h = this.h ? 0 : (this.id / 1E3 + A / 1E4) % (2 * Math.PI);
                     b = 0;
-                    for (;b < c;++b) {
+                    for (; b < c; ++b) {
                         var d = a$$0[b].i;
                         e = a$$0[(b - 1 + c) % c].i;
                         l = a$$0[(b + 1) % c].i;
@@ -3458,7 +3456,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             var f = false;
                             var g = a$$0[b].x;
                             var m = a$$0[b].y;
-                            W.pa(g - 5, m - 5, 10, 10, function(a) {
+                            W.pa(g - 5, m - 5, 10, 10, function (a) {
                                 if (a.V != p) {
                                     if (25 > (g - a.x) * (g - a.x) + (m - a.y) * (m - a.y)) {
                                         f = true;
@@ -3494,7 +3492,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         a$$0[b].y = this.y + Math.sin(e * b + h) * l;
                     }
                 },
-                P : function() {
+                P: function () {
                     if (0 >= this.id) {
                         return 1;
                     }
@@ -3514,10 +3512,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     this.size = c * (this.q - this.r) + this.r;
                     return c;
                 },
-                N : function() {
+                N: function () {
                     return 0 >= this.id ? true : this.x + this.size + 40 < t - q / 2 / k || (this.y + this.size + 40 < u - s$$0 / 2 / k || (this.x - this.size - 40 > t + q / 2 / k || this.y - this.size - 40 > u + s$$0 / 2 / k)) ? false : true;
                 },
-                w : function(a) {
+                w: function (a) {
                     if (this.N()) {
                         ++this.Y;
                         var c = 0 < this.id && (!this.h && (!this.n && 0.4 > k));
@@ -3526,7 +3524,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         }
                         if (this.R && !c) {
                             var b = 0;
-                            for (;b < this.a.length;b++) {
+                            for (; b < this.a.length; b++) {
                                 this.a[b].i = this.size;
                             }
                         }
@@ -3557,7 +3555,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             var e = this.I();
                             a.moveTo(this.a[0].x, this.a[0].y);
                             b = 1;
-                            for (;b <= e;++b) {
+                            for (; b <= e; ++b) {
                                 var d = b % e;
                                 a.lineTo(this.a[d].x, this.a[d].y);
                             }
@@ -3582,7 +3580,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         /*new*///if (!c) {
                         a.stroke();
                         /*new*///}}
-                        /*new*/if(!cobbler.isLiteBrite)
+                        /*new*/if (!cobbler.isLiteBrite)
                             a.fill();
 
                         if (!(null == d)) {
@@ -3639,9 +3637,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         //        }
                         //    }
                         //}
-                        /*new*//*remap*/if(0 != this.id) {
-                            /*new*//*remap*/var vertical_offset = drawCellName.call(this,b,e,d);
-                            /*new*//*remap*/ drawCellMass.call(this,vertical_offset,b);
+                        /*new*//*remap*/if (0 != this.id) {
+                            /*new*//*remap*/var vertical_offset = drawCellName.call(this, b, e, d);
+                            /*new*//*remap*/ drawCellMass.call(this, vertical_offset, b);
                         }
                         a.restore();
                     }
@@ -3649,40 +3647,40 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             };
             /*new*//*remap*/restorePointObj(aa.prototype);
             ua.prototype = {
-                F : "",
-                S : "#000000",
-                U : false,
-                v : "#000000",
-                u : 16,
-                p : null,
-                T : null,
-                k : false,
-                D : 1,
-                M : function(a) {
+                F: "",
+                S: "#000000",
+                U: false,
+                v: "#000000",
+                u: 16,
+                p: null,
+                T: null,
+                k: false,
+                D: 1,
+                M: function (a) {
                     if (this.u != a) {
                         this.u = a;
                         this.k = true;
                     }
                 },
-                ea : function(a) {
+                ea: function (a) {
                     if (this.D != a) {
                         this.D = a;
                         this.k = true;
                     }
                 },
-                setStrokeColor : function(a) {
+                setStrokeColor: function (a) {
                     if (this.v != a) {
                         this.v = a;
                         this.k = true;
                     }
                 },
-                C : function(a) {
+                C: function (a) {
                     if (a != this.F) {
                         this.F = a;
                         this.k = true;
                     }
                 },
-                L : function() {
+                L: function () {
                     if (null == this.p) {
                         this.p = document.createElement("canvas");
                         this.T = this.p.getContext("2d");
@@ -3715,28 +3713,28 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             };
             /*new*//*remap*/restoreCanvasElementObj(ua.prototype);
             if (!Date.now) {
-                Date.now = function() {
-                    return(new Date).getTime();
+                Date.now = function () {
+                    return (new Date).getTime();
                 };
             }
-            (function() {
+            (function () {
                 var a$$0 = ["ms", "moz", "webkit", "o"];
                 var c = 0;
-                for (;c < a$$0.length && !d.requestAnimationFrame;++c) {
+                for (; c < a$$0.length && !d.requestAnimationFrame; ++c) {
                     d.requestAnimationFrame = d[a$$0[c] + "RequestAnimationFrame"];
                     d.cancelAnimationFrame = d[a$$0[c] + "CancelAnimationFrame"] || d[a$$0[c] + "CancelRequestAnimationFrame"];
                 }
                 if (!d.requestAnimationFrame) {
-                    d.requestAnimationFrame = function(a) {
+                    d.requestAnimationFrame = function (a) {
                         return setTimeout(a, 1E3 / 60);
                     };
-                    d.cancelAnimationFrame = function(a) {
+                    d.cancelAnimationFrame = function (a) {
                         clearTimeout(a);
                     };
                 }
             })();
             var mb = {
-                ja : function(a$$0) {
+                ja: function (a$$0) {
                     function c$$1(a, c, b, d, e) {
                         this.x = a;
                         this.y = c;
@@ -3749,16 +3747,16 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     var b$$1 = a$$0.ka || 2;
                     var e$$0 = a$$0.la || 4;
                     c$$1.prototype = {
-                        x : 0,
-                        y : 0,
-                        j : 0,
-                        g : 0,
-                        depth : 0,
-                        items : null,
-                        c : null,
-                        H : function(a) {
+                        x: 0,
+                        y: 0,
+                        j: 0,
+                        g: 0,
+                        depth: 0,
+                        items: null,
+                        c: null,
+                        H: function (a) {
                             var c$$0 = 0;
-                            for (;c$$0 < this.items.length;++c$$0) {
+                            for (; c$$0 < this.items.length; ++c$$0) {
                                 var b = this.items[c$$0];
                                 if (b.x >= a.x && (b.y >= a.y && (b.x < a.x + a.j && b.y < a.y + a.g))) {
                                     return true;
@@ -3766,25 +3764,25 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             }
                             if (0 != this.c.length) {
                                 var d = this;
-                                return this.$(a, function(c) {
+                                return this.$(a, function (c) {
                                     return d.c[c].H(a);
                                 });
                             }
                             return false;
                         },
-                        A : function(a, c) {
+                        A: function (a, c) {
                             var b$$0 = 0;
-                            for (;b$$0 < this.items.length;++b$$0) {
+                            for (; b$$0 < this.items.length; ++b$$0) {
                                 c(this.items[b$$0]);
                             }
                             if (0 != this.c.length) {
                                 var d = this;
-                                this.$(a, function(b) {
+                                this.$(a, function (b) {
                                     d.c[b].A(a, c);
                                 });
                             }
                         },
-                        m : function(a) {
+                        m: function (a) {
                             if (0 != this.c.length) {
                                 this.c[this.Z(a)].m(a);
                             } else {
@@ -3796,13 +3794,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                                 }
                             }
                         },
-                        Z : function(a) {
+                        Z: function (a) {
                             return a.x < this.x + this.j / 2 ? a.y < this.y + this.g / 2 ? 0 : 2 : a.y < this.y + this.g / 2 ? 1 : 3;
                         },
-                        $ : function(a, c) {
+                        $: function (a, c) {
                             return a.x < this.x + this.j / 2 && (a.y < this.y + this.g / 2 && c(0) || a.y >= this.y + this.g / 2 && c(2)) || a.x >= this.x + this.j / 2 && (a.y < this.y + this.g / 2 && c(1) || a.y >= this.y + this.g / 2 && c(3)) ? true : false;
                         },
-                        ga : function() {
+                        ga: function () {
                             var a = this.depth + 1;
                             var b = this.j / 2;
                             var d = this.g / 2;
@@ -3813,13 +3811,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             a = this.items;
                             this.items = [];
                             b = 0;
-                            for (;b < a.length;b++) {
+                            for (; b < a.length; b++) {
                                 this.m(a[b]);
                             }
                         },
-                        clear : function() {
+                        clear: function () {
                             var a = 0;
-                            for (;a < this.c.length;a++) {
+                            for (; a < this.c.length; a++) {
                                 this.c[a].clear();
                             }
                             this.items.length = 0;
@@ -3827,42 +3825,42 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         }
                     };
                     var d$$0 = {
-                        x : 0,
-                        y : 0,
-                        j : 0,
-                        g : 0
+                        x: 0,
+                        y: 0,
+                        j: 0,
+                        g: 0
                     };
-                    return{
-                        root : new c$$1(a$$0.ca, a$$0.da, a$$0.ma - a$$0.ca, a$$0.na - a$$0.da, 0),
-                        m : function(a) {
+                    return {
+                        root: new c$$1(a$$0.ca, a$$0.da, a$$0.ma - a$$0.ca, a$$0.na - a$$0.da, 0),
+                        m: function (a) {
                             this.root.m(a);
                         },
-                        A : function(a, c) {
+                        A: function (a, c) {
                             this.root.A(a, c);
                         },
-                        pa : function(a, c, b, e, f) {
+                        pa: function (a, c, b, e, f) {
                             d$$0.x = a;
                             d$$0.y = c;
                             d$$0.j = b;
                             d$$0.g = e;
                             this.root.A(d$$0, f);
                         },
-                        H : function(a) {
+                        H: function (a) {
                             return this.root.H(a);
                         },
-                        clear : function() {
+                        clear: function () {
                             this.root.clear();
                         }
                     };
                 }
             };
-            var Za = function() {
+            var Za = function () {
                 var a = new aa(0, 0, 0, 32, "#ED1C24", "");
                 var c = document.createElement("canvas");
                 c.width = 32;
                 c.height = 32;
                 var b = c.getContext("2d");
-                return function() {
+                return function () {
                     if (0 < m.length) {
                         a.color = m[0].color;
                         a.B(m[0].name);
@@ -3875,9 +3873,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     b.restore();
                     var d = document.getElementById("favicon");
                     var f = d.cloneNode(true);
-                    /*new*/try{
+                    /*new*/try {
                         f.setAttribute("href", c.toDataURL("image/png"));
-                        /*new*/}catch(err){}
+                        /*new*/
+                    } catch (err) { }
                     d.parentNode.replaceChild(f, d);
                 };
             }();
@@ -3886,7 +3885,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             /*new*///    Za();
             /*new*///});
 
-            f(function() {
+            f(function () {
                 if (d.localStorage.loginCache) {
                     eb(d.localStorage.loginCache);
                 }
@@ -3895,22 +3894,22 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 }
             });
 
-            d.fbAsyncInit = function() {
+            d.fbAsyncInit = function () {
                 function a$$0() {
-                    d.FB.login(function(a) {
+                    d.FB.login(function (a) {
                         Ia(a);
                     }, {
-                        scope : "public_profile, email"
+                        scope: "public_profile, email"
                     });
                 }
                 d.FB.init({
-                    appId : "677505792353827",
-                    cookie : true,
-                    xfbml : true,
-                    status : true,
-                    version : "v2.2"
+                    appId: "677505792353827",
+                    cookie: true,
+                    xfbml: true,
+                    status: true,
+                    version: "v2.2"
                 });
-                d.FB.Event.subscribe("auth.statusChange", function(c) {
+                d.FB.Event.subscribe("auth.statusChange", function (c) {
                     if ("connected" == c.status) {
                         Ia(c);
                     } else {
@@ -3920,7 +3919,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 d.facebookLogin = a$$0;
             };
 
-            var Ab = function() {
+            var Ab = function () {
                 function a$$0(a, c, b, d, e) {
                     var f = c.getContext("2d");
                     var g = c.width;
@@ -3941,8 +3940,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 d$$0.getContext("2d");
                 d$$0.width = d$$0.height = 70;
                 a$$0(b$$0, d$$0, "", 26, "#ebc0de");
-                return function() {
-                    f(".cell-spinner").filter(":visible").each(function() {
+                return function () {
+                    f(".cell-spinner").filter(":visible").each(function () {
                         var b = f(this);
                         var g = Date.now();
                         var h = this.width;
@@ -3952,7 +3951,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         m.save();
                         m.translate(h / 2, k / 2);
                         var q = 0;
-                        for (;10 > q;++q) {
+                        for (; 10 > q; ++q) {
                             m.drawImage(d$$0, (0.1 * g + 80 * q) % (h + 140) - h / 2 - 70 - 35, k / 2 * Math.sin((0.001 * g + q) % Math.PI * 2) - 35, 70, 70);
                         }
                         m.restore();
@@ -3960,40 +3959,41 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             b = X(b);
                         }
                         a$$0(c$$0, this, b || "", +f(this).attr("data-size"), "#5bc0de");
-                        /*new*/             });
+                        /*new*/
+                    });
                 };
             };
 
-            d.createParty = function() {
+            d.createParty = function () {
                 ia(":party");
-                J = function(a) {
+                J = function (a) {
                     f(".partyToken").val(a);
                     f("#helloContainer").attr("data-party-state", "1");
                 };
                 N();
             };
 
-            d.joinParty = function(a) {
+            d.joinParty = function (a) {
                 f("#helloContainer").attr("data-party-state", "4");
                 f.ajax(Ja + "//m.agar.io/getToken", {
-                    error : function() {
+                    error: function () {
                         f("#helloContainer").attr("data-party-state", "6");
                     },
-                    success : function(c) {
+                    success: function (c) {
                         c = c.split("\n");
                         f(".partyToken").val(a);
                         f("#helloContainer").attr("data-party-state", "5");
                         ia(":party");
                         Aa("ws://" + c[0], a);
                     },
-                    dataType : "text",
-                    method : "POST",
-                    cache : false,
-                    crossDomain : true,
-                    data : a
+                    dataType: "text",
+                    method: "POST",
+                    cache: false,
+                    crossDomain: true,
+                    data: a
                 });
             };
-            d.cancelParty = function() {
+            d.cancelParty = function () {
                 f("#helloContainer").attr("data-party-state", "0");
                 ia("");
                 N();
@@ -4005,7 +4005,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             /*new*/d.onload = kb;
         }
     }
-    /*new*/})(unsafeWindow, unsafeWindow.jQuery);
+    /*new*/
+})(unsafeWindow, unsafeWindow.jQuery);
 
 // ====================================== Stats Screen ===========================================================
 
@@ -4015,34 +4016,34 @@ jQuery('body').append('<div id="chart-container" style="display:none; position:a
 var checkbox_div = jQuery('#settings input[type=checkbox]').closest('div');
 
 // make sure player sees ads at least once so Zeach doesn't go medieval on me.
-var PlayerHasSeenOfficialAds =_.once(function (){
+var PlayerHasSeenOfficialAds = _.once(function () {
     jQuery("#ZCPlay").show();
     jQuery("#ZCClose").text("Close");
 });
 
-unsafeWindow.hideZCOverlay = function(){
+unsafeWindow.hideZCOverlay = function () {
     PlayerHasSeenOfficialAds();
     jQuery('#ZCOverlay').fadeOut();
 }
-unsafeWindow.showZCOverlay = function (){
+unsafeWindow.showZCOverlay = function () {
     jQuery('#ZCOverlay').fadeIn();
     OnShowOverlay(false);
 };
-jQuery('body').append('<div id="ZCOverlay" class="bs-example-modal-lg" style="position:relative;z-index: 300;">'+
-'<div class="modal-dialog modal-lg">'+
-'    <div class="modal-content">'+
-'    <div class="modal-header">'+
-'    <button type="button" class="close" onclick="hideZCOverlay();")><span>×</span></button>'+
-'<h4 class="modal-title">Zeach Cobbler v' +GM_info.script.version + '</h4>'+
-'</div>'+
-'<div id="ZCOverlayBody" class="modal-body" style="height:675px;">'+
-'    </div>'+
-'    <div class="modal-footer">'+
-'    <button type="button" id="ZCClose" class="btn btn-default" onclick="hideZCOverlay();">Let\'s Roll</button>'+
-'    <button type="button" id="ZCPlay" class="btn btn-primary" onclick="hideZCOverlay();setNick(document.getElementById(\'nick\').value); return false;">Play</button>'+
-'</div>'+
-'</div><!-- /.modal-content -->'+
-'</div><!-- /.modal-dialog -->'+
+jQuery('body').append('<div id="ZCOverlay" class="bs-example-modal-lg" style="position:relative;z-index: 300;">' +
+'<div class="modal-dialog modal-lg">' +
+'    <div class="modal-content">' +
+'    <div class="modal-header">' +
+'    <button type="button" class="close" onclick="hideZCOverlay();")><span>×</span></button>' +
+'<h4 class="modal-title">Zeach Cobbler v' + GM_info.script.version + '</h4>' +
+'</div>' +
+'<div id="ZCOverlayBody" class="modal-body" style="height:675px;">' +
+'    </div>' +
+'    <div class="modal-footer">' +
+'    <button type="button" id="ZCClose" class="btn btn-default" onclick="hideZCOverlay();">Let\'s Roll</button>' +
+'    <button type="button" id="ZCPlay" class="btn btn-primary" onclick="hideZCOverlay();setNick(document.getElementById(\'nick\').value); return false;">Play</button>' +
+'</div>' +
+'</div><!-- /.modal-content -->' +
+'</div><!-- /.modal-dialog -->' +
 '</div><!-- /.modal -->');
 
 jQuery("#ZCPlay").hide();
@@ -4052,17 +4053,17 @@ jQuery("#agario-main-buttons")
 jQuery("#agario-main-buttons")
     .append('<button type="button" id="opnBrowser" onclick="openServerbrowser();" style="margin-top:5px;position:relative;width:100%" class="btn btn-success">Agariomods Private Servers</button><br>');
 
-jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;width:100%; background-color: #FFFFFF; border-radius: 15px; padding: 5px 15px 5px 15px;">'+
+jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;width:100%; background-color: #FFFFFF; border-radius: 15px; padding: 5px 15px 5px 15px;">' +
     '<ul class="nav nav-pills" role="tablist">' +
     '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
     '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
     '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Extended Options</a></li>' +
     '<li role="presentation">                 <a href="#page3" id="helpTab" role="tab" data-toggle="tab">Help</a></li>' +
         //'<li role="presentation"><a href="#page3" role="tab" data-toggle="tab">IP Connect</a></li>' +
-    '</ul>'+
+    '</ul>' +
 
     '<div id="bigbox" class="tab-content">' +
-    '<div id="page0" role="tabpanel" class="tab-pane active">'+ debugMonkeyReleaseMessage +'</div>' +
+    '<div id="page0" role="tabpanel" class="tab-pane active">' + debugMonkeyReleaseMessage + '</div>' +
 
     '<div id="page1" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
@@ -4085,7 +4086,7 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '<div id="col2" class="col-sm-4" style="padding-left: 2%; padding-right: 2%;"></div>' +
     '<div id="col3" class="col-sm-4" style="padding-left: 2%; padding-right: 5%;"></div>' +
     '</div>' +
-    '</div>'+
+    '</div>' +
     '<div id="page3" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
     '<div id="col1" class="col-sm-6" style="padding-left: 5%; padding-right: 1%;"><h3>Keys</h3><ul>' +
@@ -4106,7 +4107,7 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '</div>' +
     '</div>');
 jQuery(".agario-profile-panel").appendTo("#XPArea");
-jQuery("#statsTab").click(function(){OnShowOverlay(false);});
+jQuery("#statsTab").click(function () { OnShowOverlay(false); });
 function LS_getValue(aKey, aDefault) {
     var val = localStorage.getItem(__STORAGE_PREFIX + aKey);
     if (null === val && 'undefined' != typeof aDefault) return aDefault;
@@ -4117,15 +4118,13 @@ function LS_setValue(aKey, aVal) {
     localStorage.setItem(__STORAGE_PREFIX + aKey, aVal);
 }
 
-function GetRgba(hex_color, opacity)
-{
+function GetRgba(hex_color, opacity) {
     var patt = /^#([\da-fA-F]{2})([\da-fA-F]{2})([\da-fA-F]{2})$/;
     var matches = patt.exec(hex_color);
-    return "rgba("+parseInt(matches[1], 16)+","+parseInt(matches[2], 16)+","+parseInt(matches[3], 16)+","+opacity+")";
+    return "rgba(" + parseInt(matches[1], 16) + "," + parseInt(matches[2], 16) + "," + parseInt(matches[3], 16) + "," + opacity + ")";
 }
 
-function secondsToHms(d)
-{
+function secondsToHms(d) {
     d = Number(d);
     var h = Math.floor(d / 3600);
     var m = Math.floor(d % 3600 / 60);
@@ -4148,41 +4147,36 @@ var stats_chart;
 var display_chart = LS_getValue('display_chart', 'true') === 'true';
 var display_stats = LS_getValue('display_stats', 'false') === 'true';
 
-function AppendCheckbox(e, id, label, checked, on_change)
-{
-    e.append('<label><input type="checkbox" id="'+id+'">'+label+'</label><br>');
-    jQuery('#'+id).attr('checked', checked);
-    jQuery('#'+id).change(function(){
+function AppendCheckbox(e, id, label, checked, on_change) {
+    e.append('<label><input type="checkbox" id="' + id + '">' + label + '</label><br>');
+    jQuery('#' + id).attr('checked', checked);
+    jQuery('#' + id).change(function () {
         on_change(!!this.checked);
     });
     on_change(checked);
 }
-function AppendCheckboxP(e, id, label, checked, on_change)
-{
-    e.append('<p><input type="checkbox" id="'+id+'">'+label+'</p>');
-    jQuery('#'+id).attr('checked', checked);
-    jQuery('#'+id).change(function(){
+function AppendCheckboxP(e, id, label, checked, on_change) {
+    e.append('<p><input type="checkbox" id="' + id + '">' + label + '</p>');
+    jQuery('#' + id).attr('checked', checked);
+    jQuery('#' + id).change(function () {
         on_change(!!this.checked);
     });
     on_change(checked);
 }
 
-function OnChangeDisplayChart(display)
-{
+function OnChangeDisplayChart(display) {
     LS_setValue('display_chart', display ? 'true' : 'false');
     display_chart = display;
     display ? jQuery('#chart-container').show() : jQuery('#chart-container').hide();
 }
 
-function OnChangeDisplayStats(display)
-{
+function OnChangeDisplayStats(display) {
     LS_setValue('display_stats', display ? 'true' : 'false');
     display_stats = display;
     RenderStats(false);
 }
 
-function ResetChart()
-{
+function ResetChart() {
     chart = null;
     chart_data.length = 0;
     num_cells_data.length = 0;
@@ -4190,10 +4184,9 @@ function ResetChart()
     jQuery('#chart-container').empty();
 }
 
-function UpdateChartData(mass)
-{
+function UpdateChartData(mass) {
     chart_counter++;
-    if (chart_counter%chart_update_interval > 0)
+    if (chart_counter % chart_update_interval > 0)
         return false;
 
     num_cells_data.push({
@@ -4203,22 +4196,21 @@ function UpdateChartData(mass)
 
     chart_data.push({
         x: chart_counter,
-        y: mass/100
+        y: mass / 100
     });
     return true;
 }
 
-function CreateChart(e, color, interactive)
-{
-    return new CanvasJS.Chart(e,{
+function CreateChart(e, color, interactive) {
+    return new CanvasJS.Chart(e, {
         interactivityEnabled: false,
         title: null,
-        axisX:{
+        axisX: {
             valueFormatString: " ",
             lineThickness: 0,
             tickLength: 0
         },
-        axisY:{
+        axisY: {
             lineThickness: 0,
             tickLength: 0,
             gridThickness: 2,
@@ -4234,8 +4226,7 @@ function CreateChart(e, color, interactive)
     });
 }
 
-function UpdateChart(mass, color)
-{
+function UpdateChart(mass, color) {
     my_color = color;
     if (chart === null)
         chart = CreateChart("chart-container", color, false);
@@ -4245,13 +4236,12 @@ function UpdateChart(mass, color)
     jQuery('.canvasjs-chart-credit').hide();
 }
 
-function ResetStats()
-{
+function ResetStats() {
     stats = {
-        pellets: {num:0, mass:0},
-        w: {num:0, mass:0},
-        cells: {num:0, mass:0},
-        viruses: {num:0, mass:0},
+        pellets: { num: 0, mass: 0 },
+        w: { num: 0, mass: 0 },
+        cells: { num: 0, mass: 0 },
+        viruses: { num: 0, mass: 0 },
 
         birthday: Date.now(),
         time_of_death: null,
@@ -4263,23 +4253,22 @@ function ResetStats()
     };
 }
 
-function OnGainMass(me, other)
-{
+function OnGainMass(me, other) {
     var mass = other.size * other.size;
-    if (other.isVirus){
+    if (other.isVirus) {
         stats.viruses.num++;
         stats.viruses.mass += mass; //TODO: shouldn't add if  game mode is teams
         sfx_event("virushit");
     }
-    else if (Math.floor(mass) <= 400 && !other.name){
+    else if (Math.floor(mass) <= 400 && !other.name) {
         stats.pellets.num++;
         stats.pellets.mass += mass;
         sfx_event("pellet");
     }
-    // heuristic to determine if mass is 'w', not perfect
-    else if (!other.name && mass <= 1444 && (mass >= 1369 || (other.x == other.ox && other.y == other.oy))){
+        // heuristic to determine if mass is 'w', not perfect
+    else if (!other.name && mass <= 1444 && (mass >= 1369 || (other.x == other.ox && other.y == other.oy))) {
         //console.log('w', mass, other.name, other);
-        if (other.color != me.color){ //don't count own ejections, again not perfect
+        if (other.color != me.color) { //don't count own ejections, again not perfect
             stats.w.num++;
             stats.w.mass += mass;
         }
@@ -4291,31 +4280,29 @@ function OnGainMass(me, other)
         stats.cells.num++;
         stats.cells.mass += mass;
         if (stats.gains[key] == undefined)
-            stats.gains[key] = {num: 0, mass: 0};
+            stats.gains[key] = { num: 0, mass: 0 };
         stats.gains[key].num++;
         stats.gains[key].mass += mass;
         sfx_event("eat");
     }
 }
 
-function OnLoseMass(me, other)
-{
+function OnLoseMass(me, other) {
     var mass = me.size * me.size;
     var key = other.name + ':' + other.color;
     if (stats.losses[key] == undefined)
-        stats.losses[key] = {num: 0, mass: 0};
+        stats.losses[key] = { num: 0, mass: 0 };
     stats.losses[key].num++;
     stats.losses[key].mass += mass;
     sfx_event("eat");
 }
 
-function DrawPie(pellet, w, cells, viruses)
-{
+function DrawPie(pellet, w, cells, viruses) {
     var total = pellet + w + cells + viruses;
     pie = new CanvasJS.Chart("pieArea", {
         title: null,
         animationEnabled: false,
-        legend:{
+        legend: {
             verticalAlign: "center",
             horizontalAlign: "left",
             fontSize: 20,
@@ -4324,45 +4311,45 @@ function DrawPie(pellet, w, cells, viruses)
         theme: "theme2",
         data: [{
             type: "pie",
-            startAngle:-20,
+            startAngle: -20,
             showInLegend: true,
-            toolTipContent:"{legendText} {y}%",
+            toolTipContent: "{legendText} {y}%",
             dataPoints: [
-                {  y: 100*pellet/total, legendText:"pellets"},
-                {  y: 100*cells/total, legendText:"cells"},
-                {  y: 100*w/total, legendText:"w"},
-                {  y: 100*viruses/total, legendText:"viruses"},
+                { y: 100 * pellet / total, legendText: "pellets" },
+                { y: 100 * cells / total, legendText: "cells" },
+                { y: 100 * w / total, legendText: "w" },
+                { y: 100 * viruses / total, legendText: "viruses" },
             ]
         }]
     });
     pie.render();
 }
 
-function GetTopN(n, p){
+function GetTopN(n, p) {
     var r = [];
-    var a = Object.keys(stats[p]).sort(function(a, b) {return -(stats[p][a].mass - stats[p][b].mass)});
-    for (var i = 0; i < n && i < a.length; ++i){
+    var a = Object.keys(stats[p]).sort(function (a, b) { return -(stats[p][a].mass - stats[p][b].mass) });
+    for (var i = 0; i < n && i < a.length; ++i) {
         var key = a[i];
         var mass = stats[p][key].mass;
-        var name = key.slice(0,key.length-8);
+        var name = key.slice(0, key.length - 8);
         if (!name) name = "An unnamed cell";
-        var color = key.slice(key.length-7);
-        r.push({name:name, color:color, mass:Math.floor(mass/100)});
+        var color = key.slice(key.length - 7);
+        r.push({ name: name, color: color, mass: Math.floor(mass / 100) });
     }
     return r;
 }
 
 function AppendTopN(n, p, list) {
-    var a = GetTopN(n,p);
-    for (var i = 0; i < a.length; ++i){
+    var a = GetTopN(n, p);
+    for (var i = 0; i < a.length; ++i) {
         var text = a[i].name + ' (' + (p == 'gains' ? '+' : '-') + a[i].mass + ' mass)';
         list.append('<li style="font-size: 16px; "><div style="width: 16px; height: 16px; border-radius: 50%; margin-right:5px; background-color: ' + a[i].color + '; display: inline-block;"></div>' + text + '</li>');
     };
     return a.length > 0;
 }
 
-function ShowZCStats(){
-    if(cobbler.showZcStats){
+function ShowZCStats() {
+    if (cobbler.showZcStats) {
         jQuery("#ZCOverlay").fadeIn();
         jQuery('#statsTab').tab('show');
     }
@@ -4379,29 +4366,29 @@ function DrawStats(game_over) {
     jQuery('#chartArea').empty();
     //jQuery('#statsTab').tab('show');
 
-    if (game_over){
+    if (game_over) {
         stats.time_of_death = Date.now();
         sfx_play(1);
         StopBGM();
         ShowZCStats();
-        if(window.cobbler.autoRespawn && window.cobbler.grazingMode){setTimeout(function(){jQuery(".btn-play-guest").click();},3000);}
+        if (window.cobbler.autoRespawn && window.cobbler.grazingMode) { setTimeout(function () { jQuery(".btn-play-guest").click(); }, 3000); }
     }
     var time = stats.time_of_death ? stats.time_of_death : Date.now();
-    var seconds = (time - stats.birthday)/1000;
+    var seconds = (time - stats.birthday) / 1000;
 
     var list = jQuery('<ul>');
     list.append('<li style="font-size: 16px; ">Game time: ' + secondsToHms(seconds) + '</li>');
-    list.append('<li style="font-size: 16px; ">High score: ' + ~~(stats.high_score/100) + '</li>');
-    if (stats.top_slot == Number.POSITIVE_INFINITY){
+    list.append('<li style="font-size: 16px; ">High score: ' + ~~(stats.high_score / 100) + '</li>');
+    if (stats.top_slot == Number.POSITIVE_INFINITY) {
         list.append('<li style="font-size: 16px; ">You didn\'t make the leaderboard</li>');
     }
     else {
         list.append('<li style="font-size: 16px; ">Leaderboard max: ' + stats.top_slot + '</li>');
     }
-    list.append('<li style="font-size: 16px; padding-top: 15px">' + stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 16px; ">' + stats.cells.num + " cells eaten (" + ~~(stats.cells.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 16px; ">' + stats.w.num + " masses eaten (" + ~~(stats.w.mass/100) + ' mass)</li>');
-    list.append('<li style="font-size: 16px; ">' + stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass/100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; padding-top: 15px">' + stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass / 100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.cells.num + " cells eaten (" + ~~(stats.cells.mass / 100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.w.num + " masses eaten (" + ~~(stats.w.mass / 100) + ' mass)</li>');
+    list.append('<li style="font-size: 16px; ">' + stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass / 100) + ' mass)</li>');
     jQuery('#statArea').append('<h2>Game Summary</h2>');
     jQuery('#statArea').append(list);
 
@@ -4421,25 +4408,25 @@ function DrawStats(game_over) {
     else
         jQuery('#lossArea').append('<ul><li style="font-size: 16px; ">Nobody has eaten you</li></ul>');
 
-    if (stats.time_of_death !== null){
+    if (stats.time_of_death !== null) {
         jQuery('#chartArea').height(200);
-        jQuery('#chartArea')[0].height=200;
+        jQuery('#chartArea')[0].height = 200;
         stat_chart = CreateChart('chartArea', my_color, true);
-        var scale = Math.max.apply(Math,chart_data.map(function(o){return o.y;}))/16;
-        var scaled_data = num_cells_data.map(function(a){return {x:a.x, y:a.y*scale};});
-        stat_chart.options.data.push({type: "line", dataPoints: scaled_data, toolTipContent:" "});
+        var scale = Math.max.apply(Math, chart_data.map(function (o) { return o.y; })) / 16;
+        var scaled_data = num_cells_data.map(function (a) { return { x: a.x, y: a.y * scale }; });
+        stat_chart.options.data.push({ type: "line", dataPoints: scaled_data, toolTipContent: " " });
         stat_chart.render();
     }
     else {
         jQuery('#chartArea').height(200);
-        jQuery('#chartArea')[0].height=200;
+        jQuery('#chartArea')[0].height = 200;
     }
 }
 
 var styles = {
-    heading: {font:"30px Ubuntu", spacing: 41, alpha: 1},
-    subheading: {font:"25px Ubuntu", spacing: 31, alpha: 1},
-    normal: {font:"17px Ubuntu", spacing: 21, alpha: 0.6}
+    heading: { font: "30px Ubuntu", spacing: 41, alpha: 1 },
+    subheading: { font: "25px Ubuntu", spacing: 31, alpha: 1 },
+    normal: { font: "17px Ubuntu", spacing: 21, alpha: 0.6 }
 };
 
 var g_stat_spacing = 0;
@@ -4453,7 +4440,7 @@ function AppendText(text, context, style) {
 
     var width = context.measureText(text).width;
     g_layout_width = Math.max(g_layout_width, width);
-    context.fillText(text, g_layout_width/2 - width/2, g_stat_spacing);
+    context.fillText(text, g_layout_width / 2 - width / 2, g_stat_spacing);
 }
 
 function RenderStats(reset) {
@@ -4462,7 +4449,7 @@ function RenderStats(reset) {
     g_stat_spacing = 0;
 
     var gains = GetTopN(3, 'gains');
-    var losses =  GetTopN(3, 'losses');
+    var losses = GetTopN(3, 'losses');
     var height = 30 + styles['heading'].spacing + styles['subheading'].spacing * 2 + styles['normal'].spacing * (4 + gains.length + losses.length);
 
     stat_canvas = document.createElement("canvas");
@@ -4479,36 +4466,36 @@ function RenderStats(reset) {
     context.fillStyle = "#FFFFFF";
     AppendText("Stats", context, 'heading');
 
-    var text = stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass/100) + ")";
-    AppendText(text, context,'normal');
-    text = stats.w.num + " mass eaten (" + ~~(stats.w.mass/100) + ")";
-    AppendText(text, context,'normal');
-    text = stats.cells.num + " cells eaten (" + ~~(stats.cells.mass/100) + ")";
-    AppendText(text, context,'normal');
-    text = stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass/100) + ")";
-    AppendText(text, context,'normal');
+    var text = stats.pellets.num + " pellets eaten (" + ~~(stats.pellets.mass / 100) + ")";
+    AppendText(text, context, 'normal');
+    text = stats.w.num + " mass eaten (" + ~~(stats.w.mass / 100) + ")";
+    AppendText(text, context, 'normal');
+    text = stats.cells.num + " cells eaten (" + ~~(stats.cells.mass / 100) + ")";
+    AppendText(text, context, 'normal');
+    text = stats.viruses.num + " viruses eaten (" + ~~(stats.viruses.mass / 100) + ")";
+    AppendText(text, context, 'normal');
 
-    AppendText("Top Gains",context,'subheading');
-    for (var j = 0; j < gains.length; ++j){
-        text = (j+1) + ". " + gains[j].name + " (" + gains[j].mass + ")";
+    AppendText("Top Gains", context, 'subheading');
+    for (var j = 0; j < gains.length; ++j) {
+        text = (j + 1) + ". " + gains[j].name + " (" + gains[j].mass + ")";
         context.fillStyle = gains[j].color;
-        AppendText(text, context,'normal');
+        AppendText(text, context, 'normal');
     }
 
     context.fillStyle = "#FFFFFF";
-    AppendText("Top Losses",context,'subheading');
-    for (var j = 0; j < losses.length; ++j){
-        text = (j+1) + ". " + losses[j].name + " (" + losses[j].mass + ")";
+    AppendText("Top Losses", context, 'subheading');
+    for (var j = 0; j < losses.length; ++j) {
+        text = (j + 1) + ". " + losses[j].name + " (" + losses[j].mass + ")";
         context.fillStyle = losses[j].color;
-        AppendText(text, context,'normal');
+        AppendText(text, context, 'normal');
     }
 }
 
-jQuery(unsafeWindow).resize(function() {
+jQuery(unsafeWindow).resize(function () {
     RenderStats(false);
 });
 
-unsafeWindow.OnGameStart = function(cells) {
+unsafeWindow.OnGameStart = function (cells) {
     my_cells = cells;
     ResetChart();
     ResetStats();
@@ -4517,32 +4504,32 @@ unsafeWindow.OnGameStart = function(cells) {
     sfx_play(0);
 };
 
-unsafeWindow.OnShowOverlay = function(game_in_progress) {
+unsafeWindow.OnShowOverlay = function (game_in_progress) {
     DrawStats(!game_in_progress);
 };
 
-unsafeWindow.OnUpdateMass = function(mass) {
+unsafeWindow.OnUpdateMass = function (mass) {
     stats.high_score = Math.max(stats.high_score, mass);
-    UpdateChart(mass, GetRgba(my_cells[0].color,0.4));
+    UpdateChart(mass, GetRgba(my_cells[0].color, 0.4));
 };
 
-unsafeWindow.OnCellEaten = function(predator, prey) {
+unsafeWindow.OnCellEaten = function (predator, prey) {
     if (!my_cells) return;
 
-    if (my_cells.indexOf(predator) != -1){
+    if (my_cells.indexOf(predator) != -1) {
         OnGainMass(predator, prey);
         RenderStats(false);
     }
-    if (my_cells.indexOf(prey) != -1){
+    if (my_cells.indexOf(prey) != -1) {
         OnLoseMass(prey, predator);
         RenderStats(false);
     }
 };
 
-unsafeWindow.OnLeaderboard = function(position) {
+unsafeWindow.OnLeaderboard = function (position) {
     stats.top_slot = Math.min(stats.top_slot, position);
 };
-unsafeWindow.OnDraw = function(context) {
+unsafeWindow.OnDraw = function (context) {
     display_stats && stat_canvas && context.drawImage(stat_canvas, 10, 10);
 };
 
@@ -4553,13 +4540,13 @@ var ssfxlist = [
     'gameover'
 ];
 var ssfxs = [];
-for (i=0;i<ssfxlist.length;i++) {
+for (i = 0; i < ssfxlist.length; i++) {
     var newsfx = new Audio("http://skins.agariomods.com/botb/sfx/" + ssfxlist[i] + ".mp3");
     newsfx.loop = false;
     ssfxs.push(newsfx);
 }
 function sfx_play(id) {
-    if (document.getElementById("sfx").value==0) return;
+    if (document.getElementById("sfx").value == 0) return;
     var event = ssfxs[id];
     event.volume = document.getElementById("sfx").value;
     event.play();
@@ -4578,24 +4565,24 @@ var sfxlist = [
 ];
 
 var sfxs = {};
-for (i=0;i<sfxlist.length;i++) {
+for (i = 0; i < sfxlist.length; i++) {
     var newsfx = new Audio("//skins.agariomods.com/botb/sfx/" + sfxlist[i] + ".mp3");
     newsfx.loop = false;
-    newsfx.onended = function() {
+    newsfx.onended = function () {
         $(this).remove();
     };
     sfxs[sfxlist[i]] = newsfx;
 }
 function sfx_event(id) {
-    if (document.getElementById("sfx").value==0) return;
+    if (document.getElementById("sfx").value == 0) return;
     var event = jQuery.clone(sfxs[id]);
     event.volume = document.getElementById("sfx").value;
     event.play();
 }
 
 var StartBGM = function () {
-    if (document.getElementById("bgm").value==0) return;
-    if (bgmusic.src == ""){
+    if (document.getElementById("bgm").value == 0) return;
+    if (bgmusic.src == "") {
         bgmusic.src = _.sample(tracks, 1);
         bgmusic.load()
     }
@@ -4605,7 +4592,7 @@ var StartBGM = function () {
 
 var StopBGM = function () {
     bgmusic.pause();
-    if (document.getElementById("bgm").value==0) return;
+    if (document.getElementById("bgm").value == 0) return;
     bgmusic.src = _.sample(tracks, 1);
     bgmusic.load()
 };
@@ -4637,13 +4624,13 @@ var bgmusic = $('#audiotemplate').clone()[0];
 bgmusic.src = tracks[Math.floor(Math.random() * tracks.length)];
 bgmusic.load();
 bgmusic.loop = false;
-bgmusic.onended = function() {
+bgmusic.onended = function () {
     var track = tracks[Math.floor(Math.random() * tracks.length)];
     bgmusic.src = track;
     bgmusic.play();
 };
 
-function uiOnLoadTweaks(){
+function uiOnLoadTweaks() {
     $("label:contains('Dark theme') input").prop('checked', true);
     setDarkTheme(true);
     $("label:contains('Show mass') input").prop('checked', true);
@@ -4654,13 +4641,13 @@ function uiOnLoadTweaks(){
 //================================  AgarioMods Private Servers  ========================================================
 unsafeWindow.openServerbrowser = function (a) {
     var b = unsafeWindow.openServerbrowser.loading;
-    if(b) {
+    if (b) {
         return;
     }
     b = true;
     jQuery("#rsb")
         .prop("disabled", true);
-    if(!a) {
+    if (!a) {
         jQuery("#serverBrowser")
             .fadeIn();
     }
@@ -4668,7 +4655,7 @@ unsafeWindow.openServerbrowser = function (a) {
 };
 
 function serverinfo(list, index) {
-    if(index >= list.length) {
+    if (index >= list.length) {
         unsafeWindow.openServerbrowser.loading = false;
         jQuery("#rsb")
             .prop("disabled", false);
@@ -4684,11 +4671,11 @@ function serverinfo(list, index) {
             $("#" + (value[0] + value[1]) + " #player")
                 .text(data.current_players + "/" + data.max_players);
             latency = Date.now() - started;
-            if(latency < 100) {
+            if (latency < 100) {
                 jQuery("#" + (value[0] + value[1]) + " #latency")
                     .css("color", "#19A652");
             } else {
-                if(latency < 250) {
+                if (latency < 250) {
                     jQuery("#" + (value[0] + value[1]) + " #latency")
                         .css("color", "#E1BD2C");
                 } else {
@@ -4708,7 +4695,7 @@ function serverinfo(list, index) {
                 .text("Failed");
         },
         complete: function (data) {
-            if(!(document.getElementById("serverBrowser")
+            if (!(document.getElementById("serverBrowser")
                     .style.display == "none")) {
                 serverinfo(list, index + 1);
             }
@@ -4733,7 +4720,7 @@ unsafeWindow.closeServerbrowser = function () {
     jQuery("#serverBrowser")
         .fadeOut();
 };
-var locations=new Array("Chicago Beta","Dallas Beta","Frankfurt Beta","London Beta","Los Angeles Beta","Miami Beta","New Jersey Beta","Paris Beta","Seattle Beta","Silicon Valley Beta","Sydney Beta","Amsterdam","Amsterdam Beta","Atlanta Beta","Frankfurt Alpha","Frankfurt","London","Quebec","Paris","Paris Gamma","Atlanta","Chicago","Dallas","Los Angeles","Miami","New Jersey","Seattle","Silicon Valley","Sydney","Tokyo");
+var locations = new Array("Chicago Beta", "Dallas Beta", "Frankfurt Beta", "London Beta", "Los Angeles Beta", "Miami Beta", "New Jersey Beta", "Paris Beta", "Seattle Beta", "Silicon Valley Beta", "Sydney Beta", "Amsterdam", "Amsterdam Beta", "Atlanta Beta", "Frankfurt Alpha", "Frankfurt", "London", "Quebec", "Paris", "Paris Gamma", "Atlanta", "Chicago", "Dallas", "Los Angeles", "Miami", "New Jersey", "Seattle", "Silicon Valley", "Sydney", "Tokyo");
 locations.sort();
 locations[0] = [locations[1], locations[1] = locations[0]][0];
 
@@ -4745,7 +4732,7 @@ function getServers() {
     var latencylist = Array();
     jQuery.each(locations, function (index, value) {
         var i = 1;
-        for(; i <= 2; i++) {
+        for (; i <= 2; i++) {
             serverid = value.toLowerCase()
                     .replace(" ", "") + i;
             $("#serverlist" + i)
@@ -4769,23 +4756,23 @@ uiOnLoadTweaks();
 
 var col1 = $("#col1");
 col1.append("<h4>Options</h4>");
-AppendCheckbox(col1, 'showZcStats-checkbox', ' Show ZC Stats On Death', window.cobbler.showZcStats, function(val){window.cobbler.showZcStats = val;});
+AppendCheckbox(col1, 'showZcStats-checkbox', ' Show ZC Stats On Death', window.cobbler.showZcStats, function (val) { window.cobbler.showZcStats = val; });
 col1.append("<h4>Modes</h4>");
-AppendCheckbox(col1, 'isacid-checkbox', ' Enable Acid Mode', window.cobbler.isAcid, function(val){window.cobbler.isAcid = val;});
-AppendCheckbox(col1, 'litebrite-checkbox', ' Enable Lite Brite Mode', window.cobbler.isLiteBrite, function(val){window.cobbler.isLiteBrite = val;});
+AppendCheckbox(col1, 'isacid-checkbox', ' Enable Acid Mode', window.cobbler.isAcid, function (val) { window.cobbler.isAcid = val; });
+AppendCheckbox(col1, 'litebrite-checkbox', ' Enable Lite Brite Mode', window.cobbler.isLiteBrite, function (val) { window.cobbler.isLiteBrite = val; });
 col1.append("<h4>Visual</h4>");
-AppendCheckbox(col1, 'trailingtail-checkbox', ' Draw Trailing Tail', window.cobbler.drawTail, function(val){window.cobbler.drawTail = val;});
-AppendCheckbox(col1, 'splitguide-checkbox', ' Draw Split Guide', window.cobbler.splitGuide, function(val){window.cobbler.splitGuide = val;});
-AppendCheckbox(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function(val){window.cobbler.rainbowPellets = val;});
-AppendCheckbox(col1, 'namesunder-checkbox', ' Names under blobs', window.cobbler.namesUnderBlobs, function(val){window.cobbler.namesUnderBlobs = val;});
-AppendCheckbox(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gridLines, function(val){window.cobbler.gridLines = val;});
+AppendCheckbox(col1, 'trailingtail-checkbox', ' Draw Trailing Tail', window.cobbler.drawTail, function (val) { window.cobbler.drawTail = val; });
+AppendCheckbox(col1, 'splitguide-checkbox', ' Draw Split Guide', window.cobbler.splitGuide, function (val) { window.cobbler.splitGuide = val; });
+AppendCheckbox(col1, 'rainbow-checkbox', ' Rainbow Pellets', window.cobbler.rainbowPellets, function (val) { window.cobbler.rainbowPellets = val; });
+AppendCheckbox(col1, 'namesunder-checkbox', ' Names under blobs', window.cobbler.namesUnderBlobs, function (val) { window.cobbler.namesUnderBlobs = val; });
+AppendCheckbox(col1, 'gridlines-checkbox', ' Show Gridlines', window.cobbler.gridLines, function (val) { window.cobbler.gridLines = val; });
 col1.append("<h4>Stats</h4>");
 AppendCheckbox(col1, 'chart-checkbox', ' Show in-game chart', display_chart, OnChangeDisplayChart);
 AppendCheckbox(col1, 'stats-checkbox', ' Show in-game stats', display_stats, OnChangeDisplayStats);
 col1.append("<h4>Features</h4>");
-AppendCheckbox(col1, 'feature-click-fire', ' Click to fire @ virus', window.cobbler.rightClickFires, function(val) {window.cobbler.rightClickFires = val;});
-AppendCheckbox(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function(val) {window.cobbler.enableBlobLock = val;});
-AppendCheckbox(col1, 'feature-blob-lock-next', ' Switch blob on lock', window.cobbler.nextOnBlobLock, function(val) {window.cobbler.nextOnBlobLock = val;});
+AppendCheckbox(col1, 'feature-click-fire', ' Click to fire @ virus', window.cobbler.rightClickFires, function (val) { window.cobbler.rightClickFires = val; });
+AppendCheckbox(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function (val) { window.cobbler.enableBlobLock = val; });
+AppendCheckbox(col1, 'feature-blob-lock-next', ' Switch blob on lock', window.cobbler.nextOnBlobLock, function (val) { window.cobbler.nextOnBlobLock = val; });
 
 var col2 = $("#col2");
 col2.append('<h4>Debug Level</h4><div class="btn-group-sm" role="group" data-toggle="buttons">' +
@@ -4793,71 +4780,71 @@ col2.append('<h4>Debug Level</h4><div class="btn-group-sm" role="group" data-tog
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugLow" autocomplete="off" value=1>Low</label>' +
     '<label class="btn btn-primary"><input type="radio" name="DebugLevel" id="DebugHigh" autocomplete="off" value=2>High</label>' +
     '</div>');
-$('input[name="DebugLevel"]:radio[value='+window.cobbler.debugLevel +']').parent().addClass("active");
-$('input[name="DebugLevel"]').change( function() {window.cobbler.debugLevel = $(this).val();});
+$('input[name="DebugLevel"]:radio[value=' + window.cobbler.debugLevel + ']').parent().addClass("active");
+$('input[name="DebugLevel"]').change(function () { window.cobbler.debugLevel = $(this).val(); });
 
 col2.append('<h4>Virus Popper</h4><h5>Milliseconds between shots</h5><div id="mspershot-group" class="input-group input-group-sm"> <input type="text" id="mspershot-textbox" class="form-control" placeholder="1-2000 (Default: 100)"' +
     'value=' + cobbler.msDelayBetweenShots.toString() + '><span class="input-group-addon">ms</span></div><h6>145ms = 7 shots per second. Lower values are faster but less stable.</h6>');
-$('#mspershot-textbox').on('input propertychange paste', function() {
+$('#mspershot-textbox').on('input propertychange paste', function () {
     var newval = parseInt(this.value);
-    if(!_.isNaN(newval) && newval > 0 && newval <= 2000) {
+    if (!_.isNaN(newval) && newval > 0 && newval <= 2000) {
         $("#mspershot-group").removeClass('has-error');
         cobbler.msDelayBetweenShots = newval;
     }
-    else{
+    else {
         $("#mspershot-group").addClass('has-error');
     }
 });
 
 col2.append('<h4>Minimap Scale</h4>' +
     '<div id="minimap-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="minimap-checkbox" type="checkbox"></span>' +
-    '<input id="minimap-textbox" type="text" placeholder="64 = 1/64 scale" class="form-control" value='+ cobbler.miniMapScaleValue +'></div>');
-$('#minimap-checkbox').change(function(){
-    if(!!this.checked){
+    '<input id="minimap-textbox" type="text" placeholder="64 = 1/64 scale" class="form-control" value=' + cobbler.miniMapScaleValue + '></div>');
+$('#minimap-checkbox').change(function () {
+    if (!!this.checked) {
         $('#minimap-textbox').removeAttr("disabled");
     } else {
-        $('#minimap-textbox').attr({disabled:"disabled"})
+        $('#minimap-textbox').attr({ disabled: "disabled" })
     }
     cobbler.miniMapScale = !!this.checked;
 });
-if(cobbler.miniMapScale){$('#minimap-checkbox').prop('checked', true);}else{ $('#minimap-textbox').attr({disabled:"disabled"})}
-$('#minimap-textbox').on('input propertychange paste', function() {
+if (cobbler.miniMapScale) { $('#minimap-checkbox').prop('checked', true); } else { $('#minimap-textbox').attr({ disabled: "disabled" }) }
+$('#minimap-textbox').on('input propertychange paste', function () {
     var newval = parseInt(this.value);
-    if(!_.isNaN(newval) && newval > 1 && newval < 999) {
+    if (!_.isNaN(newval) && newval > 1 && newval < 999) {
         $("#minimap-group").removeClass('has-error');
         cobbler.miniMapScaleValue = newval;
     }
-    else{
+    else {
         $("#minimap-group").addClass('has-error');
     }
 });
 
 col2.append('<h4>Grazer</h4><div id="grazer-checks" class="checkbox" ></div>');
 var grazerChecks = $("#grazer-checks");
-AppendCheckbox(grazerChecks, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function(val){window.cobbler.autoRespawn = val;});
-AppendCheckbox(grazerChecks, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function(val){window.cobbler.visualizeGrazing = val;});
-AppendCheckbox(grazerChecks, 'grazer-multiBlob-checkbox', ' Grazer MultiBlob', window.cobbler.grazerMultiBlob2, function(val){window.cobbler.grazerMultiBlob2 = val;});
+AppendCheckbox(grazerChecks, 'autorespawn-checkbox', ' Grazer Auto-Respawns', window.cobbler.autoRespawn, function (val) { window.cobbler.autoRespawn = val; });
+AppendCheckbox(grazerChecks, 'option5', ' Visualize Grazer', window.cobbler.visualizeGrazing, function (val) { window.cobbler.visualizeGrazing = val; });
+AppendCheckbox(grazerChecks, 'grazer-multiBlob-checkbox', ' Grazer MultiBlob', window.cobbler.grazerMultiBlob2, function (val) { window.cobbler.grazerMultiBlob2 = val; });
 
 col2.append('<h5>Hybrid Grazer</h5>' +
     '<div id="hybrid-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="hybrid-checkbox" type="checkbox"></span>' +
-    '<input id="hybrid-textbox" type="text" class="form-control" value='+ cobbler.grazerHybridSwitchMass +' placeholder="Default: 300"></div>' +
+    '<input id="hybrid-textbox" type="text" class="form-control" value=' + cobbler.grazerHybridSwitchMass + ' placeholder="Default: 300"></div>' +
     '<h6>Starts with old grazer and at specified mass switches to new grazer</h6>');
-$('#hybrid-checkbox').change(function(){
-    if(!!this.checked){
+$('#hybrid-checkbox').change(function () {
+    if (!!this.checked) {
         $('#hybrid-textbox').removeAttr("disabled");
     } else {
-        $('#hybrid-textbox').attr({disabled:"disabled"})
+        $('#hybrid-textbox').attr({ disabled: "disabled" })
     }
     cobbler.grazerHybridSwitch = !!this.checked;
 });
-if(cobbler.grazerHybridSwitch){$('#hybrid-checkbox').prop('checked', true);}else{ $('#hybrid-textbox').attr({disabled:"disabled"})}
-$('#hybrid-textbox').on('input propertychange paste', function() {
+if (cobbler.grazerHybridSwitch) { $('#hybrid-checkbox').prop('checked', true); } else { $('#hybrid-textbox').attr({ disabled: "disabled" }) }
+$('#hybrid-textbox').on('input propertychange paste', function () {
     var newval = parseInt(this.value);
-    if(!_.isNaN(newval)) {
+    if (!_.isNaN(newval)) {
         $("#hybrid-group").removeClass('has-error');
         cobbler.grazerHybridSwitchMass = newval;
     }
-    else{
+    else {
         $("#hybrid-group").addClass('has-error');
     }
 });
@@ -4868,16 +4855,20 @@ col3.append("<h4>Music/Sound</h4>");
 col3.append('<p>Sound Effects<input id="sfx" type="range" value=' + window.cobbler.sfxVol + ' step=".1" min="0" max="1" oninput="volSFX(this.value);"></p>');
 col3.append('<p>Music<input type="range" id="bgm" value=' + window.cobbler.bgmVol + ' step=".1" min="0" max="1" oninput="volBGM(this.value);"></p>');
 col3.append('<h4>Skins Support</h4>');
-AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function(val){window.cobbler.amConnectSkins = val;});
-AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function(val){window.cobbler.amExtendedSkins = val;});
-AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function(val){window.cobbler.imgurSkins = val;});
+AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function (val) { window.cobbler.amConnectSkins = val; });
+AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function (val) { window.cobbler.amExtendedSkins = val; });
+AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function (val) { window.cobbler.imgurSkins = val; });
 
 // ---- Tooltips
-$("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right",
-    "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"});
-$("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right",
-    "title": "Leaves blob centers empty except for skins."});
-setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
+$("#rainbow-checkbox").attr({
+    "data-toggle": "tooltip", "data-placement": "right",
+    "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"
+});
+$("#litebrite-checkbox").attr({
+    "data-toggle": "tooltip", "data-placement": "right",
+    "title": "Leaves blob centers empty except for skins."
+});
+setTimeout(function () { $(function () { $('[data-toggle="tooltip"]').tooltip() }) }, 5000); // turn on all tooltips.
 
 // Ugly ass hack to fix effects of official code loading before mod
 //$("#canvas").remove();
