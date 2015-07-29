@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS2
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.28.1
+// @version      0.28.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -12,6 +12,7 @@
 // @changes     0.28.0 - Revamped UI
 //                     - Stats now detects viruses being eaten
 //                   1 - Updated @updateURL and @downloadURL to not use rawgit
+//                   2 - Upgraded zoom functions
 //              0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
@@ -1675,7 +1676,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cobbler.visualizeGrazing = !cobbler.visualizeGrazing;
         }
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            zoomFactor = (zoomFactor == 10 ? 11 : 10);
+            // /*old*/ zoomFactor = (zoomFactor == 10 ? 11 : 10);
+            /*new*/ zoomFactor = {10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 10}[zoomFactor];
         }
         else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
             var id = d.keyCode - '1'.charCodeAt(0);
@@ -1790,7 +1792,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         setInterval(La, 18E4);
         F = xa = document.getElementById("canvas");
         g = F.getContext("2d");
-        /*new*//*remap*/ F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        // /*old*/ (/*new*/ /remap/) F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        /*new*/ F.onmousewheel = function (e) {
+            if (e.wheelDelta > 0) {
+                zoomFactor = {11: 10.9, 10.9: 10.8, 10.8: 10.7, 10.7: 10.6, 10.6: 10.5, 10.5: 10.4, 10.4: 10.3, 10.3: 10.2, 10.2: 10.1, 10.1: 10, 10: 9.95, 9.95: 9.90, 9.90: 9.85, 9.85: 9.80, 9.80: 9.75, 9.75: 9.70, 9.70: 9.65, 9.65: 9.60, 9.60: 9.55, 9.55: 9.50, 9.50: 9.50}[zoomFactor];
+            } else {
+                zoomFactor = {9.50: 9.55, 9.55: 9.60, 9.60: 9.65, 9.65: 9.70, 9.70: 9.75, 9.75: 9.80, 9.80: 9.85, 9.85: 9.90, 9.90: 9.95, 9.95: 10, 10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 11}[zoomFactor];
+            }
+            
+        };
         F.onmousedown = function(a) {
             /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob();}
             /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor();}return;
@@ -1885,7 +1895,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         Pa();
     }
     function Na(a) {
-        H *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
+        // /*new*/ H *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
         if (1 > H) {
             H = 1;
         }
