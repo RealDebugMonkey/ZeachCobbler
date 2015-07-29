@@ -75,6 +75,7 @@ It was chosen on a whim. And I like Peach Cobbler.
 * Ephemerality - Code review
 * GamerLio - Minimap from his awesome bot -- https://github.com/leomwu/agario-bot
 * Gjum - Bug fixes
+* Pepin - Advanced zoom functions
 * Incompetech - For KSP soundtrack music - http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
 * Mikeyk730 - stats screen code - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 * White Light - Grazer concept and enemy avoidance code
