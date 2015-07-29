@@ -56,13 +56,10 @@ Zeach Cobbler also includes a bot we like to call the "grazer" which helps with 
 13. Agariomods.com skins support http://skins.agariomods.com/ 
 14. Agariomods.com style imgur-based skin support 
     * For example use i/m68ZpaW to get http://i.imgur.com/m68ZpaW.jpg as your skin.
-15. bit.do custom url skin support
-    * Generate a custom url link with bit.do, then prefix that word with ` to get a skin
-    * Example: the name `roborex will load http://bit.do/roborex
-16. X/Y coordinate display
-17. 'Time alive' tracker
-18. 'Highest score' tracker
-19. Acid mode support
+15. X/Y coordinate display
+16. 'Time alive' tracker
+17. 'Highest score' tracker
+18. Acid mode support
  
 
 ## What's up with the name?
