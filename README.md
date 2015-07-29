@@ -67,7 +67,7 @@ It was chosen on a whim. And I like Peach Cobbler.
 
 (Much later I discovered that there was actually a person using 'Zeach Cobbler' as their online handle. My deepest apologies to that individual if the name collision causes them any grief.)
 
-# Contributers and Used code
+# Contributors and Used code
 * albel727 - For the complete rewrite of the grazer into what is now called the 'new grazer'
 * Angal - For the original Server select UI (now unused), click-to-lock multiblob feature, and multiblob grazer feature 
 * Apostolique - debug text output derived from Apostolique's bot code -- https://github.com/Apostolique/Agar.io-bot
@@ -75,7 +75,7 @@ It was chosen on a whim. And I like Peach Cobbler.
 * Ephemerality - Code review
 * GamerLio - Minimap from his awesome bot -- https://github.com/leomwu/agario-bot
 * Gjum - Bug fixes
-* Pepin - Advanced zoom functions
+* Pepin - Advanced zoom function
 * Incompetech - For KSP soundtrack music - http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
 * Mikeyk730 - stats screen code - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 * White Light - Grazer concept and enemy avoidance code
