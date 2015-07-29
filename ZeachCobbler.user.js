@@ -1676,7 +1676,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cobbler.visualizeGrazing = !cobbler.visualizeGrazing;
         }
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
-            zoomFactor = {10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 10}[zoomFactor];
+            // /*old*/ zoomFactor = (zoomFactor == 10 ? 11 : 10);
+            /*new*/ zoomFactor = {10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 10}[zoomFactor];
         }
         else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
             var id = d.keyCode - '1'.charCodeAt(0);
@@ -1791,7 +1792,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         setInterval(La, 18E4);
         F = xa = document.getElementById("canvas");
         g = F.getContext("2d");
-        /*new*//*remap*/ F.onmousewheel = function (e) {
+        // /*old*/ (/*new*/ /remap/) F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        /*new*/ F.onmousewheel = function (e) {
             if (e.wheelDelta > 0) {
                 zoomFactor = {11: 10.9, 10.9: 10.8, 10.8: 10.7, 10.7: 10.6, 10.6: 10.5, 10.5: 10.4, 10.4: 10.3, 10.3: 10.2, 10.2: 10.1, 10.1: 10, 10: 9.95, 9.95: 9.90, 9.90: 9.85, 9.85: 9.80, 9.80: 9.75, 9.75: 9.70, 9.70: 9.65, 9.65: 9.60, 9.60: 9.55, 9.55: 9.50, 9.50: 9.50}[zoomFactor];
             } else {
@@ -1893,6 +1895,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         Pa();
     }
     function Na(a) {
+        // /*new*/ H *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
         if (1 > H) {
             H = 1;
         }
