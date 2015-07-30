@@ -78,4 +78,5 @@ It was chosen on a whim. And I like Peach Cobbler.
 * Pepin - Advanced zoom function
 * Incompetech - For KSP soundtrack music - http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
 * Mikeyk730 - stats screen code - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
+* posixphreak - Advanced zoom function improvements
 * White Light - Grazer concept and enemy avoidance code
