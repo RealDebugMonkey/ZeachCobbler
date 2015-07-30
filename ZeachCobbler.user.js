@@ -3,8 +3,8 @@
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
 // @updateURL    http://bit.do/ZeachCobblerJS2
 // @downloadURL  http://bit.do/ZeachCobblerJS2
-// @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
-// @version      0.28.2
+// @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
+// @version      0.28.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -13,6 +13,7 @@
 //                     - Stats now detects viruses being eaten
 //                   1 - Updated @updateURL and @downloadURL to not use rawgit
 //                   2 - Upgraded zoom functions
+//                   3 - Some zoom bug fixes
 //              0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
@@ -73,7 +74,7 @@
 //                   3 - onDestroy bugfix
 //                   4 - update with mikeyk730's latest changes
 //                   5 - skins should now display in experimental
-// @require      https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
@@ -1677,7 +1678,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             // /*old*/ zoomFactor = (zoomFactor == 10 ? 11 : 10);
-            /*new*/ zoomFactor = {10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 10}[zoomFactor];
+            /*new*/ zoomFactor = {9.50: 9.55, 9.55: 9.60, 9.60: 9.65, 9.65: 9.70, 9.70: 9.75, 9.75: 9.80, 9.80: 9.85, 9.85: 9.90, 9.90: 9.95, 9.95: 10, 10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 10}[zoomFactor];
         }
         else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
             var id = d.keyCode - '1'.charCodeAt(0);
