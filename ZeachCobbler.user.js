@@ -1678,7 +1678,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             // /*old*/ zoomFactor = (zoomFactor == 10 ? 11 : 10);
-            /*new*/ zoomFactor = {9.50: 9.55, 9.55: 9.60, 9.60: 9.65, 9.65: 9.70, 9.70: 9.75, 9.75: 9.80, 9.80: 9.85, 9.85: 9.90, 9.90: 9.95, 9.95: 10, 10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 10}[zoomFactor];
+            /*new*/ zoomFactor = zoomFactor >= 11 ? 10 : +(zoomFactor + 0.1).toFixed(2);
         }
         else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
             var id = d.keyCode - '1'.charCodeAt(0);
@@ -1796,9 +1796,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         // /*old*/ (/*new*/ /remap/) F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         /*new*/ F.onmousewheel = function (e) {
             if (e.wheelDelta > 0) {
-                zoomFactor = {11: 10.9, 10.9: 10.8, 10.8: 10.7, 10.7: 10.6, 10.6: 10.5, 10.5: 10.4, 10.4: 10.3, 10.3: 10.2, 10.2: 10.1, 10.1: 10, 10: 9.95, 9.95: 9.90, 9.90: 9.85, 9.85: 9.80, 9.80: 9.75, 9.75: 9.70, 9.70: 9.65, 9.65: 9.60, 9.60: 9.55, 9.55: 9.50, 9.50: 9.50}[zoomFactor];
+                zoomFactor = zoomFactor <= 9.50 ? 9.50 : +(zoomFactor - 0.05).toFixed(2);
             } else {
-                zoomFactor = {9.50: 9.55, 9.55: 9.60, 9.60: 9.65, 9.65: 9.70, 9.70: 9.75, 9.75: 9.80, 9.80: 9.85, 9.85: 9.90, 9.90: 9.95, 9.95: 10, 10: 10.1, 10.1: 10.2, 10.2: 10.3, 10.3: 10.4, 10.4: 10.5, 10.5: 10.6, 10.6: 10.7, 10.7: 10.8, 10.8: 10.9, 10.9: 11, 11: 11}[zoomFactor];
+                zoomFactor = zoomFactor >= 11 ? 11 : +(zoomFactor + 0.05).toFixed(2);
             }
             
         };
