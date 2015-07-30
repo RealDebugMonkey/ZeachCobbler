@@ -74,7 +74,7 @@
 //                   3 - onDestroy bugfix
 //                   4 - update with mikeyk730's latest changes
 //                   5 - skins should now display in experimental
-// @require      https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
