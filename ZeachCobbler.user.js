@@ -3,7 +3,7 @@
 // @namespace    https://github.com/RealDebugMonkey/ZeachCobbler
 // @updateURL    http://bit.do/ZeachCobblerJS2
 // @downloadURL  http://bit.do/ZeachCobblerJS2
-// @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributers-and-used-code
+// @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @version      0.28.3
 // @description  Agario powerups
 // @author       DebugMonkey
