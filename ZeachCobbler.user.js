@@ -1677,7 +1677,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             // /*old*/ zoomFactor = (zoomFactor == 10 ? 11 : 10);
-            /*new*/ zoomFactor = zoomFactor >= 11 ? 10 : zoomFactor + 0.1;
+            /*new*/ zoomFactor = zoomFactor >= 11 ? 10 : +(zoomFactor + 0.1).toFixed(2);
         }
         else if('1'.charCodeAt(0) <= d.keyCode && '7'.charCodeAt(0) >= d.keyCode && isPlayerAlive()) {
             var id = d.keyCode - '1'.charCodeAt(0);
@@ -1795,9 +1795,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         // /*old*/ (/*new*/ /remap/) F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         /*new*/ F.onmousewheel = function (e) {
             if (e.wheelDelta > 0) {
-                zoomFactor = zoomFactor <= 9.50 ? 9.50 : zoomFactor - 0.05;
+                zoomFactor = zoomFactor <= 9.50 ? 9.50 : +(zoomFactor - 0.05).toFixed(2);
             } else {
-                zoomFactor = zoomFactor >= 11 ? 11 : zoomFactor + 0.05;
+                zoomFactor = zoomFactor >= 11 ? 11 : +(zoomFactor + 0.05).toFixed(2);
             }
             
         };
