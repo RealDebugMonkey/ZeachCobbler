@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS2
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
-// @version      0.28.4
+// @version      0.28.5
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -15,6 +15,7 @@
 //                   2 - Upgraded zoom functions
 //                   3 - Some zoom bug fixes
 //                   4 - protocol breakage fix
+//                   5 - fixed my fuckup
 //              0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
@@ -2421,28 +2422,24 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function U() {
         /*new*/if(isGrazing){ doGrazing(); return; }
         /*new*/if(suspendMouseUpdates){return;}
-        /*new*/var send_normal = false;;
         var a;
         if (S()) {
             a = ca - q / 2;
             var c = da - s$$0 / 2;
             if (!(64 > a * a + c * c)) {
                 if (!(0.01 > Math.abs($a - fa) && 0.01 > Math.abs(ab - ga))) {
-                    send_normal = true;
-                    /*new*/if(!cobbler.enableBlobLock) {
                         $a = fa;
                         ab = ga;
                         a = L(13);
                         a.setUint8(0, 16);
-                        a.setFloat64(1, fa, true);
-                        a.setFloat64(5, ga, true);
+                        a.setInt32(1, fa, true);
+                        a.setInt32(5, ga, true);
                         a.setUint32(9, 0, true);
                         M(a);
-                        /*new*/}
+
                 }
             }
         }
-        /*new*/ if(cobbler.enableBlobLock) {sendMultyMouseUpdate(send_normal);}
     }
     function Ya() {
         if (S() && null != I) {
