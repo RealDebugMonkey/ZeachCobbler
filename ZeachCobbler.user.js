@@ -4,7 +4,7 @@
 // @updateURL    http://bit.do/ZeachCobblerJS2
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
-// @version      0.28.3
+// @version      0.28.4
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -14,6 +14,7 @@
 //                   1 - Updated @updateURL and @downloadURL to not use rawgit
 //                   2 - Upgraded zoom functions
 //                   3 - Some zoom bug fixes
+//                   4 - protocol breakage fix
 //              0.27.0 - Click-to-lock added
 //                     - Added ability to lock blob at some pos
 //                     - Added ability to select n-th size blob
@@ -82,12 +83,11 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>New UI</h3><p>" +
-    "I hope you like the new UI. Party Play dialogs should now be accessible from the game mode dropdown.<br> " +
-    "There is also a new option to disable the automatic display of the ZC stats window." +
-    "<br><br>debugmonkey</p><br>PS. Thanks to those of you who have submitted bugs and suggestions. I'll get to them when " +
-    "I can. Only one of me and I gotta keep food on the table before working on this hobby.<br>" +
-    "<img src='http://i.imgur.com/p4zv6vx.jpg'>";
+var debugMonkeyReleaseMessage = "<h3>Protocol Changes and Burnout</h3><p>" +
+    "Hey guys. I've patched the no-movement issue. Sorry for the inconvenience and for the delay in making a fix. <br><br>" +
+    "I've been a bit burnt out on Agar.io so I've been taking it easy. I'd like to thank PepinCZ, Gjum, and all " +
+    "the others who have been helpful in the github issues area during my away time. You guys are the real MVPs.<br>" +
+    "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-debugmonkey";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -294,12 +294,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         if (ws && ws.readyState == ws.OPEN) {
             var blobId = blob ? blob.id : 0;
-            var z0 = new ArrayBuffer(21);
+            var z0 = new ArrayBuffer(13);
             var z1 = new DataView(z0);
             z1.setUint8(0, 16);
-            z1.setFloat64(1, mouseX2, true);
-            z1.setFloat64(9, mouseY2, true);
-            z1.setUint32(17, blobId, true);
+            z1.setInt32(1, mouseX2, true);
+            z1.setInt32(5, mouseY2, true);
+            z1.setUint32(9, blobId, true);
             ws.send(z0);
         }
     }
@@ -1756,12 +1756,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             } else if (!send_normal) {
                 continue;
             }
-            var z0 = new ArrayBuffer(21);
+            var z0 = new ArrayBuffer(13);
             var z1 = new DataView(z0);
             z1.setUint8(0, 16);
-            z1.setFloat64(1, x, true);
-            z1.setFloat64(9, y, true);
-            z1.setUint32(17, blob.id, true);
+            z1.setInt32(1, x, true);
+            z1.setInt32(5, y, true);
+            z1.setUint32(9, blob.id, true);
             zeach.webSocket.send(z0);
         }
     }
@@ -2432,11 +2432,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     /*new*/if(!cobbler.enableBlobLock) {
                         $a = fa;
                         ab = ga;
-                        a = L(21);
+                        a = L(13);
                         a.setUint8(0, 16);
                         a.setFloat64(1, fa, true);
-                        a.setFloat64(9, ga, true);
-                        a.setUint32(17, 0, true);
+                        a.setFloat64(5, ga, true);
+                        a.setUint32(9, 0, true);
                         M(a);
                         /*new*/}
                 }
