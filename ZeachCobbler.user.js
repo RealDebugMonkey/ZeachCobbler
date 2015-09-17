@@ -1018,7 +1018,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             else {
                 ctx.fillStyle = color;
-                ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : color
+                
+                if (isTeamMode()) {
+                    ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : setBorderColors(this, zeach.myPoints);
+                }
+                else {
+                    ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : color
+                }
             }
         }
     }
@@ -1069,27 +1075,64 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             return cell.color;
         }
         var color = cell.color;
-        if (myPoints.length > 0 && !isTeamMode()) {
+        if (myPoints.length > 0) {
             var size_this =  getMass(cell.size);
             var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
             if (cell.isVirus || myPoints.length === 0) {
                 color = virusColor;
-            } else if (~myPoints.indexOf(cell)) {
-                color = myColor;
-            } else if (size_this > size_that * Huge) {
-                color = Huge_Color;
-            } else if (size_this > size_that * Large) {
-                color = Large_Color;
-            } else if (size_this > size_that * Small) {
-                color = Same_Color;
-            } else if (size_this > size_that * Tiny) {
-                color = Small_Color;
-            } else {
-                color = Tiny_Color;
+            }
+
+            if (!isTeamMode()) {
+                if (~myPoints.indexOf(cell)) {
+                    color = myColor;
+                } else if (size_this > size_that * Huge) {
+                    color = Huge_Color;
+                } else if (size_this > size_that * Large) {
+                    color = Large_Color;
+                } else if (size_this > size_that * Small) {
+                    color = Same_Color;
+                } else if (size_this > size_that * Tiny) {
+                    color = Small_Color;
+                } else {
+                    color = Tiny_Color;
+                }
             }
         }
         return color;
     }
+    
+    function setBorderColors(cell,myPoints){
+        if(!showVisualCues){
+            return cell.color;
+        }
+        if(cobbler.rainbowPellets && isFood(cell)){
+            return cell.color;
+        }
+        
+        var color = cell.color
+        
+        if (!isFood(cell) && !cell.isVirus) {
+            if (myPoints.length > 0) {
+                var size_this =  getMass(cell.size);
+                var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
+
+                if (~myPoints.indexOf(cell)) {
+                    color = myColor;
+                } else if (size_this > size_that * Huge) {
+                    color = Huge_Color;
+                } else if (size_this > size_that * Large) {
+                    color = Large_Color;
+                } else if (size_this > size_that * Small) {
+                    color = Same_Color;
+                } else if (size_this > size_that * Tiny) {
+                    color = Small_Color;
+                } else {
+                    color = Tiny_Color;
+                }                   
+            }
+        }
+        return color;
+    }    
 
     function displayDebugText(ctx, agarTextFunction) {
 
