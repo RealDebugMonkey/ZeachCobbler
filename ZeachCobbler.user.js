@@ -1075,28 +1075,26 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             return cell.color;
         }
         var color = cell.color;
-        if (myPoints.length > 0) {
+        if (myPoints.length > 0 && !isTeamMode()) {
             var size_this =  getMass(cell.size);
             var size_that =  ~~(getSelectedBlob().size * getSelectedBlob().size / 100);
             if (cell.isVirus || myPoints.length === 0) {
                 color = virusColor;
             }
-
-            if (!isTeamMode()) {
-                if (~myPoints.indexOf(cell)) {
-                    color = myColor;
-                } else if (size_this > size_that * Huge) {
-                    color = Huge_Color;
-                } else if (size_this > size_that * Large) {
-                    color = Large_Color;
-                } else if (size_this > size_that * Small) {
-                    color = Same_Color;
-                } else if (size_this > size_that * Tiny) {
-                    color = Small_Color;
-                } else {
-                    color = Tiny_Color;
-                }
+            if (~myPoints.indexOf(cell)) {
+                color = myColor;
+            } else if (size_this > size_that * Huge) {
+                color = Huge_Color;
+            } else if (size_this > size_that * Large) {
+                color = Large_Color;
+            } else if (size_this > size_that * Small) {
+                color = Same_Color;
+            } else if (size_this > size_that * Tiny) {
+                color = Small_Color;
+            } else {
+                color = Tiny_Color;
             }
+    
         }
         return color;
     }
