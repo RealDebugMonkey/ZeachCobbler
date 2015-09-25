@@ -156,7 +156,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     function simpleSavedSettings(optionsObject){
         _.forEach(optionsObject, function(defaultValue, settingName){
             var backingVar = '_' + settingName;
-            cobbler[backingVar] = GM_getValue(settingName, defaultValue),
+            cobbler[backingVar] = GM_getValue(settingName, defaultValue);
             Object.defineProperty(cobbler, settingName, {
                 get: function()     { return this[backingVar];},
                 set: function(val)  { this[backingVar] = val; GM_setValue(settingName, val); }
