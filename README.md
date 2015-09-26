@@ -28,6 +28,7 @@ Zeach Cobbler also includes a bot we like to call the "grazer" which helps with 
 * E - fire at virus near cursor
 * R - Fire at virus near selected blob (virus is highlighted in red)
 * O - Enable/Disable firing at virus by left-mouse click (LMB duplicates 'E' functionality)
+###All keys are changeable in options!
 
 ##Feature List
 1. Auto-grazing (bot-like feeding on pellets) with optional target analysis visualization
@@ -60,6 +61,7 @@ Zeach Cobbler also includes a bot we like to call the "grazer" which helps with 
 16. 'Time alive' tracker
 17. 'Highest score' tracker
 18. Acid mode support
+19. Option to change keyboard binds
  
 
 ## What's up with the name?
@@ -75,7 +77,7 @@ It was chosen on a whim. And I like Peach Cobbler.
 * Ephemerality - Code review
 * GamerLio - Minimap from his awesome bot -- https://github.com/leomwu/agario-bot
 * Gjum - Bug fixes
-* Pepin - Advanced zoom function
+* Pepin - Keyboard Binds Settings, Advanced zoom function
 * Incompetech - For KSP soundtrack music - http://incompetech.com/music/royalty-free/most/kerbalspaceprogram.php
 * Mikeyk730 - stats screen code - https://greasyfork.org/en/scripts/10154-agar-chart-and-stats-screen
 * posixphreak - Advanced zoom function improvements
