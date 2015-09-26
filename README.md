@@ -28,6 +28,7 @@ Zeach Cobbler also includes a bot we like to call the "grazer" which helps with 
 * E - fire at virus near cursor
 * R - Fire at virus near selected blob (virus is highlighted in red)
 * O - Enable/Disable firing at virus by left-mouse click (LMB duplicates 'E' functionality)
+
 ###All keys are changeable in options!
 
 ##Feature List
