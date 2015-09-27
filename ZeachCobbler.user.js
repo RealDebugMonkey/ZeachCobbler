@@ -197,6 +197,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "rightClickFires"   : false,
             "showZcStats"       : true,
             // Menu Binds Values
+            "MenuSwitchBlob"    : false,
             "MenuAcidMode"      : false,
             "MenuLiteBriteMode" : false,
             "MenuShowVisual"    : false,
@@ -212,6 +213,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "MenuZoomFactor"    : false,
             "MenuPointLock"     : false,
             // Key Binds Defaults
+            "KeySwitchBlob"     : "TAB",
             "KeyAcidMode"       : "A",
             "KeyLiteBriteMode"  : "L",
             "KeyShowVisual"     : "C",
@@ -1654,8 +1656,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if(jQuery("#overlays").is(':visible')){
             return;
         }
-
-        if(9 === d.keyCode && isPlayerAlive()) {
+        
+        var TABKEY = 9;
+        var TABTEXT = "TAB";
+        
+        if(cobbler.KeySwitchBlob == TABTEXT && 9 === d.keyCode && isPlayerAlive()) {
+            d.preventDefault();
+            switchCurrentBlob();
+        }
+        else if(cobbler.KeySwitchBlob.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             d.preventDefault();
             switchCurrentBlob();
         }
@@ -4109,6 +4118,7 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
     '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Advanced Options</a></li>' +
     '<li role="presentation">                 <a href="#page3" id="keysTab" role="tab" data-toggle="tab">Keyboard Binds</a></li>' +
+    '<li role="presentation">                 <a href="#page4" id="contributorsTab" role="tab" data-toggle="tab">Contributors</a></li>' +
         //'<li role="presentation"><a href="#page3" role="tab" data-toggle="tab">IP Connect</a></li>' +
     '</ul>'+
 
@@ -4142,6 +4152,25 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '<div id="keysCol1" class="col-sm-4 checkbox" style="padding-left: 5%; padding-right: 1%;"></div>' +
     '<div id="keysCol2" class="col-sm-4" style="padding-left: 2%; padding-right: 2%;"></div>' +
     '<div id="keysCol3" class="col-sm-4" style="padding-left: 2%; padding-right: 5%;"></div>' +
+    '</div>' +
+    '</div>'+
+    '<div id="page4" role="tabpanel" class="tab-pane">' +
+    '<div class="row">' +
+    '<div id="col1" class="col-sm-10" style="padding-left: 5%; padding-right: 1%;"><h3>Contributors and used code</h3><ul>' +
+    '   <li><B>albel727</B> - For the complete rewrite of the grazer into what is now called the "new grazer"</li>' +
+    '   <li><B>Pepin</B> - Keyboard Binds Settings, Advanced zoom function</li>' +
+    '   <li><B>Angal</B> - For the original Server select UI (now unused), click-to-lock multiblob feature, and multiblob grazer feature</li>' +
+    '   <li><B>Apostolique</B> - debug text output derived from Apostoliques bot code</li>' +
+    '   <li><B>Electronoob</B> - Imgur skins, Agariomods.com skins, connect.agariomod.com skins</li>' +
+    '   <li><B>Ephemerality</B> - Code review</li>' +
+    '   <li><B>GamerLio</B> - Minimap from his awesome bot</li>' +
+    '   <li><B>Gjum</B> - Bug fixes</li>' +
+    '   <li><B>Incompetech</B> - For KSP soundtrack music</li>' +
+    '   <li><B>Mikeyk730</B> - stats screen code</li>' +
+    '   <li><B>posixphreak</B> - Advanced zoom function improvements</li>' +
+    '   <li><B>White Light</B> - Grazer concept and enemy avoidance code</li>' +
+    '</ul></div>' +
+    '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
     '</div>' +
     '</div>');
 jQuery(".agario-profile-panel").appendTo("#XPArea");
@@ -5014,6 +5043,30 @@ $('#FireAtVirCur-textbox').on('input propertychange paste', function() {
     }
 });
 
+keysCol2.append('<h4>Fire At Virus Near Blob</h4>' +
+    '<div id="FireAtVirBlob-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="FireAtVirBlob-checkbox" type="checkbox"></span>' +
+    '<input id="FireAtVirBlob-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyFireAtVirBlob +'></div>');
+$('#FireAtVirBlob-checkbox').change(function(){
+    if(!!this.checked){
+        $('#FireAtVirBlob-textbox').removeAttr("disabled");
+    } else {
+        $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuFireAtVirBlob = !!this.checked;
+});
+if(cobbler.MenuFireAtVirBlob){$('#FireAtVirBlob-checkbox').prop('checked', true);}else{ $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})}
+$('#FireAtVirBlob-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#FireAtVirBlob-group").removeClass('has-error');
+        cobbler.KeyFireAtVirBlob = newval;
+    }
+    else{
+        $("#FireAtVirBlob-group").addClass('has-error');
+    }
+});
+
 keysCol2.append('<h4>New Grazer</h4>' +
     '<div id="NewGrazer-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="NewGrazer-checkbox" type="checkbox"></span>' +
     '<input id="NewGrazer-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyNewGrazer +'></div>');
@@ -5086,7 +5139,34 @@ $('#GrazingFix-textbox').on('input propertychange paste', function() {
     }
 });
 
-keysCol2.append('<h4>Suspend Mouse</h4>' +
+var keysCol3 = $("#keysCol3");
+keysCol3.append('<h4>Switch selected blob</h4>' +
+    '<div id="SwitchBlob-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="SwitchBlob-checkbox" type="checkbox"></span>' +
+    '<input id="SwitchBlob-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeySwitchBlob +'></div>');
+$('#SwitchBlob-checkbox').change(function(){
+    if(!!this.checked){
+        $('#SwitchBlob-textbox').removeAttr("disabled");
+    } else {
+        $('#SwitchBlob-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuSwitchBlob= !!this.checked;
+});
+if(cobbler.MenuSwitchBlob){$('#SwitchBlob-checkbox').prop('checked', true);}else{ $('#SwitchBlob-textbox').attr({disabled:"disabled"})}
+$('#SwitchBlob-textbox').on('input propertychange paste', function() {
+    var newval = this.value;
+    var TABKEY = 9;
+    var TABTEXT = "TAB";
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#SwitchBlob-group").removeClass('has-error');
+        cobbler.KeySwitchBlob = newval;
+    }
+    else{
+        $("#SwitchBlob-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Suspend Mouse</h4>' +
     '<div id="SuspendMouse-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="SuspendMouse-checkbox" type="checkbox"></span>' +
     '<input id="SuspendMouse-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeySuspendMouse +'></div>');
 $('#SuspendMouse-checkbox').change(function(){
@@ -5110,7 +5190,6 @@ $('#SuspendMouse-textbox').on('input propertychange paste', function() {
     }
 });
 
-var keysCol3 = $("#keysCol3");
 keysCol3.append('<h4>Mouse Right Click</h4>' +
     '<div id="RightClick-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="RightClick-checkbox" type="checkbox"></span>' +
     '<input id="RightClick-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyRightClick +'></div>');
@@ -5207,7 +5286,7 @@ $('#GrazerReset-textbox').on('input propertychange paste', function() {
     }
 });
 
-keysCol3.append('<h4>Point Lock</h4>' +
+keysCol3.append('<h4>Unlock all blobs</h4>' +
     '<div id="PointLock-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="PointLock-checkbox" type="checkbox"></span>' +
     '<input id="PointLock-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyPointLock +'></div>');
 $('#PointLock-checkbox').change(function(){
