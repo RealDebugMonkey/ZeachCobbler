@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.29.0
+// @version      0.29.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -15,6 +15,7 @@
 // @icon128      https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png
 // @changes          0.29.0 - Added option to edit keyboard binds
 //                     - Now you can edit keys in options
+//                   1 - Added Contributors tab, bug fixes
 //                   0.28.0 - Revamped UI
 //                     - Stats now detects viruses being eaten
 //                   1 - Updated @updateURL and @downloadURL to not use rawgit
@@ -92,7 +93,7 @@ var _version_ = GM_info.script.version;
 
 var debugMonkeyReleaseMessage = "<h3>Added keyboard binds settings!</h3><p>" +
     "Now you can acces Keyboard Binds tab in options! Here you are able to edit every key for Zeach Cobbler functions like Grazer, Acid Mode, and many others! " +
-    "If you (for example) want to edit key to Grazer from G to T, simply click on checkbox at textbox and here type your wanted key, T. " +
+    "Just click the checkbox at textbox and here type any key you want to use! " +
     "Please, if you find a bug in this new feature, report it in issues on GitHub. Many thanks! <br>" +
     "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-debugmonkey, PepinCZ";
 
@@ -4943,7 +4944,7 @@ AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.im
 var keysCol1 = $("#keysCol1");
 keysCol1.append('<h4>Keyboard Binds</h4>');
 keysCol1.append('<p>Here you can set your own keys to turn on/off Zeach Cobbler functions like Grazer, Acid Mode, Zoom, and many others!</p>');
-keysCol1.append('<p>Just click on checkbox at text box and type here your custom key you want to use!</p>');
+keysCol1.append('<p>Just click on the checkbox at text box and type here your custom key you want to use!</p>');
 keysCol1.append('<p><b>NOTE: Letters only!</b></p>');
 
 var keysCol2 = $("#keysCol2");
