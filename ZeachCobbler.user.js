@@ -93,7 +93,7 @@ var _version_ = GM_info.script.version;
 
 var debugMonkeyReleaseMessage = "<h3>Added keyboard binds settings!</h3><p>" +
     "Now you can acces Keyboard Binds tab in options! Here you are able to edit every key for Zeach Cobbler functions like Grazer, Acid Mode, and many others! " +
-    "Just click the checkbox at textbox and here type any key you want to use! " +
+    "Just click on the checkbox at textbox and here type any key you want to use! " +
     "Please, if you find a bug in this new feature, report it in issues on GitHub. Many thanks! <br>" +
     "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-debugmonkey, PepinCZ";
 
