@@ -4,12 +4,19 @@
 // @updateURL    http://bit.do/ZeachCobblerJS2
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
-// @version      0.28.5
+// @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
+// @version      0.29.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
 // @match        https://agar.io
-// @changes     0.28.0 - Revamped UI
+// @icon         https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon48.png
+// @icon64       https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon64.png
+// @icon128      https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png
+// @changes          0.29.0 - Added option to edit keyboard binds
+//                     - Now you can edit keys in options
+//                   1 - Added Contributors tab, bug fixes
+//                   0.28.0 - Revamped UI
 //                     - Stats now detects viruses being eaten
 //                   1 - Updated @updateURL and @downloadURL to not use rawgit
 //                   2 - Upgraded zoom functions
@@ -84,11 +91,11 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Protocol Changes and Burnout</h3><p>" +
-    "Hey guys. I've patched the no-movement issue. Sorry for the inconvenience and for the delay in making a fix. <br><br>" +
-    "I've been a bit burnt out on Agar.io so I've been taking it easy. I'd like to thank PepinCZ, Gjum, and all " +
-    "the others who have been helpful in the github issues area during my away time. You guys are the real MVPs.<br>" +
-    "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-debugmonkey";
+var debugMonkeyReleaseMessage = "<h3>Added keyboard binds settings!</h3><p>" +
+    "Now you can acces Keyboard Binds tab in options! Here you are able to edit every key for Zeach Cobbler functions like Grazer, Acid Mode, and many others! " +
+    "Just click on the checkbox at textbox and here type any key you want to use! " +
+    "Please, if you find a bug in this new feature, report it in issues on GitHub. Many thanks! <br>" +
+    "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-debugmonkey, PepinCZ";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
@@ -187,9 +194,41 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "miniMapScale"      : false,
             "miniMapScaleValue" : 64,
             "enableBlobLock"    : false,
-            'nextOnBlobLock'    : false,
-            'rightClickFires'   : false,
-            'showZcStats'       : true,
+            "nextOnBlobLock"    : false,
+            "rightClickFires"   : false,
+            "showZcStats"       : true,
+            // Menu Binds Values
+            "MenuSwitchBlob"    : false,
+            "MenuAcidMode"      : false,
+            "MenuLiteBriteMode" : false,
+            "MenuShowVisual"    : false,
+            "MenuFireAtVirCur"  : false,
+            "MenuNewGrazer"     : false,
+            "MenuOldGrazer"     : false,
+            "MenuSuspendMouse"  : false,
+            "MenuRightClick"    : false,
+            "MenuGrazingFix"    : false,
+            "MenuFireAtVirBlob" : false,
+            "MenuGrazerReset"   : false,
+            "MenuGrazingVisual" : false,
+            "MenuZoomFactor"    : false,
+            "MenuPointLock"     : false,
+            // Key Binds Defaults
+            "KeySwitchBlob"     : "TAB",
+            "KeyAcidMode"       : "A",
+            "KeyLiteBriteMode"  : "L",
+            "KeyShowVisual"     : "C",
+            "KeyFireAtVirCur"   : "E",
+            "KeyNewGrazer"      : "G",
+            "KeyOldGrazer"      : "H",
+            "KeySuspendMouse"   : "M",
+            "KeyRightClick"     : "O",
+            "KeyGrazingFix"     : "P",
+            "KeyFireAtVirBlob"  : "R",
+            "KeyGrazerReset"    : "T",
+            "KeyGrazingVisual"  : "V",
+            "KeyZoomFactor"     : "Z",
+            "KeyPointLock"      : "S",
         };
         simpleSavedSettings(optionsAndDefaults);
     }
@@ -1103,14 +1142,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             debugStrings.push("v " + _version_);
             debugStrings.push("Server: " + serverIP);
 
-            debugStrings.push("G - grazing: " + (isGrazing ? (1 == isGrazing) ? "Old" : "New" : "Off"));
+            debugStrings.push(cobbler.KeyNewGrazer + " - " + "Grazing: " + (isGrazing ? (1 == isGrazing) ? "Old" : "New" : "Off"));
         }
         if(2 <= cobbler.debugLevel) {
-            debugStrings.push("M - suspend mouse: " + (suspendMouseUpdates ? "On" : "Off"));
-            debugStrings.push("P - grazing target fixation :" + (grazingTargetFixation ? "On" : "Off"));
+            debugStrings.push(cobbler.KeySuspendMouse + " - " + "Suspend mouse: " + (suspendMouseUpdates ? "On" : "Off"));
+            debugStrings.push(cobbler.KeyGrazingFix + " - " + "Grazing target fixation :" + (grazingTargetFixation ? "On" : "Off"));
             if(grazingTargetFixation){ debugStrings.push("  (T) to retarget");}
-            debugStrings.push("O - right click: " + (cobbler.rightClickFires ? "Fires @ virus" : "Default"))
-            debugStrings.push("Z - zoom: " + zoomFactor.toString());
+            debugStrings.push(cobbler.KeyRightClick + " - " + "Right click: " + (cobbler.rightClickFires ? "Fires @ virus" : "Default"))
+            debugStrings.push(cobbler.KeyZoomFactor + " - " + "Zoom: " + zoomFactor.toString());
             if (isPlayerAlive()) {
                 debugStrings.push("Location: " + Math.floor(getSelectedBlob().x) + ", " + Math.floor(getSelectedBlob().y));
             }
@@ -1618,16 +1657,27 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if(jQuery("#overlays").is(':visible')){
             return;
         }
-
-        if(9 === d.keyCode && isPlayerAlive()) {
+        
+        var TABKEY = 9;
+        var TABTEXT = "TAB";
+        
+        if(cobbler.KeySwitchBlob == TABTEXT && 9 === d.keyCode && isPlayerAlive()) {
             d.preventDefault();
             switchCurrentBlob();
         }
-        else if('A'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+        else if(cobbler.KeySwitchBlob.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+            d.preventDefault();
+            switchCurrentBlob();
+        }
+        else if(cobbler.KeyAcidMode.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             cobbler.isAcid = !cobbler.isAcid;
             setAcid(cobbler.isAcid);
         }
-        else if('C'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyLiteBriteMode.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+            cobbler.isLiteBrite = !cobbler.isLiteBrite;
+        }
+    
+        else if(cobbler.KeyShowVisual.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazzerTargetResetRequest = "all";
             showVisualCues = !showVisualCues;
             if(!showVisualCues) {
@@ -1639,10 +1689,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 jQuery("#mini-map").show();
             }
         }
-        else if('E'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+        else if(cobbler.KeyFireAtVirCur.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             fireAtVirusNearestToCursor();
         }
-        else if('G'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyNewGrazer.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             if(cobbler.grazerHybridSwitch && isGrazing){
                 isGrazing = 0;
                 return;
@@ -1650,7 +1700,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             grazzerTargetResetRequest = "all";
             isGrazing = (2 == isGrazing) ? false : 2;
         }
-        else if('H'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyOldGrazer.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             if(cobbler.grazerHybridSwitch && isGrazing){
                 isGrazing = 0;
                 return;
@@ -1658,26 +1708,26 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             grazzerTargetResetRequest = "all";
             isGrazing = (1 == isGrazing) ? false : 1;
         }
-        else if('M'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+        else if(cobbler.KeySuspendMouse.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             suspendMouseUpdates = !suspendMouseUpdates;
         }
-        else if('O'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyRightClick.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             cobbler.rightClickFires = !cobbler.rightClickFires;
         }
-        else if('P'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyGrazingFix.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             grazingTargetFixation = !grazingTargetFixation;
         }
-        else if('R'.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+        else if(cobbler.KeyFireAtVirBlob.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             fireAtVirusNearestToBlob(getSelectedBlob(),zeach.allItems);
         }
-        else if('T'.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing)) {
+        else if(cobbler.KeyGrazerReset.charCodeAt(0) === d.keyCode && isPlayerAlive() && (1 == isGrazing)) {
             console.log("Retarget requested");
             grazzerTargetResetRequest = "current";
         }
-        else if('V'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyGrazingVisual.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             cobbler.visualizeGrazing = !cobbler.visualizeGrazing;
         }
-        else if('Z'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyZoomFactor.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             // /*old*/ zoomFactor = (zoomFactor == 10 ? 11 : 10);
             /*new*/ zoomFactor = zoomFactor >= 11 ? 10 : +(zoomFactor + 0.1).toFixed(2);
         }
@@ -1687,7 +1737,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var arr =  _.sortBy(zeach.myPoints, "nSize").reverse();
             selectedBlobID = arr[id].id;
         }
-        else if('S'.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
+        else if(cobbler.KeyPointLock.charCodeAt(0) === d.keyCode && isPlayerAlive()) {
             for(var i = 0; i < zeach.myPoints.length; i++) {
                 var point = zeach.myPoints[i];
                 point.locked = false;
@@ -1794,7 +1844,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         setInterval(La, 18E4);
         F = xa = document.getElementById("canvas");
         g = F.getContext("2d");
-        // /*old*/ (/*new*/ /remap/) F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
+        // /*old*/ F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         /*new*/ F.onmousewheel = function (e) {
             if (e.wheelDelta > 0) {
                 zoomFactor = zoomFactor <= 9.50 ? 9.50 : +(zoomFactor - 0.05).toFixed(2);
@@ -1897,7 +1947,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         Pa();
     }
     function Na(a) {
-        // /*new*/ H *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
+        // /*old*/ H *= Math.pow(0.9, a.wheelDelta / -120 || (a.detail || 0));
         if (1 > H) {
             H = 1;
         }
@@ -3015,6 +3065,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             d.setAcid = function(a) {
                 Fa = a;
             };
+            d.setLiteBrite = function(a) {
+                Fa = a;
+            };
             if (null != d.localStorage) {
                 if (null == d.localStorage.AB9) {
                     d.localStorage.AB9 = 0 + ~~(100 * Math.random());
@@ -4064,8 +4117,9 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '<ul class="nav nav-pills" role="tablist">' +
     '<li role="presentation" class="active" > <a href="#page0" id="newsTab"   role="tab" data-toggle="tab">News</a></li>' +
     '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
-    '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Extended Options</a></li>' +
-    '<li role="presentation">                 <a href="#page3" id="helpTab" role="tab" data-toggle="tab">Help</a></li>' +
+    '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Advanced Options</a></li>' +
+    '<li role="presentation">                 <a href="#page3" id="keysTab" role="tab" data-toggle="tab">Keyboard Binds</a></li>' +
+    '<li role="presentation">                 <a href="#page4" id="contributorsTab" role="tab" data-toggle="tab">Contributors</a></li>' +
         //'<li role="presentation"><a href="#page3" role="tab" data-toggle="tab">IP Connect</a></li>' +
     '</ul>'+
 
@@ -4096,19 +4150,26 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '</div>'+
     '<div id="page3" role="tabpanel" class="tab-pane">' +
     '<div class="row">' +
-    '<div id="col1" class="col-sm-6" style="padding-left: 5%; padding-right: 1%;"><h3>Keys</h3><ul>' +
-    '   <li><B>TAB</B> - When split switches selected blob</li>' +
-    '   <li><B>A</B> - Toggle Acid mode</li>' +
-    '   <li><B>C</B> - Toggle display of visual cues</li>' +
-    '   <li><B>G</B> - Toggle new grazer (better overall)</li>' +
-    '   <li><B>H</B> - Toggle old grazer (slightly better early on)' +
-    '   <li><B>E</B> - Fire at virus near cursor</li>' +
-    '   <li><B>R</B> - Fire at virus near selected blob (virus is highlighted in red)</li>' +
-    '   <li><B>M</B> - Enables/Disables mouse input</li>' +
-    '   <li><B>Z</B> - Zoom in/zoom out</li>' +
-    '   <li><B>1...7</B> - Selecte n-th blob sorted by size</li>' +
-    '   <li><B>Click</B> - Lock currently selected blob (if blob locking enabled)</li>' +
-    '   <li><B>S</B> - Unlock all blobs (if blob locking enabled)</li>' +
+    '<div id="keysCol1" class="col-sm-4 checkbox" style="padding-left: 5%; padding-right: 1%;"></div>' +
+    '<div id="keysCol2" class="col-sm-4" style="padding-left: 2%; padding-right: 2%;"></div>' +
+    '<div id="keysCol3" class="col-sm-4" style="padding-left: 2%; padding-right: 5%;"></div>' +
+    '</div>' +
+    '</div>'+
+    '<div id="page4" role="tabpanel" class="tab-pane">' +
+    '<div class="row">' +
+    '<div id="col1" class="col-sm-10" style="padding-left: 5%; padding-right: 1%;"><h3>Contributors and used code</h3><ul>' +
+    '   <li><B>albel727</B> - For the complete rewrite of the grazer into what is now called the "new grazer"</li>' +
+    '   <li><B>Pepin</B> - Keyboard Binds Settings, Advanced zoom function</li>' +
+    '   <li><B>Angal</B> - For the original Server select UI (now unused), click-to-lock multiblob feature, and multiblob grazer feature</li>' +
+    '   <li><B>Apostolique</B> - debug text output derived from Apostoliques bot code</li>' +
+    '   <li><B>Electronoob</B> - Imgur skins, Agariomods.com skins, connect.agariomod.com skins</li>' +
+    '   <li><B>Ephemerality</B> - Code review</li>' +
+    '   <li><B>GamerLio</B> - Minimap from his awesome bot</li>' +
+    '   <li><B>Gjum</B> - Bug fixes</li>' +
+    '   <li><B>Incompetech</B> - For KSP soundtrack music</li>' +
+    '   <li><B>Mikeyk730</B> - stats screen code</li>' +
+    '   <li><B>posixphreak</B> - Advanced zoom function improvements</li>' +
+    '   <li><B>White Light</B> - Grazer concept and enemy avoidance code</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
     '</div>' +
@@ -4879,6 +4940,376 @@ col3.append('<h4>Skins Support</h4>');
 AppendCheckboxP(col3, 'amConnect-checkbox', ' AgarioMods Connect *skins', window.cobbler.amConnectSkins, function(val){window.cobbler.amConnectSkins = val;});
 AppendCheckboxP(col3, 'amExtended-checkbox', ' AgarioMods Extended skins', window.cobbler.amExtendedSkins, function(val){window.cobbler.amExtendedSkins = val;});
 AppendCheckboxP(col3, 'imgur-checkbox', ' Imgur.com  i/skins', window.cobbler.imgurSkins, function(val){window.cobbler.imgurSkins = val;});
+
+var keysCol1 = $("#keysCol1");
+keysCol1.append('<h4>Keyboard Binds</h4>');
+keysCol1.append('<p>Here you can set your own keys to turn on/off Zeach Cobbler functions like Grazer, Acid Mode, Zoom, and many others!</p>');
+keysCol1.append('<p>Just click on the checkbox at text box and type here your custom key you want to use!</p>');
+keysCol1.append('<p><b>NOTE: Letters only!</b></p>');
+
+var keysCol2 = $("#keysCol2");
+keysCol2.append('<h4>Acid Mode</h4>' +
+    '<div id="AcidMode-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="AcidMode-checkbox" type="checkbox"></span>' +
+    '<input id="AcidMode-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyAcidMode +'></div>');
+$('#AcidMode-checkbox').change(function(){
+    if(!!this.checked){
+        $('#AcidMode-textbox').removeAttr("disabled");
+    } else {
+        $('#AcidMode-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuAcidMode = !!this.checked;
+});
+if(cobbler.MenuAcidMode){$('#AcidMode-checkbox').prop('checked', true);}else{ $('#AcidMode-textbox').attr({disabled:"disabled"})}
+$('#AcidMode-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#AcidMode-group").removeClass('has-error');
+        cobbler.KeyAcidMode = newval;
+    }
+    else{
+        $("#AcidMode-group").addClass('has-error');
+    }
+});
+
+keysCol2.append('<h4>Lite Brite Mode</h4>' +
+    '<div id="LiteBrite-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="LiteBrite-checkbox" type="checkbox"></span>' +
+    '<input id="LiteBrite-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyLiteBriteMode +'></div>');
+$('#LiteBrite-checkbox').change(function(){
+    if(!!this.checked){
+        $('#LiteBrite-textbox').removeAttr("disabled");
+    } else {
+        $('#LiteBrite-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuAcidMode = !!this.checked;
+});
+if(cobbler.MenuAcidMode){$('#LiteBrite-checkbox').prop('checked', true);}else{ $('#LiteBrite-textbox').attr({disabled:"disabled"})}
+$('#LiteBrite-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#LiteBrite-group").removeClass('has-error');
+        cobbler.KeyLiteBriteMode = newval;
+    }
+    else{
+        $("#LiteBrite-group").addClass('has-error');
+    }
+});
+
+keysCol2.append('<h4>Show Visual</h4>' +
+    '<div id="ShowVisual-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="ShowVisual-checkbox" type="checkbox"></span>' +
+    '<input id="ShowVisual-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyShowVisual +'></div>');
+$('#ShowVisual-checkbox').change(function(){
+    if(!!this.checked){
+        $('#ShowVisual-textbox').removeAttr("disabled");
+    } else {
+        $('#ShowVisual-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuShowVisual = !!this.checked;
+});
+if(cobbler.MenuShowVisual){$('#ShowVisual-checkbox').prop('checked', true);}else{ $('#ShowVisual-textbox').attr({disabled:"disabled"})}
+$('#ShowVisual-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#ShowVisual-group").removeClass('has-error');
+        cobbler.KeyShowVisual = newval;
+    }
+    else{
+        $("#ShowVisual-group").addClass('has-error');
+    }
+});
+
+keysCol2.append('<h4>Fire At Virus Near Cursor</h4>' +
+    '<div id="FireAtVirCur-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="FireAtVirCur-checkbox" type="checkbox"></span>' +
+    '<input id="FireAtVirCur-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyFireAtVirCur +'></div>');
+$('#FireAtVirCur-checkbox').change(function(){
+    if(!!this.checked){
+        $('#FireAtVirCur-textbox').removeAttr("disabled");
+    } else {
+        $('#FireAtVirCur-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuFireAtVirCur = !!this.checked;
+});
+if(cobbler.MenuFireAtVirCur){$('#FireAtVirCur-checkbox').prop('checked', true);}else{ $('#FireAtVirCur-textbox').attr({disabled:"disabled"})}
+$('#FireAtVirCur-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#FireAtVirCur-group").removeClass('has-error');
+        cobbler.KeyFireAtVirCur = newval;
+    }
+    else{
+        $("#FireAtVirCur-group").addClass('has-error');
+    }
+});
+
+keysCol2.append('<h4>Fire At Virus Near Blob</h4>' +
+    '<div id="FireAtVirBlob-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="FireAtVirBlob-checkbox" type="checkbox"></span>' +
+    '<input id="FireAtVirBlob-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyFireAtVirBlob +'></div>');
+$('#FireAtVirBlob-checkbox').change(function(){
+    if(!!this.checked){
+        $('#FireAtVirBlob-textbox').removeAttr("disabled");
+    } else {
+        $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuFireAtVirBlob = !!this.checked;
+});
+if(cobbler.MenuFireAtVirBlob){$('#FireAtVirBlob-checkbox').prop('checked', true);}else{ $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})}
+$('#FireAtVirBlob-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#FireAtVirBlob-group").removeClass('has-error');
+        cobbler.KeyFireAtVirBlob = newval;
+    }
+    else{
+        $("#FireAtVirBlob-group").addClass('has-error');
+    }
+});
+
+keysCol2.append('<h4>New Grazer</h4>' +
+    '<div id="NewGrazer-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="NewGrazer-checkbox" type="checkbox"></span>' +
+    '<input id="NewGrazer-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyNewGrazer +'></div>');
+$('#NewGrazer-checkbox').change(function(){
+    if(!!this.checked){
+        $('#NewGrazer-textbox').removeAttr("disabled");
+    } else {
+        $('#NewGrazer-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuNewGrazer = !!this.checked;
+});
+if(cobbler.MenuNewGrazer){$('#NewGrazer-checkbox').prop('checked', true);}else{ $('#NewGrazer-textbox').attr({disabled:"disabled"})}
+$('#NewGrazer-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#NewGrazer-group").removeClass('has-error');
+        cobbler.KeyNewGrazer = newval;
+    }
+    else{
+        $("#NewGrazer-group").addClass('has-error');
+    }
+});
+
+keysCol2.append('<h4>Old Grazer</h4>' +
+    '<div id="OldGrazer-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="OldGrazer-checkbox" type="checkbox"></span>' +
+    '<input id="OldGrazer-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyOldGrazer +'></div>');
+$('#OldGrazer-checkbox').change(function(){
+    if(!!this.checked){
+        $('#OldGrazer-textbox').removeAttr("disabled");
+    } else {
+        $('#OldGrazer-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuOldGrazer = !!this.checked;
+});
+if(cobbler.MenuOldGrazer){$('#OldGrazer-checkbox').prop('checked', true);}else{ $('#OldGrazer-textbox').attr({disabled:"disabled"})}
+$('#OldGrazer-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#OldGrazer-group").removeClass('has-error');
+        cobbler.KeyOldGrazer = newval;
+    }
+    else{
+        $("#OldGrazer-group").addClass('has-error');
+    }
+});
+
+keysCol2.append('<h4>Grazer Target Fixation</h4>' +
+    '<div id="GrazingFix-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="GrazingFix-checkbox" type="checkbox"></span>' +
+    '<input id="GrazingFix-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyGrazingFix +'></div>');
+$('#GrazingFix-checkbox').change(function(){
+    if(!!this.checked){
+        $('#GrazingFix-textbox').removeAttr("disabled");
+    } else {
+        $('#GrazingFix-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuGrazingFix = !!this.checked;
+});
+if(cobbler.MenuGrazingFix){$('#GrazingFix-checkbox').prop('checked', true);}else{ $('#GrazingFix-textbox').attr({disabled:"disabled"})}
+$('#GrazingFix-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#GrazingFix-group").removeClass('has-error');
+        cobbler.KeyGrazingFix = newval;
+    }
+    else{
+        $("#GrazingFix-group").addClass('has-error');
+    }
+});
+
+var keysCol3 = $("#keysCol3");
+keysCol3.append('<h4>Switch selected blob</h4>' +
+    '<div id="SwitchBlob-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="SwitchBlob-checkbox" type="checkbox"></span>' +
+    '<input id="SwitchBlob-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeySwitchBlob +'></div>');
+$('#SwitchBlob-checkbox').change(function(){
+    if(!!this.checked){
+        $('#SwitchBlob-textbox').removeAttr("disabled");
+    } else {
+        $('#SwitchBlob-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuSwitchBlob= !!this.checked;
+});
+if(cobbler.MenuSwitchBlob){$('#SwitchBlob-checkbox').prop('checked', true);}else{ $('#SwitchBlob-textbox').attr({disabled:"disabled"})}
+$('#SwitchBlob-textbox').on('input propertychange paste', function() {
+    var newval = this.value;
+    var TABKEY = 9;
+    var TABTEXT = "TAB";
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#SwitchBlob-group").removeClass('has-error');
+        cobbler.KeySwitchBlob = newval;
+    }
+    else{
+        $("#SwitchBlob-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Suspend Mouse</h4>' +
+    '<div id="SuspendMouse-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="SuspendMouse-checkbox" type="checkbox"></span>' +
+    '<input id="SuspendMouse-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeySuspendMouse +'></div>');
+$('#SuspendMouse-checkbox').change(function(){
+    if(!!this.checked){
+        $('#SuspendMouse-textbox').removeAttr("disabled");
+    } else {
+        $('#SuspendMouse-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuSuspendMouse = !!this.checked;
+});
+if(cobbler.MenuSuspendMouse){$('#SuspendMouse-checkbox').prop('checked', true);}else{ $('#SuspendMouse-textbox').attr({disabled:"disabled"})}
+$('#SuspendMouse-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#SuspendMouse-group").removeClass('has-error');
+        cobbler.KeySuspendMouse = newval;
+    }
+    else{
+        $("#SuspendMouse-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Mouse Right Click</h4>' +
+    '<div id="RightClick-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="RightClick-checkbox" type="checkbox"></span>' +
+    '<input id="RightClick-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyRightClick +'></div>');
+$('#RightClick-checkbox').change(function(){
+    if(!!this.checked){
+        $('#RightClick-textbox').removeAttr("disabled");
+    } else {
+        $('#RightClick-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuRightClick = !!this.checked;
+});
+if(cobbler.MenuRightClick){$('#RightClick-checkbox').prop('checked', true);}else{ $('#RightClick-textbox').attr({disabled:"disabled"})}
+$('#RightClick-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#RightClick-group").removeClass('has-error');
+        cobbler.KeyRightClick = newval;
+    }
+    else{
+        $("#RightClick-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Zoom</h4>' +
+    '<div id="ZoomFactor-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="ZoomFactor-checkbox" type="checkbox"></span>' +
+    '<input id="ZoomFactor-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyZoomFactor +'></div>');
+$('#ZoomFactor-checkbox').change(function(){
+    if(!!this.checked){
+        $('#ZoomFactor-textbox').removeAttr("disabled");
+    } else {
+        $('#ZoomFactor-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuZoomFactor = !!this.checked;
+});
+if(cobbler.MenuZoomFactor){$('#ZoomFactor-checkbox').prop('checked', true);}else{ $('#ZoomFactor-textbox').attr({disabled:"disabled"})}
+$('#ZoomFactor-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#ZoomFactor-group").removeClass('has-error');
+        cobbler.KeyZoomFactor = newval;
+    }
+    else{
+        $("#ZoomFactor-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Grazer Visual</h4>' +
+    '<div id="GrazingVisual-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="GrazingVisual-checkbox" type="checkbox"></span>' +
+    '<input id="GrazingVisual-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyGrazingVisual +'></div>');
+$('#GrazingVisual-checkbox').change(function(){
+    if(!!this.checked){
+        $('#GrazingVisual-textbox').removeAttr("disabled");
+    } else {
+        $('#GrazingVisual-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuGrazingVisual = !!this.checked;
+});
+if(cobbler.MenuGrazingVisual){$('#GrazingVisual-checkbox').prop('checked', true);}else{ $('#GrazingVisual-textbox').attr({disabled:"disabled"})}
+$('#GrazingVisual-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#GrazingVisual-group").removeClass('has-error');
+        cobbler.KeyGrazingVisual = newval;
+    }
+    else{
+        $("#GrazingVisual-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Grazer Target Reset</h4>' +
+    '<div id="GrazerReset-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="GrazerReset-checkbox" type="checkbox"></span>' +
+    '<input id="GrazerReset-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyGrazerReset +'></div>');
+$('#GrazerReset-checkbox').change(function(){
+    if(!!this.checked){
+        $('#GrazerReset-textbox').removeAttr("disabled");
+    } else {
+        $('#GrazerReset-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuGrazerReset = !!this.checked;
+});
+if(cobbler.MenuGrazerReset){$('#GrazerReset-checkbox').prop('checked', true);}else{ $('#GrazerReset-textbox').attr({disabled:"disabled"})}
+$('#GrazerReset-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#GrazerReset-group").removeClass('has-error');
+        cobbler.KeyGrazerReset = newval;
+    }
+    else{
+        $("#GrazerReset-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Unlock all blobs</h4>' +
+    '<div id="PointLock-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="PointLock-checkbox" type="checkbox"></span>' +
+    '<input id="PointLock-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyPointLock +'></div>');
+$('#PointLock-checkbox').change(function(){
+    if(!!this.checked){
+        $('#PointLock-textbox').removeAttr("disabled");
+    } else {
+        $('#PointLock-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuPointLock = !!this.checked;
+});
+if(cobbler.MenuPointLock){$('#PointLock-checkbox').prop('checked', true);}else{ $('#PointLock-textbox').attr({disabled:"disabled"})}
+$('#PointLock-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#PointLock-group").removeClass('has-error');
+        cobbler.KeyPointLock = newval;
+    }
+    else{
+        $("#PointLock-group").addClass('has-error');
+    }
+});
 
 // ---- Tooltips
 $("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right",
