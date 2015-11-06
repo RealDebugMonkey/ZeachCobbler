@@ -1197,8 +1197,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             miniMapCtx.strokeStyle = blob.isVirus ?  "#33FF33" : 'rgb(52,152,219)' ;
             miniMapCtx.beginPath();
             miniMapCtx.arc(
-                (blob.nx+Math.abs(zeach.mapRight)) / minimapScale, 
-                (blob.ny+Math.abs(zeach.mapBottom)) / minimapScale, 
+                (blob.nx+Math.abs(zeach.mapLeft)) / minimapScale, 
+                (blob.ny+Math.abs(zeach.mapTop)) / minimapScale, 
                 Math.abs(blob.size / minimapScale), 
                 0, 
                 2 * Math.PI
