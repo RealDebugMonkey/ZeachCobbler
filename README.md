@@ -56,13 +56,16 @@ Zeach Cobbler also includes a bot we like to call the "grazer" which helps with 
 11. Server Select UI (Thanks to Angal for use of his code)
 12. Automatically save and autofill last-used username
 13. Agariomods.com skins support http://skins.agariomods.com/ 
-14. Agariomods.com style imgur-based skin support 
+14. Connect.Agariomods.com skins support http://connect.agariomods.com/
+15. Agariomods.com style imgur-based skin support 
     * For example use i/m68ZpaW to get http://i.imgur.com/m68ZpaW.jpg as your skin.
-15. X/Y coordinate display
-16. 'Time alive' tracker
-17. 'Highest score' tracker
-18. Acid mode support
-19. Option to change keyboard binds
+16. GitHub avatar skins support
+    * For example use 'PepinCZ to get https://avatars.githubusercontent.com/pepincz as your skin.
+17. X/Y coordinate display
+18. 'Time alive' tracker
+19. 'Highest score' tracker
+20. Acid mode support
+21. Option to change keyboard binds
  
 
 ## What's up with the name?
