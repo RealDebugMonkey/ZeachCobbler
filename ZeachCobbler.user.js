@@ -1019,7 +1019,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             else {
                 ctx.fillStyle = color;
                 
-                if (isTeamMode()) {
+                if (isTeamMode() && !cobbler.isLiteBrite) {
                     ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : setBorderColors(this, zeach.myPoints);
                 }
                 else {
