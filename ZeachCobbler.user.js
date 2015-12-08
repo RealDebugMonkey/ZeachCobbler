@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.0
+// @version      0.31.1
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
