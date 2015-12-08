@@ -491,8 +491,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 //console.log(~~(Date.now()/1000));
             }, 200);
         }
-        
-        
+             
         if (grazzerTargetResetRequest == 'all') {
             grazzerTargetResetRequest = false;
             
@@ -501,7 +500,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
         } else if (grazzerTargetResetRequest == 'current') {
             var pseudoBlob = getMouseCoordsAsPseudoBlob();
-
+            
             pseudoBlob.size = getSelectedBlob().size;
             //pseudoBlob.scoreboard = scoreboard;
             var newTarget = findFoodToEat_old(pseudoBlob,zeach.allItems);
@@ -1493,9 +1492,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             zeach.fireFunction(17);
         });
         
-        if(cobbler.isGrazing > 0) {
+        if(isGrazing) {
             console.log("Grazer is active; reseting target");
-            grazzerTargetResetRequest = "all";
+            //here some code to update all my blobs so grazer can use them
         }
         window.setTimeout(function () { suspendMouseUpdates = false;});
     }
@@ -1778,7 +1777,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             switchCurrentBlob();
         }
         else if(cobbler.KeyClickToSplit.charCodeAt(0) === d.keyCode && isPlayerAlive()){
-            clickToSplit();
+            cobbler.clickToSplit = !cobbler.clickToSplit;
         }
         else if(cobbler.KeyAcidMode.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             cobbler.isAcid = !cobbler.isAcid;
