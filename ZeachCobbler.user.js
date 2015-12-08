@@ -97,11 +97,11 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Added keyboard binds settings!</h3><p>" +
-    "Now you can acces Keyboard Binds tab in options! Here you are able to edit every key for Zeach Cobbler functions like Grazer, Acid Mode, and many others! " +
-    "Just click on the checkbox at textbox and here type any key you want to use! " +
-    "Please, if you find a bug in this new feature, report it in issues on GitHub. Many thanks! <br>" +
-    "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-debugmonkey, PepinCZ";
+var debugMonkeyReleaseMessage = "<h3>Click to split and bug fixes</h3><p>" +
+    "In this update was added ability to split by mouse click, which work also with Grazer. " +
+    "I also fixed some bugs, like the screen-freezing minimap one and fix semicolons in the code. " +
+    "Again, if you find some bug please report it! (You can do that visiting TamperMonkey's controll panel and then click the bug image right of Zeach Cobbler) <br>" +
+    "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-PepinCZ, debugmonkey";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
