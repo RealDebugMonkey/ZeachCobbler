@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.30.1
+// @version      0.31.0
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -13,9 +13,12 @@
 // @icon         https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon48.png
 // @icon64       https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon64.png
 // @icon128      https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png
-// @changes          0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
+// @changes          0.31.0 - Added ability to split by mouse click
+//                     - Also fixed semicolons, improved formating of console logs                       
+//                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
+//                   2 - Added strokecolor indiactors in teams mode
 //                   0.29.0 - Added option to edit keyboard binds
 //                     - Now you can edit keys in options
 //                   1 - Added Contributors tab, bug fixes
@@ -199,6 +202,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "enableBlobLock"    : false,
             "nextOnBlobLock"    : false,
             "rightClickFires"   : false,
+            "clickToSplit"      : false,
             "showZcStats"       : true,
 			"gitHubSkins"       : true,
             // Menu Binds Values
@@ -217,6 +221,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "MenuGrazingVisual" : false,
             "MenuZoomFactor"    : false,
             "MenuPointLock"     : false,
+            "MenuClickToSplit"  : false,
             // Key Binds Defaults
             "KeySwitchBlob"     : "TAB",
             "KeyAcidMode"       : "A",
@@ -233,6 +238,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             "KeyGrazingVisual"  : "V",
             "KeyZoomFactor"     : "Z",
             "KeyPointLock"      : "S",
+            "KeyClickToSplit"   : "U",
         };
         simpleSavedSettings(optionsAndDefaults);
     }
@@ -1057,7 +1063,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             if(noColors) {
                 ctx.fillStyle = "#FFFFFF";
-                ctx.strokeStyle = "#AAAAAA"
+                ctx.strokeStyle = "#AAAAAA";
             }
             else {
                 ctx.fillStyle = color;
@@ -1066,7 +1072,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : setBorderColors(this, zeach.myPoints);
                 }
                 else {
-                    ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : color
+                    ctx.strokeStyle = (this.id == nearestVirusID) ? "red" : color;
                 }
             }
         }
@@ -1150,7 +1156,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             return cell.color;
         }
         
-        var color = cell.color
+        var color = cell.color;
         
         if (!isFood(cell) && !cell.isVirus) {
             if (myPoints.length > 0) {
@@ -1193,7 +1199,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             debugStrings.push(cobbler.KeySuspendMouse + " - " + "Suspend mouse: " + (suspendMouseUpdates ? "On" : "Off"));
             debugStrings.push(cobbler.KeyGrazingFix + " - " + "Grazing target fixation :" + (grazingTargetFixation ? "On" : "Off"));
             if(grazingTargetFixation){ debugStrings.push("  (T) to retarget");}
-            debugStrings.push(cobbler.KeyRightClick + " - " + "Right click: " + (cobbler.rightClickFires ? "Fires @ virus" : "Default"))
+            debugStrings.push(cobbler.KeyRightClick + " - " + "Right click: " + (cobbler.rightClickFires ? "Fires @ virus" : "Default"));
+            debugStrings.push(cobbler.KeyClickToSplit + " - " + "Click to split: " + (cobbler.clickToSplit ? "On" : "Off"));
             debugStrings.push(cobbler.KeyZoomFactor + " - " + "Zoom: " + zoomFactor.toString());
             if (isPlayerAlive()) {
                 debugStrings.push("Location: " + Math.floor(getSelectedBlob().x) + ", " + Math.floor(getSelectedBlob().y));
@@ -1420,7 +1427,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 } else {
                     //drawLine(ctx,element, getSelectedBlob(), "blue" );
                 }
-            })
+            });
         }
         ctx.lineWidth = oldLineWidth;
         ctx.color = oldColor;
@@ -1441,7 +1448,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
 
     function fireAtVirusNearestToBlob(blob, blobArray) {
-        console.log("fireAtVirusNearestToBlob");
+        console.log("Firing at virus nearest to blob");
         var msDelayBetweenShots = cobbler.msDelayBetweenShots;
         nearestVirus = findNearestVirus(blob, blobArray);
 
@@ -1474,9 +1481,28 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         window.setTimeout(function () { suspendMouseUpdates = false;}, msDelayBetweenShots *(shotsFired+1));
     }
+    
+    function splitAtCursor() {
+        console.log("Splitting at the cursor");
+        suspendMouseUpdates = true;
+        sendMouseUpdate(zeach.webSocket, zeach.mouseX2 + Math.random(), zeach.mouseY2 + Math.random());
+        window.setTimeout(function () { sendMouseUpdate(zeach.webSocket, zeach.mouseX2 + Math.random(), zeach.mouseY2 + Math.random()); }, 25);
+
+        window.setTimeout(function () {
+            sendMouseUpdate(zeach.webSocket, zeach.mouseX2 + Math.random(), zeach.mouseY2 + Math.random());
+            zeach.fireFunction(17);
+        });
+        
+        if(cobbler.isGrazing > 0) {
+            console.log("Grazer is active; reseting target");
+            grazzerTargetResetRequest = "all";
+        }
+        window.setTimeout(function () { suspendMouseUpdates = false;});
+    }
 
 
     function fireAtVirusNearestToCursor(){
+        console.log("Firing at virus nearest to cursor");
         fireAtVirusNearestToBlob(getMouseCoordsAsPseudoBlob(), zeach.allItems);
     }
 
@@ -1490,7 +1516,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         "blueeyes" : "http://i.imgur.com/wxCfUws.jpg",
         "ygritte"  : "http://i.imgur.com/lDIFCT1.png",
         "lord kience" : "http://i.imgur.com/b2UXk15.png",
-    }
+    };
 
     var skinsSpecial = {
         "white  light": "https://i.imgur.com/4y8szAE.png",
@@ -1516,13 +1542,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if(!cobbler.amExtendedSkins){
             return false;
         }
-        return _.includes(agariomodsSkins, targetName)
+        return _.includes(agariomodsSkins, targetName);
     }
     function isContribSkin(targetName){
-        return _.includes(contribSkins, targetName)
+        return _.includes(contribSkins, targetName);
     }
     function isZeachCobblerSkin(targetName){
-        return _.includes(zeachCobblerSkin, targetName)
+        return _.includes(zeachCobblerSkin, targetName);
     }
     function isImgurSkin(targetName){
         if(!cobbler.imgurSkins){
@@ -1557,35 +1583,42 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     isAgarioModsSkin(userNameLowerCase) || isContribSkin(userNameLowerCase) || isZeachCobblerSkin(userNameLowerCase) || isAMConnectSkin(userNameLowerCase) || isGitHubSkin(userNameLowerCase) || isExtendedSkin(userNameLowerCase)){
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
                     if(isSpecialSkin(userNameLowerCase)) {
+                        console.log("Special skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = skinsSpecial[userNameLowerCase];
                     }
                     else if(isExtendedSkin(userNameLowerCase)) {
+                        console.log("Extended skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = extendedSkins[userNameLowerCase];
                     }
                     else if(isAgarioModsSkin(userNameLowerCase)) {
+                        console.log("AM skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://skins.agariomods.com/i/" + userNameLowerCase + ".png";
                     }
                     else if(isContribSkin(userNameLowerCase)) {
+                        console.log("Contrib skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "https://avatars.githubusercontent.com/" + userNameLowerCase;
                     }
                     else if(isZeachCobblerSkin(userNameLowerCase)) {
+                        console.log("ZC skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "https://raw.githubusercontent.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png";
                     }
                     else if(isAMConnectSkin(userNameLowerCase)) {
-                        console.log("is AmConnect skin")
+                        console.log("AM Connect skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://connect.agariomods.com/img_" + userNameLowerCase.slice(1) + ".png";
                     }
                     else if(isImgurSkin(userNameLowerCase)){
+                        console.log("Imgut skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "http://i.imgur.com/" + userName.slice(2) +".png";
                     }
 					else if(isGitHubSkin(userNameLowerCase)){
+                        console.log("GitHub skin detected");
                         imgCache[userNameLowerCase] = new Image;
                         imgCache[userNameLowerCase].src = "https://avatars.githubusercontent.com/" + userNameLowerCase.slice(1);
                     }
@@ -1743,6 +1776,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         else if(cobbler.KeySwitchBlob.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             d.preventDefault();
             switchCurrentBlob();
+        }
+        else if(cobbler.KeyClickToSplit.charCodeAt(0) === d.keyCode && isPlayerAlive()){
+            clickToSplit();
         }
         else if(cobbler.KeyAcidMode.charCodeAt(0) === d.keyCode && isPlayerAlive()){
             cobbler.isAcid = !cobbler.isAcid;
@@ -1930,7 +1966,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         };
         F.onmousedown = function(a) {
             /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob();}
-            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor();}return;
+            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor();}
+            /*new*/if(isPlayerAlive() && cobbler.clickToSplit){splitAtCursor();}return;
             if (Ma) {
                 var c = a.clientX - (5 + q / 5 / 2);
                 var b = a.clientY - (5 + q / 5 / 2);
@@ -2252,7 +2289,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         r.binaryType = "arraybuffer";
         r.onopen = function() {
             var a;
-            console.log("socket open");
+            console.log("Socket open");
             a = L(5);
             a.setUint8(0, 254);
             a.setUint32(1, 5, true);
@@ -2273,7 +2310,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         r.onmessage = pb;
         r.onclose = qb;
         r.onerror = function() {
-            console.log("socket error");
+            console.log("Socket error");
         };
     }
     function L(a) {
@@ -2286,7 +2323,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (ka) {
             la = 500;
         }
-        console.log("socket close");
+        console.log("Socket close");
         setTimeout(N, la);
         la *= 2;
     }
@@ -4194,7 +4231,7 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '<li role="presentation">                 <a href="#page1" id="statsTab"  role="tab" data-toggle="tab">Stats</a></li>' +
     '<li role="presentation">                 <a href="#page2" id="configTab" role="tab" data-toggle="tab">Advanced Options</a></li>' +
     '<li role="presentation">                 <a href="#page3" id="keysTab" role="tab" data-toggle="tab">Keyboard Binds</a></li>' +
-    '<li role="presentation">                 <a href="#page4" id="contributorsTab" role="tab" data-toggle="tab">Contributors</a></li>' +
+    '<li role="presentation">                 <a href="#page4" id="contribTab" role="tab" data-toggle="tab">Contributors</a></li>' +
         //'<li role="presentation"><a href="#page3" role="tab" data-toggle="tab">IP Connect</a></li>' +
     '</ul>'+
 
@@ -4929,6 +4966,7 @@ AppendCheckbox(col1, 'stats-checkbox', ' Show in-game stats', display_stats, OnC
 col1.append("<h4>Features</h4>");
 AppendCheckbox(col1, 'feature-click-fire', ' Click to fire @ virus', window.cobbler.rightClickFires, function(val) {window.cobbler.rightClickFires = val;});
 AppendCheckbox(col1, 'feature-blob-lock', ' Click to lock blob', window.cobbler.enableBlobLock, function(val) {window.cobbler.enableBlobLock = val;});
+AppendCheckbox(col1, 'feature-click-split', ' Click to split', window.cobbler.clickToSplit, function(val) {window.cobbler.clickToSplit = val;});
 AppendCheckbox(col1, 'feature-blob-lock-next', ' Switch blob on lock', window.cobbler.nextOnBlobLock, function(val) {window.cobbler.nextOnBlobLock = val;});
 
 var col2 = $("#col2");
@@ -5384,6 +5422,30 @@ $('#PointLock-textbox').on('input propertychange paste', function() {
     }
     else{
         $("#PointLock-group").addClass('has-error');
+    }
+});
+
+keysCol3.append('<h4>Click To Split</h4>' +
+    '<div id="ClickToSplit-group" class="input-group input-group-sm"><span class="input-group-addon"><input id="ClickToSplit-checkbox" type="checkbox"></span>' +
+    '<input id="ClickToSplit-textbox" type="text" placeholder="Type any key" class="form-control" value='+ cobbler.KeyClickToSplit +'></div>');
+$('#ClickToSplit-checkbox').change(function(){
+    if(!!this.checked){
+        $('#ClickToSplit-textbox').removeAttr("disabled");
+    } else {
+        $('#ClickToSplit-textbox').attr({disabled:"disabled"})
+    }
+    cobbler.MenuClickToSplit = !!this.checked;
+});
+if(cobbler.MenuClickToSplit){$('#ClickToSplit-checkbox').prop('checked', true);}else{ $('#ClickToSplit-textbox').attr({disabled:"disabled"})}
+$('#ClickToSplit-textbox').on('input propertychange paste', function() {
+    var newval = this.value.charAt(0);
+    if(newval.toUpperCase() != newval.toLowerCase()) {
+        newval = newval.toUpperCase();
+        $("#ClickToSplit").removeClass('has-error');
+        cobbler.KeyClickToSplit = newval;
+    }
+    else{
+        $("#ClickToSplit-group").addClass('has-error');
     }
 });
 
