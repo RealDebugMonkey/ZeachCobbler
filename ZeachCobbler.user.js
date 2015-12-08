@@ -14,7 +14,8 @@
 // @icon64       https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon64.png
 // @icon128      https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png
 // @changes          0.31.0 - Added ability to split by mouse click
-//                     - Also fixed semicolons, improved formating of console logs                       
+//                     - Also fixed semicolons, improved formating of console logs 
+//                   1 - Small bug-fixes                      
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
@@ -1492,10 +1493,6 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             zeach.fireFunction(17);
         });
         
-        if(isGrazing) {
-            console.log("Grazer is active; reseting target");
-            //here some code to update all my blobs so grazer can use them
-        }
         window.setTimeout(function () { suspendMouseUpdates = false;});
     }
 
