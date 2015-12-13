@@ -2511,7 +2511,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 for (var s = "";;) { /* V28 */
                     var x = a.getUint8(c++);
                     if (!x) break;
-                    s += String.fromCharCode(x)
+                    s += String.fromCharCode(x);
                 }
                 /* This seems to be used to look up the player's color,
                  * based on the skin they're using.
