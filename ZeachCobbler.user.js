@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.1
+// @version      0.31.2
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -16,6 +16,7 @@
 // @changes          0.31.0 - Added ability to split by mouse click
 //                     - Also fixed semicolons, improved formating of console logs 
 //                   1 - Small bug-fixes                      
+//                   2 - V28 protocol fixes
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
@@ -2502,18 +2503,30 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             q = !!(k & 1);
             var s = !!(k & 16);
             if (k & 2) {
-                c += 4;
+                c += 4 + a.getUint32(k, !0); /* V28 */
             }
             if (k & 4) {
-                c += 8;
+                for (var s = "";;) { /* V28 */
+                    var x = a.getUint8(c++);
+                    if (0 == x) break;
+                    s += String.fromCharCode(x)
+                }
+                /* This seems to be used to look up the player's color,
+                 * based on the skin they're using.
+                 */
             }
-            if (k & 8) {
-                c += 16;
-            }
+            //if (k & 8) { // V28 - gone
+            //    c += 16;
+            //}
             var r;
             var n = "";
             for (;;) {
-                r = a.getUint16(c, true);
+                try {
+                    r = a.getUint16(c, true);
+                } catch(err) {
+                    console.log(err);
+                    break;
+                }
                 c += 2;
                 if (0 == r) {
                     break;
