@@ -416,7 +416,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var ns = -1/sl;
         // y-int of ptt
         var yint1 = myBlob.ny - myBlob.nx*sl;
-        if(!(lineDistance(myBlob, potential) < dtt)){
+        if(lineDistance(myBlob, potential) >= dtt){
             // get second y-int
             var yint2 = potential.ny - potential.nx * ns;
             var interx = (yint2-yint1)/(sl-ns);
@@ -1997,20 +1997,20 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var c = false;
         var b = false;
         d.onkeydown = function(e) {
-            if (!(32 != e.keyCode)) {
+            if (32 == e.keyCode) {
                 if (!a) {
                     U();
                     G(17);
                     a = true;
                 }
             }
-            if (!(81 != e.keyCode)) {
+            if (81 == e.keyCode) {
                 if (!c) {
                     G(18);
                     c = true;
                 }
             }
-            if (!(87 != e.keyCode)) {
+            if (87 == e.keyCode) {
                 if (!b) {
                     U();
                     G(21);
@@ -2080,7 +2080,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 var h = v[p];
                 if (!!h.N()) {
                     if (!h.R) {
-                        if (!(20 >= h.size * k)) {
+                        if (20 < h.size * k) {
                             l = Math.max(h.size, l);
                             a = Math.min(h.x, a);
                             c = Math.min(h.y, c);
@@ -2101,15 +2101,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             p = 0;
             for (;p < v.length;p++) {
                 var h;
-                if (h = v[p], h.N() && !(20 >= h.size * k)) {
+                if (h = v[p], h.N() && (20 < h.size * k)) {
                     a = 0;
                     for (;a < h.a.length;++a) {
                         c = h.a[a].x;
                         b = h.a[a].y;
-                        if (!(c < t - q / 2 / k)) {
-                            if (!(b < u - s$$0 / 2 / k)) {
-                                if (!(c > t + q / 2 / k)) {
-                                    if (!(b > u + s$$0 / 2 / k)) {
+                        if (c >= t - q / 2 / k) {
+                            if (b >= u - s$$0 / 2 / k) {
+                                if (c <= t + q / 2 / k) {
+                                    if (b <= u + s$$0 / 2 / k) {
                                         W.m(h.a[a]);
                                     }
                                 }
@@ -2599,8 +2599,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (S()) {
             a = ca - q / 2;
             var c = da - s$$0 / 2;
-            if (!(64 > a * a + c * c)) {
-                if (!(0.01 > Math.abs($a - fa) && 0.01 > Math.abs(ab - ga))) {
+            if (64 <= a * a + c * c) {
+                if (0.01 <= Math.abs($a - fa) || 0.01 <= Math.abs(ab - ga)) {
                         $a = fa;
                         ab = ga;
                         a = L(13);
@@ -3767,7 +3767,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         /*new*/if(!cobbler.isLiteBrite)
                             a.fill();
 
-                        if (!(null === d)) {
+                        if (d) {
                             if (!b) {
                                 a.save();
                                 /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id)) ? 1 : 0.5;
@@ -4903,8 +4903,8 @@ function serverinfo(list, index) {
                 .text("Failed");
         },
         complete: function (data) {
-            if(!(document.getElementById("serverBrowser")
-                    .style.display == "none")) {
+            if(document.getElementById("serverBrowser")
+                    .style.display != "none") {
                 serverinfo(list, index + 1);
             }
         }
