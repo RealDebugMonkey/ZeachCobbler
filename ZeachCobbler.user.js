@@ -2770,7 +2770,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             g.fillRect(10, s$$0 - 10 - 24 - 10, a$$0 + 10, 34);
             g.globalAlpha = 1;
             g.drawImage(b, 15, s$$0 - 10 - 24 - 5);
-            /*new*//*mikey*//*remap*/(zeach.myPoints&&zeach.myPoints[0]&&OnUpdateMass(wb()));
+            /*new*//*mikey*//*remap*/if(zeach.myPoints && zeach.myPoints[0]) { OnUpdateMass(wb()); }
         }
         xb();
         c$$0 = Date.now() - c$$0;
