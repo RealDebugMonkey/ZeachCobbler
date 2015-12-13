@@ -4290,6 +4290,7 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '   <li><B>Incompetech</B> - For KSP soundtrack music</li>' +
     '   <li><B>Mikeyk730</B> - stats screen code</li>' +
     '   <li><B>posixphreak</B> - Advanced zoom function improvements</li>' +
+    '   <li><B>Smurfix</B> - Bug fixes</li>' +
     '   <li><B>White Light</B> - Grazer concept and enemy avoidance code</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
