@@ -1583,47 +1583,47 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
                     if(isSpecialSkin(userNameLowerCase)) {
                         console.log("Special skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = skinsSpecial[userNameLowerCase];
                     }
                     else if(isExtendedSkin(userNameLowerCase)) {
                         console.log("Extended skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = extendedSkins[userNameLowerCase];
                     }
                     else if(isAgarioModsSkin(userNameLowerCase)) {
                         console.log("AM skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "http://skins.agariomods.com/i/" + userNameLowerCase + ".png";
                     }
                     else if(isContribSkin(userNameLowerCase)) {
                         console.log("Contrib skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "https://avatars.githubusercontent.com/" + userNameLowerCase;
                     }
                     else if(isZeachCobblerSkin(userNameLowerCase)) {
                         console.log("ZC skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "https://raw.githubusercontent.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png";
                     }
                     else if(isAMConnectSkin(userNameLowerCase)) {
                         console.log("AM Connect skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "http://connect.agariomods.com/img_" + userNameLowerCase.slice(1) + ".png";
                     }
                     else if(isImgurSkin(userNameLowerCase)){
                         console.log("Imgut skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "http://i.imgur.com/" + userName.slice(2) +".png";
                     }
 					else if(isGitHubSkin(userNameLowerCase)){
                         console.log("GitHub skin detected");
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "https://avatars.githubusercontent.com/" + userNameLowerCase.slice(1);
                     }
 
                     else{
-                        imgCache[userNameLowerCase] = new(Image);
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "skins/" + userNameLowerCase + ".png";
                     }
                 }
@@ -3135,7 +3135,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var V = true;
         var za = 0;
         var Ma = "ontouchstart" in d && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        var Ga = new Image;
+        var Ga = new Image();
         Ga.src = "img/split.png";
         var ib = document.createElement("canvas");
         if ("undefined" == typeof console || "undefined" == typeof DataView || "undefined" == typeof WebSocket || !ib || !ib.getContext || !d.localStorage) {
@@ -3749,7 +3749,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         //if (!this.n && (fb && ":teams" != O)) {
                         //    if (-1 != jb.indexOf(e)) {
                         //        if (!T.hasOwnProperty(e)) {
-                        //            T[e] = new Image;
+                        //            T[e] = new Image();
                         //            T[e].src = "skins/" + e + ".png";
                         //        }
                         //        b = 0 != T[e].width && T[e].complete ? T[e] : null;
@@ -3898,7 +3898,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             /*new*//*remap*/restoreCanvasElementObj(ua.prototype);
             if (!Date.now) {
                 Date.now = function() {
-                    return(new Date).getTime();
+                    return((new Date()).getTime());
                 };
             }
             (function() {
