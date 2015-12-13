@@ -5012,11 +5012,15 @@ $('#minimap-checkbox').change(function(){
     if(!!this.checked){
         $('#minimap-textbox').removeAttr("disabled");
     } else {
-        $('#minimap-textbox').attr({disabled:"disabled"})
+        $('#minimap-textbox').attr({disabled:"disabled"});
     }
     cobbler.miniMapScale = !!this.checked;
 });
-if(cobbler.miniMapScale){$('#minimap-checkbox').prop('checked', true);}else{ $('#minimap-textbox').attr({disabled:"disabled"})}
+if(cobbler.miniMapScale){
+    $('#minimap-checkbox').prop('checked', true);
+} else {
+    $('#minimap-textbox').attr({disabled:"disabled"});
+}
 $('#minimap-textbox').on('input propertychange paste', function() {
     var newval = parseInt(this.value);
     if(!_.isNaN(newval) && newval > 1 && newval < 999) {
@@ -5042,11 +5046,15 @@ $('#hybrid-checkbox').change(function(){
     if(!!this.checked){
         $('#hybrid-textbox').removeAttr("disabled");
     } else {
-        $('#hybrid-textbox').attr({disabled:"disabled"})
+        $('#hybrid-textbox').attr({disabled:"disabled"});
     }
     cobbler.grazerHybridSwitch = !!this.checked;
 });
-if(cobbler.grazerHybridSwitch){$('#hybrid-checkbox').prop('checked', true);}else{ $('#hybrid-textbox').attr({disabled:"disabled"})}
+if(cobbler.grazerHybridSwitch) {
+    $('#hybrid-checkbox').prop('checked', true);
+} else {
+    $('#hybrid-textbox').attr({disabled:"disabled"});
+}
 $('#hybrid-textbox').on('input propertychange paste', function() {
     var newval = parseInt(this.value);
     if(!_.isNaN(newval)) {
@@ -5083,11 +5091,15 @@ $('#AcidMode-checkbox').change(function(){
     if(!!this.checked){
         $('#AcidMode-textbox').removeAttr("disabled");
     } else {
-        $('#AcidMode-textbox').attr({disabled:"disabled"})
+        $('#AcidMode-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuAcidMode = !!this.checked;
 });
-if(cobbler.MenuAcidMode){$('#AcidMode-checkbox').prop('checked', true);}else{ $('#AcidMode-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuAcidMode) {
+    $('#AcidMode-checkbox').prop('checked', true);
+} else {
+    $('#AcidMode-textbox').attr({disabled:"disabled"});
+}
 $('#AcidMode-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5107,11 +5119,15 @@ $('#LiteBrite-checkbox').change(function(){
     if(!!this.checked){
         $('#LiteBrite-textbox').removeAttr("disabled");
     } else {
-        $('#LiteBrite-textbox').attr({disabled:"disabled"})
+        $('#LiteBrite-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuAcidMode = !!this.checked;
 });
-if(cobbler.MenuAcidMode){$('#LiteBrite-checkbox').prop('checked', true);}else{ $('#LiteBrite-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuAcidMode) {
+    $('#LiteBrite-checkbox').prop('checked', true);
+} else {
+    $('#LiteBrite-textbox').attr({disabled:"disabled"});
+}
 $('#LiteBrite-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5131,11 +5147,15 @@ $('#ShowVisual-checkbox').change(function(){
     if(!!this.checked){
         $('#ShowVisual-textbox').removeAttr("disabled");
     } else {
-        $('#ShowVisual-textbox').attr({disabled:"disabled"})
+        $('#ShowVisual-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuShowVisual = !!this.checked;
 });
-if(cobbler.MenuShowVisual){$('#ShowVisual-checkbox').prop('checked', true);}else{ $('#ShowVisual-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuShowVisual) {
+    $('#ShowVisual-checkbox').prop('checked', true);
+} else {
+    $('#ShowVisual-textbox').attr({disabled:"disabled"});
+}
 $('#ShowVisual-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5155,11 +5175,15 @@ $('#FireAtVirCur-checkbox').change(function(){
     if(!!this.checked){
         $('#FireAtVirCur-textbox').removeAttr("disabled");
     } else {
-        $('#FireAtVirCur-textbox').attr({disabled:"disabled"})
+        $('#FireAtVirCur-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuFireAtVirCur = !!this.checked;
 });
-if(cobbler.MenuFireAtVirCur){$('#FireAtVirCur-checkbox').prop('checked', true);}else{ $('#FireAtVirCur-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuFireAtVirCur) {
+    $('#FireAtVirCur-checkbox').prop('checked', true);
+} else {
+    $('#FireAtVirCur-textbox').attr({disabled:"disabled"});
+}
 $('#FireAtVirCur-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5179,11 +5203,15 @@ $('#FireAtVirBlob-checkbox').change(function(){
     if(!!this.checked){
         $('#FireAtVirBlob-textbox').removeAttr("disabled");
     } else {
-        $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})
+        $('#FireAtVirBlob-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuFireAtVirBlob = !!this.checked;
 });
-if(cobbler.MenuFireAtVirBlob){$('#FireAtVirBlob-checkbox').prop('checked', true);}else{ $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuFireAtVirBlob) {
+    $('#FireAtVirBlob-checkbox').prop('checked', true);
+} else {
+    $('#FireAtVirBlob-textbox').attr({disabled:"disabled"});
+}
 $('#FireAtVirBlob-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5203,11 +5231,15 @@ $('#NewGrazer-checkbox').change(function(){
     if(!!this.checked){
         $('#NewGrazer-textbox').removeAttr("disabled");
     } else {
-        $('#NewGrazer-textbox').attr({disabled:"disabled"})
+        $('#NewGrazer-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuNewGrazer = !!this.checked;
 });
-if(cobbler.MenuNewGrazer){$('#NewGrazer-checkbox').prop('checked', true);}else{ $('#NewGrazer-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuNewGrazer) {
+    $('#NewGrazer-checkbox').prop('checked', true);
+} else {
+    $('#NewGrazer-textbox').attr({disabled:"disabled"});
+}
 $('#NewGrazer-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5227,11 +5259,15 @@ $('#OldGrazer-checkbox').change(function(){
     if(!!this.checked){
         $('#OldGrazer-textbox').removeAttr("disabled");
     } else {
-        $('#OldGrazer-textbox').attr({disabled:"disabled"})
+        $('#OldGrazer-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuOldGrazer = !!this.checked;
 });
-if(cobbler.MenuOldGrazer){$('#OldGrazer-checkbox').prop('checked', true);}else{ $('#OldGrazer-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuOldGrazer) {
+    $('#OldGrazer-checkbox').prop('checked', true);
+} else {
+    $('#OldGrazer-textbox').attr({disabled:"disabled"});
+}
 $('#OldGrazer-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5251,11 +5287,15 @@ $('#GrazingFix-checkbox').change(function(){
     if(!!this.checked){
         $('#GrazingFix-textbox').removeAttr("disabled");
     } else {
-        $('#GrazingFix-textbox').attr({disabled:"disabled"})
+        $('#GrazingFix-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuGrazingFix = !!this.checked;
 });
-if(cobbler.MenuGrazingFix){$('#GrazingFix-checkbox').prop('checked', true);}else{ $('#GrazingFix-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuGrazingFix) {
+    $('#GrazingFix-checkbox').prop('checked', true);
+} else {
+    $('#GrazingFix-textbox').attr({disabled:"disabled"});
+}
 $('#GrazingFix-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5276,11 +5316,15 @@ $('#SwitchBlob-checkbox').change(function(){
     if(!!this.checked){
         $('#SwitchBlob-textbox').removeAttr("disabled");
     } else {
-        $('#SwitchBlob-textbox').attr({disabled:"disabled"})
+        $('#SwitchBlob-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuSwitchBlob= !!this.checked;
 });
-if(cobbler.MenuSwitchBlob){$('#SwitchBlob-checkbox').prop('checked', true);}else{ $('#SwitchBlob-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuSwitchBlob) {
+    $('#SwitchBlob-checkbox').prop('checked', true);
+} else {
+    $('#SwitchBlob-textbox').attr({disabled:"disabled"});
+}
 $('#SwitchBlob-textbox').on('input propertychange paste', function() {
     var newval = this.value;
     var TABKEY = 9;
@@ -5302,11 +5346,15 @@ $('#SuspendMouse-checkbox').change(function(){
     if(!!this.checked){
         $('#SuspendMouse-textbox').removeAttr("disabled");
     } else {
-        $('#SuspendMouse-textbox').attr({disabled:"disabled"})
+        $('#SuspendMouse-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuSuspendMouse = !!this.checked;
 });
-if(cobbler.MenuSuspendMouse){$('#SuspendMouse-checkbox').prop('checked', true);}else{ $('#SuspendMouse-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuSuspendMouse) {
+    $('#SuspendMouse-checkbox').prop('checked', true);
+} else {
+    $('#SuspendMouse-textbox').attr({disabled:"disabled"});
+}
 $('#SuspendMouse-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5326,11 +5374,15 @@ $('#RightClick-checkbox').change(function(){
     if(!!this.checked){
         $('#RightClick-textbox').removeAttr("disabled");
     } else {
-        $('#RightClick-textbox').attr({disabled:"disabled"})
+        $('#RightClick-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuRightClick = !!this.checked;
 });
-if(cobbler.MenuRightClick){$('#RightClick-checkbox').prop('checked', true);}else{ $('#RightClick-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuRightClick) {
+    $('#RightClick-checkbox').prop('checked', true);
+} else {
+    $('#RightClick-textbox').attr({disabled:"disabled"});
+}
 $('#RightClick-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5350,11 +5402,15 @@ $('#ZoomFactor-checkbox').change(function(){
     if(!!this.checked){
         $('#ZoomFactor-textbox').removeAttr("disabled");
     } else {
-        $('#ZoomFactor-textbox').attr({disabled:"disabled"})
+        $('#ZoomFactor-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuZoomFactor = !!this.checked;
 });
-if(cobbler.MenuZoomFactor){$('#ZoomFactor-checkbox').prop('checked', true);}else{ $('#ZoomFactor-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuZoomFactor) {
+    $('#ZoomFactor-checkbox').prop('checked', true);
+} else {
+    $('#ZoomFactor-textbox').attr({disabled:"disabled"});
+}
 $('#ZoomFactor-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5374,11 +5430,15 @@ $('#GrazingVisual-checkbox').change(function(){
     if(!!this.checked){
         $('#GrazingVisual-textbox').removeAttr("disabled");
     } else {
-        $('#GrazingVisual-textbox').attr({disabled:"disabled"})
+        $('#GrazingVisual-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuGrazingVisual = !!this.checked;
 });
-if(cobbler.MenuGrazingVisual){$('#GrazingVisual-checkbox').prop('checked', true);}else{ $('#GrazingVisual-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuGrazingVisual) {
+    $('#GrazingVisual-checkbox').prop('checked', true);
+} else {
+    $('#GrazingVisual-textbox').attr({disabled:"disabled"});
+}
 $('#GrazingVisual-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5398,11 +5458,15 @@ $('#GrazerReset-checkbox').change(function(){
     if(!!this.checked){
         $('#GrazerReset-textbox').removeAttr("disabled");
     } else {
-        $('#GrazerReset-textbox').attr({disabled:"disabled"})
+        $('#GrazerReset-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuGrazerReset = !!this.checked;
 });
-if(cobbler.MenuGrazerReset){$('#GrazerReset-checkbox').prop('checked', true);}else{ $('#GrazerReset-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuGrazerReset) {
+    $('#GrazerReset-checkbox').prop('checked', true);
+} else {
+    $('#GrazerReset-textbox').attr({disabled:"disabled"});
+}
 $('#GrazerReset-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5422,11 +5486,15 @@ $('#PointLock-checkbox').change(function(){
     if(!!this.checked){
         $('#PointLock-textbox').removeAttr("disabled");
     } else {
-        $('#PointLock-textbox').attr({disabled:"disabled"})
+        $('#PointLock-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuPointLock = !!this.checked;
 });
-if(cobbler.MenuPointLock){$('#PointLock-checkbox').prop('checked', true);}else{ $('#PointLock-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuPointLock) {
+    $('#PointLock-checkbox').prop('checked', true);
+} else {
+    $('#PointLock-textbox').attr({disabled:"disabled"});
+}
 $('#PointLock-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5446,11 +5514,15 @@ $('#ClickToSplit-checkbox').change(function(){
     if(!!this.checked){
         $('#ClickToSplit-textbox').removeAttr("disabled");
     } else {
-        $('#ClickToSplit-textbox').attr({disabled:"disabled"})
+        $('#ClickToSplit-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuClickToSplit = !!this.checked;
 });
-if(cobbler.MenuClickToSplit){$('#ClickToSplit-checkbox').prop('checked', true);}else{ $('#ClickToSplit-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuClickToSplit) {
+    $('#ClickToSplit-checkbox').prop('checked', true);
+} else {
+    $('#ClickToSplit-textbox').attr({disabled:"disabled"});
+}
 $('#ClickToSplit-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5468,7 +5540,7 @@ $("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right"
     "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"});
 $("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right",
     "title": "Leaves blob centers empty except for skins."});
-setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
+setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip();});}, 5000); // turn on all tooltips.
 
 // Ugly ass hack to fix effects of official code loading before mod
 //$("#canvas").remove();
