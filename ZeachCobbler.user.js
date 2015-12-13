@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.3
+// @version      0.31.4
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -18,6 +18,7 @@
 //                   1 - Small bug-fixes                      
 //                   2 - V28 protocol fixes
 //                   3 - fixed the mouse click handler
+//                   4 - Chromium's JS lint found a lot of crap
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
