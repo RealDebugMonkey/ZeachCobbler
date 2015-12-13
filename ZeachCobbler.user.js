@@ -959,7 +959,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if(!densityResults.length){
             //console.log("No target found");
             return avoidThreats(threats, cell);
-            return -1;
+            //return -1;
         }
         var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
         //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
