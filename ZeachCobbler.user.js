@@ -2100,6 +2100,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             });
             p = 0;
             for (;p < v.length;p++) {
+                var h;
                 if (h = v[p], h.N() && !(20 >= h.size * k)) {
                     a = 0;
                     for (;a < h.a.length;++a) {
@@ -2486,12 +2487,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 break;
             }
             ++l;
-            var d;
-            p = a.getInt32(c, true);
+            var p = a.getInt32(c, true);
             c += 4;
-            h = a.getInt32(c, true);
+            var h = a.getInt32(c, true);
             c += 4;
-            d = a.getInt16(c, true);
+            var d = a.getInt16(c, true);
             c += 2;
             var g = a.getUint8(c++);
             var k = a.getUint8(c++);
@@ -2581,7 +2581,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         for (;l < b;l++) {
             e = a.getUint32(c, true);
             c += 4;
-            n = D[e];
+            var n = D[e];
             if (n) {
                 n.X();
             }
@@ -2723,12 +2723,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         g.translate(q / 2, s$$0 / 2);
         g.scale(k, k);
         g.translate(-t, -u);
-        e = 0;
-        for (;e < P.length;e++) {
+        for (var e = 0;e < P.length;e++) {
             P[e].w(g);
         }
-        e = 0;
-        for (;e < v.length;e++) {
+        for (var e = 0;e < v.length;e++) {
             v[e].w(g);
         }
         /*new*/drawRescaledItems(zeach.ctx);
@@ -2765,7 +2763,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             ta.C(X("score") + ": " + ~~(Q / 100));
             /*new*/ /*remap*/ ta.setValue("Score: " + ~~(Q / 100) + extras);
-            b = ta.L();
+            var b = ta.L();
             a$$0 = b.width;
             g.globalAlpha = 0.2;
             g.fillStyle = "#000000";
@@ -2936,7 +2934,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
     function R(a, c) {
-        var b$$0 = "1" == f("#helloContainer").attr("data-has-account-data");
+        // var b$$0 = "1" == f("#helloContainer").attr("data-has-account-data");
         /*new*/var b$$0 = "1" == f("#ZCOverlay").attr("data-has-account-data");
 
         f("#helloContainer").attr("data-has-account-data", "1");
@@ -2950,7 +2948,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (b$$0) {
             var l = +f(".agario-exp-bar .progress-bar-text").text().split("/")[0];
             b$$0 = +f(".agario-exp-bar .progress-bar-text").text().split("/")[1].split(" ")[0];
-            e = f(".agario-profile-panel .progress-bar-star").text();
+            var e = f(".agario-profile-panel .progress-bar-star").text();
             if (e != a.e) {
                 R({
                     f : b$$0,
@@ -3590,7 +3588,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         }
                     }
                     for (;this.a.length < a;) {
-                        c = ~~(Math.random() * this.a.length);
+                        var c = ~~(Math.random() * this.a.length);
                         c = this.a[c];
                         this.a.push(new Ha(this, c.x, c.y, c.i, c.b));
                     }
@@ -3636,8 +3634,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     b = 0;
                     for (;b < c;++b) {
                         var d = a$$0[b].i;
-                        e = a$$0[(b - 1 + c) % c].i;
-                        l = a$$0[(b + 1) % c].i;
+                        var e = a$$0[(b - 1 + c) % c].i;
+                        var l = a$$0[(b + 1) % c].i;
                         if (15 < this.size && (W && (20 < this.size * k && 0 < this.id))) {
                             var f = false;
                             var g = a$$0[b].x;
@@ -3667,8 +3665,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         }
                         d = this.n ? (19 * d + this.size) / 20 : (12 * d + this.size) / 13;
                         a$$0[b].i = (e + l + 8 * d) / 10;
-                        e = 2 * Math.PI / c;
-                        l = this.a[b].i;
+                        var e = 2 * Math.PI / c;
+                        var l = this.a[b].i;
                         if (this.h) {
                             if (!(b % 2)) {
                                 l += 5;
@@ -3717,7 +3715,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         this.R = c;
                         a.save();
                         this.ha = A;
-                        b = this.P();
+                        var b = this.P();
                         if (this.G) {
                             a.globalAlpha *= 1 - b;
                         }
@@ -3747,7 +3745,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             }
                         }
                         a.closePath();
-                        e = this.name.toLowerCase();
+                        var e = this.name.toLowerCase();
                         //if (!this.n && (fb && ":teams" != O)) {
                         //    if (-1 != jb.indexOf(e)) {
                         //        if (!T.hasOwnProperty(e)) {
