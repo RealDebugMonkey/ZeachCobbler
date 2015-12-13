@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.2
+// @version      0.31.3
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -17,6 +17,7 @@
 //                     - Also fixed semicolons, improved formating of console logs 
 //                   1 - Small bug-fixes                      
 //                   2 - V28 protocol fixes
+//                   3 - fixed the mouse click handler
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
@@ -1962,9 +1963,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             
         };
         F.onmousedown = function(a) {
-            /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob();}
-            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor();}
-            /*new*/if(isPlayerAlive() && cobbler.clickToSplit){splitAtCursor();}return;
+            /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob(); return; }
+            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor(); return; }
+            /*new*/if(isPlayerAlive() && cobbler.clickToSplit){splitAtCursor(); return; }
             if (Ma) {
                 var c = a.clientX - (5 + q / 5 / 2);
                 var b = a.clientY - (5 + q / 5 / 2);
