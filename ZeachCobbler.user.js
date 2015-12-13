@@ -3567,7 +3567,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     return Math.max(~~(0.3 * this.size), 24);
                 },
                 B : function(a) {
-                    if (this.name = a) {
+                    if ((this.name = a)) { // apparently this is intentional
                         if (!this.o) {
                             this.o = new ua(this.l(), "#FFFFFF", true, "#000000");
                         } else {
@@ -4138,7 +4138,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             m.drawImage(d$$0, (0.1 * g + 80 * q) % (h + 140) - h / 2 - 70 - 35, k / 2 * Math.sin((0.001 * g + q) % Math.PI * 2) - 35, 70, 70);
                         }
                         m.restore();
-                        if (b = b.attr("data-itr")) {
+                        if ((b = b.attr("data-itr"))) { // the assignment is intentional
                             b = X(b);
                         }
                         a$$0(c$$0, this, b || "", +f(this).attr("data-size"), "#5bc0de");
