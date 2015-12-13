@@ -4738,7 +4738,7 @@ unsafeWindow.OnLeaderboard = function(position) {
     stats.top_slot = Math.min(stats.top_slot, position);
 };
 unsafeWindow.OnDraw = function(context) {
-    display_stats && stat_canvas && context.drawImage(stat_canvas, 10, 10);
+    if (display_stats && stat_canvas) { context.drawImage(stat_canvas, 10, 10); }
 };
 
 // ====================== Music & SFX System ==============================================================
