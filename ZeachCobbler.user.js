@@ -706,6 +706,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cell.gr_is_mine = true;
         });
 
+        var results;
         var accs = zeach.myPoints.map(function (cell) {
             
 
@@ -911,7 +912,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
             var func = new dasSumFunction(funcs);
 
-            var results = accs.map(function(acc) {
+            results = accs.map(function(acc) {
                 return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
             });
         } else {
