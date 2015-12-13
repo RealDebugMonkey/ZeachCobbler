@@ -4205,7 +4205,7 @@ var PlayerHasSeenOfficialAds =_.once(function (){
 unsafeWindow.hideZCOverlay = function(){
     PlayerHasSeenOfficialAds();
     jQuery('#ZCOverlay').fadeOut();
-}
+};
 unsafeWindow.showZCOverlay = function (){
     jQuery('#ZCOverlay').fadeIn();
     OnShowOverlay(false);
@@ -4552,7 +4552,7 @@ function AppendTopN(n, p, list) {
     for (var i = 0; i < a.length; ++i){
         var text = a[i].name + ' (' + (p == 'gains' ? '+' : '-') + a[i].mass + ' mass)';
         list.append('<li style="font-size: 16px; "><div style="width: 16px; height: 16px; border-radius: 50%; margin-right:5px; background-color: ' + a[i].color + '; display: inline-block;"></div>' + text + '</li>');
-    };
+    }
     return a.length > 0;
 }
 
@@ -4792,7 +4792,7 @@ var StartBGM = function () {
     if (!document.getElementById("bgm").value) return;
     if (bgmusic.src === ""){
         bgmusic.src = _.sample(tracks, 1);
-        bgmusic.load()
+        bgmusic.load();
     }
     bgmusic.volume = document.getElementById("bgm").value;
     bgmusic.play();
@@ -4802,11 +4802,11 @@ var StopBGM = function () {
     bgmusic.pause();
     if (!document.getElementById("bgm").value) return;
     bgmusic.src = _.sample(tracks, 1);
-    bgmusic.load()
+    bgmusic.load();
 };
 
 volBGM = function (vol) {
-    console.log(vol.toString() + " - " + document.getElementById("bgm").value)
+    console.log(vol.toString() + " - " + document.getElementById("bgm").value);
     bgmusic.volume = document.getElementById("bgm").value;
     window.cobbler.bgmVol = document.getElementById("bgm").value;
 };
