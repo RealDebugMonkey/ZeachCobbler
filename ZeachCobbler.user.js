@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.1
+// @version      0.31.4
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io
@@ -16,6 +16,9 @@
 // @changes          0.31.0 - Added ability to split by mouse click
 //                     - Also fixed semicolons, improved formating of console logs 
 //                   1 - Small bug-fixes                      
+//                   2 - V28 protocol fixes
+//                   3 - fixed the mouse click handler
+//                   4 - Chromium's JS lint found a lot of crap
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
@@ -414,7 +417,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var ns = -1/sl;
         // y-int of ptt
         var yint1 = myBlob.ny - myBlob.nx*sl;
-        if(!(lineDistance(myBlob, potential) < dtt)){
+        if(lineDistance(myBlob, potential) >= dtt){
             // get second y-int
             var yint2 = potential.ny - potential.nx * ns;
             var interx = (yint2-yint1)/(sl-ns);
@@ -486,7 +489,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             return;
         }
         
-        if(null === throttledResetGrazingTargetId){
+        if(!throttledResetGrazingTargetId){
             throttledResetGrazingTargetId = _.throttle(function (){
                 grazzerTargetResetRequest = 'all';
                 //console.log(~~(Date.now()/1000));
@@ -704,6 +707,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             cell.gr_is_mine = true;
         });
 
+        var results;
         var accs = zeach.myPoints.map(function (cell) {
             
 
@@ -909,7 +913,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
             var func = new dasSumFunction(funcs);
 
-            var results = accs.map(function(acc) {
+            results = accs.map(function(acc) {
                 return gradient_ascend(func, step, 100, acc.id, acc.x, acc.y);
             });
         } else {
@@ -953,10 +957,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             var density = calcFoodDensity(cell, zeach.allNodes[element.id], blobArray)/(element.distance*2);
             densityResults.push({"density":density, "id":element.id});
         });
-        if(0 === densityResults.length){
+        if(!densityResults.length){
             //console.log("No target found");
             return avoidThreats(threats, cell);
-            return -1;
+            //return -1;
         }
         var target = densityResults.sort(function(x,y){return x.density>y.density?-1:1;});
         //console.log("Choosing blob (" + target[0].id + ") with density of : "+ target[0].isVirusensity);
@@ -1580,51 +1584,51 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 if (!imgCache.hasOwnProperty(userNameLowerCase)){
                     if(isSpecialSkin(userNameLowerCase)) {
                         console.log("Special skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = skinsSpecial[userNameLowerCase];
                     }
                     else if(isExtendedSkin(userNameLowerCase)) {
                         console.log("Extended skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = extendedSkins[userNameLowerCase];
                     }
                     else if(isAgarioModsSkin(userNameLowerCase)) {
                         console.log("AM skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "http://skins.agariomods.com/i/" + userNameLowerCase + ".png";
                     }
                     else if(isContribSkin(userNameLowerCase)) {
                         console.log("Contrib skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "https://avatars.githubusercontent.com/" + userNameLowerCase;
                     }
                     else if(isZeachCobblerSkin(userNameLowerCase)) {
                         console.log("ZC skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "https://raw.githubusercontent.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png";
                     }
                     else if(isAMConnectSkin(userNameLowerCase)) {
                         console.log("AM Connect skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "http://connect.agariomods.com/img_" + userNameLowerCase.slice(1) + ".png";
                     }
                     else if(isImgurSkin(userNameLowerCase)){
                         console.log("Imgut skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "http://i.imgur.com/" + userName.slice(2) +".png";
                     }
 					else if(isGitHubSkin(userNameLowerCase)){
                         console.log("GitHub skin detected");
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "https://avatars.githubusercontent.com/" + userNameLowerCase.slice(1);
                     }
 
                     else{
-                        imgCache[userNameLowerCase] = new Image;
+                        imgCache[userNameLowerCase] = new Image();
                         imgCache[userNameLowerCase].src = "skins/" + userNameLowerCase + ".png";
                     }
                 }
-                if(0 != imgCache[userNameLowerCase].width && imgCache[userNameLowerCase].complete) {
+                if(imgCache[userNameLowerCase].width && imgCache[userNameLowerCase].complete) {
                     retval = imgCache[userNameLowerCase];
                 } else {
                     retval = null;
@@ -1655,7 +1659,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         yBasePos = ~~this.y;
         // Viruses have empty name caches. If this is a virus with an empty name cache
         // then give it a name of the # of shots needed to split it.
-        if(null == nameCache) {
+        if(!nameCache) {
             if (this.isVirus) {
                 var virusSize = this.nSize;
                 var shotsNeeded = getVirusShotsNeededForSplit(virusSize).toString();
@@ -1665,7 +1669,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
         }
 
-        if((zeach.hasNickname || isMyCell) && (this.name && (nameCache && (null == itemToDraw || -1 == zeach.textBlobs.indexOf(kbIndex)))) ) {
+        if((zeach.hasNickname || isMyCell) && (this.name && (nameCache && (!itemToDraw || -1 == zeach.textBlobs.indexOf(kbIndex)))) ) {
 
             itemToDraw = nameCache;
             itemToDraw.setValue(this.name);
@@ -1701,8 +1705,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
 
         if(zeach.isShowMass) {
             var scale;
-            if(itemToDraw || 0 == zeach.myPoints.length && ((!this.isVirus || this.isAgitated) && 20 < this.size)) {
-                if(null == this.massText) {
+            if(itemToDraw || !zeach.myPoints.length && ((!this.isVirus || this.isAgitated) && 20 < this.size)) {
+                if(!this.massText) {
                     this.massText = new zeach.CachedCanvas(this.maxNameSize() / 2, "#FFFFFF", true, "#000000");
                 }
                 itemToDraw = this.massText;
@@ -1856,13 +1860,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (!isPlayerAlive()){
             timeSpawned = null;
         }
-        if(null == timeSpawned && isPlayerAlive()) {
+        if(!timeSpawned && isPlayerAlive()) {
             timeSpawned = Date.now(); // it's been reported we miss some instances of player spawning
         }
     }
 
     function onBeforeNewPointPacket() {
-        if (0 == _.size(zeach.myPoints)){
+        if (!_.size(zeach.myPoints)){
             timeSpawned = Date.now();
         }
     }
@@ -1961,9 +1965,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             
         };
         F.onmousedown = function(a) {
-            /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob();}
-            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor();}
-            /*new*/if(isPlayerAlive() && cobbler.clickToSplit){splitAtCursor();}return;
+            /*new*/if(cobbler.enableBlobLock) {lockCurrentBlob(); return; }
+            /*new*/if(isPlayerAlive() && cobbler.rightClickFires){fireAtVirusNearestToCursor(); return; }
+            /*new*/if(isPlayerAlive() && cobbler.clickToSplit){splitAtCursor(); return; }
             if (Ma) {
                 var c = a.clientX - (5 + q / 5 / 2);
                 var b = a.clientY - (5 + q / 5 / 2);
@@ -1994,20 +1998,20 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var c = false;
         var b = false;
         d.onkeydown = function(e) {
-            if (!(32 != e.keyCode)) {
+            if (32 == e.keyCode) {
                 if (!a) {
                     U();
                     G(17);
                     a = true;
                 }
             }
-            if (!(81 != e.keyCode)) {
+            if (81 == e.keyCode) {
                 if (!c) {
                     G(18);
                     c = true;
                 }
             }
-            if (!(87 != e.keyCode)) {
+            if (87 == e.keyCode) {
                 if (!b) {
                     U();
                     G(21);
@@ -2045,7 +2049,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
         Ra();
         ea(f("#region").val());
-        if (0 == za) {
+        if (!za) {
             if (x) {
                 N();
             }
@@ -2077,7 +2081,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 var h = v[p];
                 if (!!h.N()) {
                     if (!h.R) {
-                        if (!(20 >= h.size * k)) {
+                        if (20 < h.size * k) {
                             l = Math.max(h.size, l);
                             a = Math.min(h.x, a);
                             c = Math.min(h.y, c);
@@ -2097,15 +2101,16 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             });
             p = 0;
             for (;p < v.length;p++) {
-                if (h = v[p], h.N() && !(20 >= h.size * k)) {
+                var h;
+                if (h = v[p], h.N() && (20 < h.size * k)) {
                     a = 0;
                     for (;a < h.a.length;++a) {
                         c = h.a[a].x;
                         b = h.a[a].y;
-                        if (!(c < t - q / 2 / k)) {
-                            if (!(b < u - s$$0 / 2 / k)) {
-                                if (!(c > t + q / 2 / k)) {
-                                    if (!(b > u + s$$0 / 2 / k)) {
+                        if (c >= t - q / 2 / k) {
+                            if (b >= u - s$$0 / 2 / k) {
+                                if (c <= t + q / 2 / k) {
+                                    if (b <= u + s$$0 / 2 / k) {
                                         W.m(h.a[a]);
                                     }
                                 }
@@ -2121,7 +2126,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         ga = (da - s$$0 / 2) / k + u;
     }
     function La() {
-        if (null == ha) {
+        if (!ha) {
             ha = {};
             f("#region").children().each(function() {
                 var a = f(this);
@@ -2261,7 +2266,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             }
             r = null;
         }
-        if (null != J) {
+        if (J) {
             var e = J;
             J = function() {
                 e(c);
@@ -2332,7 +2337,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             for (;;) {
                 var e = a.getUint16(b, true);
                 b += 2;
-                if (0 == e) {
+                if (!e) {
                     break;
                 }
                 c += String.fromCharCode(e);
@@ -2377,7 +2382,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 b += 4;
                 break;
             case 49:
-                if (null != z) {
+                if (z) {
                     break;
                 }
                 var e$$0 = a.getUint32(b, true);
@@ -2417,7 +2422,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 Y = (qa + oa) / 2;
                 Z = (ra + pa) / 2;
                 $ = 1;
-                if (0 == m.length) {
+                if (!m.length) {
                     t = Y;
                     u = Z;
                     k = $;
@@ -2479,16 +2484,15 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         for (;;) {
             e = a.getUint32(c, true);
             c += 4;
-            if (0 == e) {
+            if (!e) {
                 break;
             }
             ++l;
-            var d;
-            p = a.getInt32(c, true);
+            var p = a.getInt32(c, true);
             c += 4;
-            h = a.getInt32(c, true);
+            var h = a.getInt32(c, true);
             c += 4;
-            d = a.getInt16(c, true);
+            var d = a.getInt16(c, true);
             c += 2;
             var g = a.getUint8(c++);
             var k = a.getUint8(c++);
@@ -2502,20 +2506,32 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             q = !!(k & 1);
             var s = !!(k & 16);
             if (k & 2) {
-                c += 4;
+                c += 4 + a.getUint32(k, !0); /* V28 */
             }
             if (k & 4) {
-                c += 8;
+                for (var s = "";;) { /* V28 */
+                    var x = a.getUint8(c++);
+                    if (!x) break;
+                    s += String.fromCharCode(x);
+                }
+                /* This seems to be used to look up the player's color,
+                 * based on the skin they're using.
+                 */
             }
-            if (k & 8) {
-                c += 16;
-            }
+            //if (k & 8) { // V28 - gone
+            //    c += 16;
+            //}
             var r;
             var n = "";
             for (;;) {
-                r = a.getUint16(c, true);
+                try {
+                    r = a.getUint16(c, true);
+                } catch(err) {
+                    console.log(err);
+                    break;
+                }
                 c += 2;
-                if (0 == r) {
+                if (!r) {
                     break;
                 }
                 n += String.fromCharCode(r);
@@ -2566,13 +2582,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         for (;l < b;l++) {
             e = a.getUint32(c, true);
             c += 4;
-            n = D[e];
-            if (null != n) {
+            var n = D[e];
+            if (n) {
                 n.X();
             }
         }
         if (Ea) {
-            if (0 == m.length) {
+            if (!m.length) {
                 Oa(false);
             }
         }
@@ -2584,8 +2600,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (S()) {
             a = ca - q / 2;
             var c = da - s$$0 / 2;
-            if (!(64 > a * a + c * c)) {
-                if (!(0.01 > Math.abs($a - fa) && 0.01 > Math.abs(ab - ga))) {
+            if (64 <= a * a + c * c) {
+                if (0.01 <= Math.abs($a - fa) || 0.01 <= Math.abs(ab - ga)) {
                         $a = fa;
                         ab = ga;
                         a = L(13);
@@ -2600,7 +2616,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
     function Ya() {
-        if (S() && null != I) {
+        if (S() && I) {
             var a = L(1 + 2 * I.length);
             a.setUint8(0, 0);
             var c = 0;
@@ -2611,7 +2627,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
     function S() {
-        return null != r && r.readyState == r.OPEN;
+        return r && r.readyState == r.OPEN;
     }
     function G(a) {
         if (S()) {
@@ -2621,7 +2637,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
     function Va() {
-        if (S() && null != B) {
+        if (S() && B) {
             var a = L(1 + B.length);
             a.setUint8(0, 81);
             var c = 0;
@@ -2653,7 +2669,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         return a *= H;
     }
     function tb() {
-        if (0 != m.length) {
+        if (m.length) {
             var a = 0;
             var c = 0;
             for (;c < m.length;c++) {
@@ -2708,12 +2724,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         g.translate(q / 2, s$$0 / 2);
         g.scale(k, k);
         g.translate(-t, -u);
-        e = 0;
-        for (;e < P.length;e++) {
+        for (var e = 0;e < P.length;e++) {
             P[e].w(g);
         }
-        e = 0;
-        for (;e < v.length;e++) {
+        for (var e = 0;e < v.length;e++) {
             v[e].w(g);
         }
         /*new*/drawRescaledItems(zeach.ctx);
@@ -2745,19 +2759,19 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         Q = Math.max(Q, wb());
         /*new*//*remap*/ var extras = " " + getScoreBoardExtrasString(Q);
         if (0 != Q) {
-            if (null == ta) {
+            if (!ta) {
                 ta = new ua(24, "#FFFFFF");
             }
             ta.C(X("score") + ": " + ~~(Q / 100));
             /*new*/ /*remap*/ ta.setValue("Score: " + ~~(Q / 100) + extras);
-            b = ta.L();
+            var b = ta.L();
             a$$0 = b.width;
             g.globalAlpha = 0.2;
             g.fillStyle = "#000000";
             g.fillRect(10, s$$0 - 10 - 24 - 10, a$$0 + 10, 34);
             g.globalAlpha = 1;
             g.drawImage(b, 15, s$$0 - 10 - 24 - 5);
-            /*new*//*mikey*//*remap*/(zeach.myPoints&&zeach.myPoints[0]&&OnUpdateMass(wb()));
+            /*new*//*mikey*//*remap*/if(zeach.myPoints && zeach.myPoints[0]) { OnUpdateMass(wb()); }
         }
         xb();
         c$$0 = Date.now() - c$$0;
@@ -2836,12 +2850,12 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
     }
     function Wa() {
         y = null;
-        if (null != z || 0 != E.length) {
-            if (null != z || va) {
+        if (z || E.length) {
+            if (z || va) {
                 y = document.createElement("canvas");
                 var a = y.getContext("2d");
                 var c = 60;
-                c = null == z ? c + 24 * E.length : c + 180;
+                c = !z ? c + 24 * E.length : c + 180;
                 var b = Math.min(200, 0.3 * q) / 200;
                 y.width = 200 * b;
                 y.height = c * b;
@@ -2855,7 +2869,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 b = X("leaderboard");
                 a.font = "30px Ubuntu";
                 a.fillText(b, 100 - a.measureText(b).width / 2, 40);
-                if (null == z) {
+                if (!z) {
                     a.font = "20px Ubuntu";
                     c = 0;
                     for (;c < E.length;++c) {
@@ -2921,11 +2935,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         }
     }
     function R(a, c) {
-        var b$$0 = "1" == f("#helloContainer").attr("data-has-account-data");
+        // var b$$0 = "1" == f("#helloContainer").attr("data-has-account-data");
         /*new*/var b$$0 = "1" == f("#ZCOverlay").attr("data-has-account-data");
 
         f("#helloContainer").attr("data-has-account-data", "1");
-        if (null == c && d.localStorage.loginCache) {
+        if (!c && d.localStorage.loginCache) {
             var e = JSON.parse(d.localStorage.loginCache);
             e.f = a.f;
             e.d = a.d;
@@ -2935,7 +2949,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         if (b$$0) {
             var l = +f(".agario-exp-bar .progress-bar-text").text().split("/")[0];
             b$$0 = +f(".agario-exp-bar .progress-bar-text").text().split("/")[1].split(" ")[0];
-            e = f(".agario-profile-panel .progress-bar-star").text();
+            var e = f(".agario-profile-panel .progress-bar-star").text();
             if (e != a.e) {
                 R({
                     f : b$$0,
@@ -3025,7 +3039,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                 f(".agario-profile-picture").attr("src", a.data.url);
             });
             f("#helloContainer").attr("data-logged-in", "1");
-            if (null != B) {
+            if (B) {
                 f.ajax("https://m.agar.io/checkToken", {
                     error : function() {
                         B = null;
@@ -3122,10 +3136,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         var V = true;
         var za = 0;
         var Ma = "ontouchstart" in d && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        var Ga = new Image;
+        var Ga = new Image();
         Ga.src = "img/split.png";
         var ib = document.createElement("canvas");
-        if ("undefined" == typeof console || ("undefined" == typeof DataView || ("undefined" == typeof WebSocket || (null == ib || (null == ib.getContext || null == d.localStorage))))) {
+        if ("undefined" == typeof console || "undefined" == typeof DataView || "undefined" == typeof WebSocket || !ib || !ib.getContext || !d.localStorage) {
             alert("You browser does not support this game, we recommend you to use Firefox to play this");
         } else {
 
@@ -3176,8 +3190,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             d.setLiteBrite = function(a) {
                 Fa = a;
             };
-            if (null != d.localStorage) {
-                if (null == d.localStorage.AB9) {
+            if (d.localStorage) {
+                if (!d.localStorage.AB9) {
                     d.localStorage.AB9 = 0 + ~~(100 * Math.random());
                 }
                 hb = +d.localStorage.AB9;
@@ -3554,8 +3568,8 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     return Math.max(~~(0.3 * this.size), 24);
                 },
                 B : function(a) {
-                    if (this.name = a) {
-                        if (null == this.o) {
+                    if ((this.name = a)) { // apparently this is intentional
+                        if (!this.o) {
                             this.o = new ua(this.l(), "#FFFFFF", true, "#000000");
                         } else {
                             this.o.M(this.l());
@@ -3569,13 +3583,13 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         var c = ~~(Math.random() * this.a.length);
                         this.a.splice(c, 1);
                     }
-                    if (0 == this.a.length) {
+                    if (!this.a.length) {
                         if (0 < a) {
                             this.a.push(new Ha(this, this.x, this.y, this.size, Math.random() - 0.5));
                         }
                     }
                     for (;this.a.length < a;) {
-                        c = ~~(Math.random() * this.a.length);
+                        var c = ~~(Math.random() * this.a.length);
                         c = this.a[c];
                         this.a.push(new Ha(this, c.x, c.y, c.i, c.b));
                     }
@@ -3621,9 +3635,9 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     b = 0;
                     for (;b < c;++b) {
                         var d = a$$0[b].i;
-                        e = a$$0[(b - 1 + c) % c].i;
-                        l = a$$0[(b + 1) % c].i;
-                        if (15 < this.size && (null != W && (20 < this.size * k && 0 < this.id))) {
+                        var e = a$$0[(b - 1 + c) % c].i;
+                        var l = a$$0[(b + 1) % c].i;
+                        if (15 < this.size && (W && (20 < this.size * k && 0 < this.id))) {
                             var f = false;
                             var g = a$$0[b].x;
                             var m = a$$0[b].y;
@@ -3652,10 +3666,10 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         }
                         d = this.n ? (19 * d + this.size) / 20 : (12 * d + this.size) / 13;
                         a$$0[b].i = (e + l + 8 * d) / 10;
-                        e = 2 * Math.PI / c;
-                        l = this.a[b].i;
+                        var e = 2 * Math.PI / c;
+                        var l = this.a[b].i;
                         if (this.h) {
-                            if (0 == b % 2) {
+                            if (!(b % 2)) {
                                 l += 5;
                             }
                         }
@@ -3702,7 +3716,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         this.R = c;
                         a.save();
                         this.ha = A;
-                        b = this.P();
+                        var b = this.P();
                         if (this.G) {
                             a.globalAlpha *= 1 - b;
                         }
@@ -3732,11 +3746,11 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             }
                         }
                         a.closePath();
-                        e = this.name.toLowerCase();
+                        var e = this.name.toLowerCase();
                         //if (!this.n && (fb && ":teams" != O)) {
                         //    if (-1 != jb.indexOf(e)) {
                         //        if (!T.hasOwnProperty(e)) {
-                        //            T[e] = new Image;
+                        //            T[e] = new Image();
                         //            T[e].src = "skins/" + e + ".png";
                         //        }
                         //        b = 0 != T[e].width && T[e].complete ? T[e] : null;
@@ -3754,7 +3768,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         /*new*/if(!cobbler.isLiteBrite)
                             a.fill();
 
-                        if (!(null == d)) {
+                        if (d) {
                             if (!b) {
                                 a.save();
                                 /*new*/zeach.ctx.globalAlpha = (isSpecialSkin(this.name.toLowerCase()) || _.contains(zeach.myIDs, this.id)) ? 1 : 0.5;
@@ -3771,14 +3785,14 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             }
                         }
                         a.globalAlpha = 1;
-                        if (null != d) {
+                        if (d) {
                             if (b) {
                                 a.drawImage(d, this.x - 2 * this.size, this.y - 2 * this.size, 4 * this.size, 4 * this.size);
                             }
                         }
                         b = -1 != m.indexOf(this);
                         c = ~~this.y;
-                        //if (0 != this.id && ((va || b) && (this.name && (this.o && (null == d || -1 == Bb.indexOf(e)))))) {
+                        //if (0 != this.id && ((va || b) && (this.name && (this.o && (!d || -1 == Bb.indexOf(e)))))) {
                         //    d = this.o;
                         //    d.C(this.name);
                         //    d.M(this.l());
@@ -3793,7 +3807,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         //if (0 < this.id) {
                         //    if (gb) {
                         //        if (b || 0 == m.length && ((!this.h || this.n) && 20 < this.size)) {
-                        //            if (null == this.O) {
+                        //            if (!this.O) {
                         //                this.O = new ua(this.l() / 2, "#FFFFFF", true, "#000000");
                         //            }
                         //            b = this.O;
@@ -3808,7 +3822,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                         //        }
                         //    }
                         //}
-                        /*new*//*remap*/if(0 != this.id) {
+                        /*new*//*remap*/if(this.id) {
                             /*new*//*remap*/var vertical_offset = drawCellName.call(this,b,e,d);
                             /*new*//*remap*/ drawCellMass.call(this,vertical_offset,b);
                         }
@@ -3852,7 +3866,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                     }
                 },
                 L : function() {
-                    if (null == this.p) {
+                    if (!this.p) {
                         this.p = document.createElement("canvas");
                         this.T = this.p.getContext("2d");
                     }
@@ -3885,7 +3899,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
             /*new*//*remap*/restoreCanvasElementObj(ua.prototype);
             if (!Date.now) {
                 Date.now = function() {
-                    return(new Date).getTime();
+                    return((new Date()).getTime());
                 };
             }
             (function() {
@@ -3933,7 +3947,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                                     return true;
                                 }
                             }
-                            if (0 != this.c.length) {
+                            if (this.c.length) {
                                 var d = this;
                                 return this.$(a, function(c) {
                                     return d.c[c].H(a);
@@ -3946,7 +3960,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             for (;b$$0 < this.items.length;++b$$0) {
                                 c(this.items[b$$0]);
                             }
-                            if (0 != this.c.length) {
+                            if (this.c.length) {
                                 var d = this;
                                 this.$(a, function(b) {
                                     d.c[b].A(a, c);
@@ -3954,7 +3968,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             }
                         },
                         m : function(a) {
-                            if (0 != this.c.length) {
+                            if (this.c.length) {
                                 this.c[this.Z(a)].m(a);
                             } else {
                                 if (this.items.length >= b$$1 && this.depth < e$$0) {
@@ -4125,7 +4139,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
                             m.drawImage(d$$0, (0.1 * g + 80 * q) % (h + 140) - h / 2 - 70 - 35, k / 2 * Math.sin((0.001 * g + q) % Math.PI * 2) - 35, 70, 70);
                         }
                         m.restore();
-                        if (b = b.attr("data-itr")) {
+                        if ((b = b.attr("data-itr"))) { // the assignment is intentional
                             b = X(b);
                         }
                         a$$0(c$$0, this, b || "", +f(this).attr("data-size"), "#5bc0de");
@@ -4192,7 +4206,7 @@ var PlayerHasSeenOfficialAds =_.once(function (){
 unsafeWindow.hideZCOverlay = function(){
     PlayerHasSeenOfficialAds();
     jQuery('#ZCOverlay').fadeOut();
-}
+};
 unsafeWindow.showZCOverlay = function (){
     jQuery('#ZCOverlay').fadeIn();
     OnShowOverlay(false);
@@ -4277,6 +4291,7 @@ jQuery('#ZCOverlayBody').append('<div id="ZCStats" style="position:relative;widt
     '   <li><B>Incompetech</B> - For KSP soundtrack music</li>' +
     '   <li><B>Mikeyk730</B> - stats screen code</li>' +
     '   <li><B>posixphreak</B> - Advanced zoom function improvements</li>' +
+    '   <li><B>Smurfix</B> - Bug fixes</li>' +
     '   <li><B>White Light</B> - Grazer concept and enemy avoidance code</li>' +
     '</ul></div>' +
     '<div id="col2" class="col-sm-6" style="padding-left: 5%; padding-right: 2%;"><h3></h3></div>' +
@@ -4286,7 +4301,7 @@ jQuery(".agario-profile-panel").appendTo("#XPArea");
 jQuery("#statsTab").click(function(){OnShowOverlay(false);});
 function LS_getValue(aKey, aDefault) {
     var val = localStorage.getItem(__STORAGE_PREFIX + aKey);
-    if (null === val && 'undefined' != typeof aDefault) return aDefault;
+    if (!val && 'undefined' != typeof aDefault) return aDefault;
     return val;
 }
 
@@ -4348,7 +4363,11 @@ function OnChangeDisplayChart(display)
 {
     LS_setValue('display_chart', display ? 'true' : 'false');
     display_chart = display;
-    display ? jQuery('#chart-container').show() : jQuery('#chart-container').hide();
+    if(display) {
+        jQuery('#chart-container').show();
+    } else {
+        jQuery('#chart-container').hide();
+    }
 }
 
 function OnChangeDisplayStats(display)
@@ -4467,7 +4486,7 @@ function OnGainMass(me, other)
         var key = other.name + ':' + other.color;
         stats.cells.num++;
         stats.cells.mass += mass;
-        if (stats.gains[key] == undefined)
+        if (undefined === stats.gains[key])
             stats.gains[key] = {num: 0, mass: 0};
         stats.gains[key].num++;
         stats.gains[key].mass += mass;
@@ -4479,7 +4498,7 @@ function OnLoseMass(me, other)
 {
     var mass = me.size * me.size;
     var key = other.name + ':' + other.color;
-    if (stats.losses[key] == undefined)
+    if (undefined === stats.losses[key])
         stats.losses[key] = {num: 0, mass: 0};
     stats.losses[key].num++;
     stats.losses[key].mass += mass;
@@ -4534,7 +4553,7 @@ function AppendTopN(n, p, list) {
     for (var i = 0; i < a.length; ++i){
         var text = a[i].name + ' (' + (p == 'gains' ? '+' : '-') + a[i].mass + ' mass)';
         list.append('<li style="font-size: 16px; "><div style="width: 16px; height: 16px; border-radius: 50%; margin-right:5px; background-color: ' + a[i].color + '; display: inline-block;"></div>' + text + '</li>');
-    };
+    }
     return a.length > 0;
 }
 
@@ -4720,7 +4739,7 @@ unsafeWindow.OnLeaderboard = function(position) {
     stats.top_slot = Math.min(stats.top_slot, position);
 };
 unsafeWindow.OnDraw = function(context) {
-    display_stats && stat_canvas && context.drawImage(stat_canvas, 10, 10);
+    if (display_stats && stat_canvas) { context.drawImage(stat_canvas, 10, 10); }
 };
 
 // ====================== Music & SFX System ==============================================================
@@ -4736,7 +4755,7 @@ for (i=0;i<ssfxlist.length;i++) {
     ssfxs.push(newsfx);
 }
 function sfx_play(id) {
-    if (document.getElementById("sfx").value==0) return;
+    if (!document.getElementById("sfx").value) return;
     var event = ssfxs[id];
     event.volume = document.getElementById("sfx").value;
     event.play();
@@ -4764,17 +4783,17 @@ for (i=0;i<sfxlist.length;i++) {
     sfxs[sfxlist[i]] = newsfx;
 }
 function sfx_event(id) {
-    if (document.getElementById("sfx").value==0) return;
+    if (!document.getElementById("sfx").value) return;
     var event = jQuery.clone(sfxs[id]);
     event.volume = document.getElementById("sfx").value;
     event.play();
 }
 
 var StartBGM = function () {
-    if (document.getElementById("bgm").value==0) return;
-    if (bgmusic.src == ""){
+    if (!document.getElementById("bgm").value) return;
+    if (bgmusic.src === ""){
         bgmusic.src = _.sample(tracks, 1);
-        bgmusic.load()
+        bgmusic.load();
     }
     bgmusic.volume = document.getElementById("bgm").value;
     bgmusic.play();
@@ -4782,13 +4801,13 @@ var StartBGM = function () {
 
 var StopBGM = function () {
     bgmusic.pause();
-    if (document.getElementById("bgm").value==0) return;
+    if (!document.getElementById("bgm").value) return;
     bgmusic.src = _.sample(tracks, 1);
-    bgmusic.load()
+    bgmusic.load();
 };
 
 volBGM = function (vol) {
-    console.log(vol.toString() + " - " + document.getElementById("bgm").value)
+    console.log(vol.toString() + " - " + document.getElementById("bgm").value);
     bgmusic.volume = document.getElementById("bgm").value;
     window.cobbler.bgmVol = document.getElementById("bgm").value;
 };
@@ -4885,8 +4904,8 @@ function serverinfo(list, index) {
                 .text("Failed");
         },
         complete: function (data) {
-            if(!(document.getElementById("serverBrowser")
-                    .style.display == "none")) {
+            if(document.getElementById("serverBrowser")
+                    .style.display != "none") {
                 serverinfo(list, index + 1);
             }
         }
@@ -4994,11 +5013,15 @@ $('#minimap-checkbox').change(function(){
     if(!!this.checked){
         $('#minimap-textbox').removeAttr("disabled");
     } else {
-        $('#minimap-textbox').attr({disabled:"disabled"})
+        $('#minimap-textbox').attr({disabled:"disabled"});
     }
     cobbler.miniMapScale = !!this.checked;
 });
-if(cobbler.miniMapScale){$('#minimap-checkbox').prop('checked', true);}else{ $('#minimap-textbox').attr({disabled:"disabled"})}
+if(cobbler.miniMapScale){
+    $('#minimap-checkbox').prop('checked', true);
+} else {
+    $('#minimap-textbox').attr({disabled:"disabled"});
+}
 $('#minimap-textbox').on('input propertychange paste', function() {
     var newval = parseInt(this.value);
     if(!_.isNaN(newval) && newval > 1 && newval < 999) {
@@ -5024,11 +5047,15 @@ $('#hybrid-checkbox').change(function(){
     if(!!this.checked){
         $('#hybrid-textbox').removeAttr("disabled");
     } else {
-        $('#hybrid-textbox').attr({disabled:"disabled"})
+        $('#hybrid-textbox').attr({disabled:"disabled"});
     }
     cobbler.grazerHybridSwitch = !!this.checked;
 });
-if(cobbler.grazerHybridSwitch){$('#hybrid-checkbox').prop('checked', true);}else{ $('#hybrid-textbox').attr({disabled:"disabled"})}
+if(cobbler.grazerHybridSwitch) {
+    $('#hybrid-checkbox').prop('checked', true);
+} else {
+    $('#hybrid-textbox').attr({disabled:"disabled"});
+}
 $('#hybrid-textbox').on('input propertychange paste', function() {
     var newval = parseInt(this.value);
     if(!_.isNaN(newval)) {
@@ -5065,11 +5092,15 @@ $('#AcidMode-checkbox').change(function(){
     if(!!this.checked){
         $('#AcidMode-textbox').removeAttr("disabled");
     } else {
-        $('#AcidMode-textbox').attr({disabled:"disabled"})
+        $('#AcidMode-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuAcidMode = !!this.checked;
 });
-if(cobbler.MenuAcidMode){$('#AcidMode-checkbox').prop('checked', true);}else{ $('#AcidMode-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuAcidMode) {
+    $('#AcidMode-checkbox').prop('checked', true);
+} else {
+    $('#AcidMode-textbox').attr({disabled:"disabled"});
+}
 $('#AcidMode-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5089,11 +5120,15 @@ $('#LiteBrite-checkbox').change(function(){
     if(!!this.checked){
         $('#LiteBrite-textbox').removeAttr("disabled");
     } else {
-        $('#LiteBrite-textbox').attr({disabled:"disabled"})
+        $('#LiteBrite-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuAcidMode = !!this.checked;
 });
-if(cobbler.MenuAcidMode){$('#LiteBrite-checkbox').prop('checked', true);}else{ $('#LiteBrite-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuAcidMode) {
+    $('#LiteBrite-checkbox').prop('checked', true);
+} else {
+    $('#LiteBrite-textbox').attr({disabled:"disabled"});
+}
 $('#LiteBrite-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5113,11 +5148,15 @@ $('#ShowVisual-checkbox').change(function(){
     if(!!this.checked){
         $('#ShowVisual-textbox').removeAttr("disabled");
     } else {
-        $('#ShowVisual-textbox').attr({disabled:"disabled"})
+        $('#ShowVisual-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuShowVisual = !!this.checked;
 });
-if(cobbler.MenuShowVisual){$('#ShowVisual-checkbox').prop('checked', true);}else{ $('#ShowVisual-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuShowVisual) {
+    $('#ShowVisual-checkbox').prop('checked', true);
+} else {
+    $('#ShowVisual-textbox').attr({disabled:"disabled"});
+}
 $('#ShowVisual-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5137,11 +5176,15 @@ $('#FireAtVirCur-checkbox').change(function(){
     if(!!this.checked){
         $('#FireAtVirCur-textbox').removeAttr("disabled");
     } else {
-        $('#FireAtVirCur-textbox').attr({disabled:"disabled"})
+        $('#FireAtVirCur-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuFireAtVirCur = !!this.checked;
 });
-if(cobbler.MenuFireAtVirCur){$('#FireAtVirCur-checkbox').prop('checked', true);}else{ $('#FireAtVirCur-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuFireAtVirCur) {
+    $('#FireAtVirCur-checkbox').prop('checked', true);
+} else {
+    $('#FireAtVirCur-textbox').attr({disabled:"disabled"});
+}
 $('#FireAtVirCur-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5161,11 +5204,15 @@ $('#FireAtVirBlob-checkbox').change(function(){
     if(!!this.checked){
         $('#FireAtVirBlob-textbox').removeAttr("disabled");
     } else {
-        $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})
+        $('#FireAtVirBlob-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuFireAtVirBlob = !!this.checked;
 });
-if(cobbler.MenuFireAtVirBlob){$('#FireAtVirBlob-checkbox').prop('checked', true);}else{ $('#FireAtVirBlob-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuFireAtVirBlob) {
+    $('#FireAtVirBlob-checkbox').prop('checked', true);
+} else {
+    $('#FireAtVirBlob-textbox').attr({disabled:"disabled"});
+}
 $('#FireAtVirBlob-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5185,11 +5232,15 @@ $('#NewGrazer-checkbox').change(function(){
     if(!!this.checked){
         $('#NewGrazer-textbox').removeAttr("disabled");
     } else {
-        $('#NewGrazer-textbox').attr({disabled:"disabled"})
+        $('#NewGrazer-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuNewGrazer = !!this.checked;
 });
-if(cobbler.MenuNewGrazer){$('#NewGrazer-checkbox').prop('checked', true);}else{ $('#NewGrazer-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuNewGrazer) {
+    $('#NewGrazer-checkbox').prop('checked', true);
+} else {
+    $('#NewGrazer-textbox').attr({disabled:"disabled"});
+}
 $('#NewGrazer-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5209,11 +5260,15 @@ $('#OldGrazer-checkbox').change(function(){
     if(!!this.checked){
         $('#OldGrazer-textbox').removeAttr("disabled");
     } else {
-        $('#OldGrazer-textbox').attr({disabled:"disabled"})
+        $('#OldGrazer-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuOldGrazer = !!this.checked;
 });
-if(cobbler.MenuOldGrazer){$('#OldGrazer-checkbox').prop('checked', true);}else{ $('#OldGrazer-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuOldGrazer) {
+    $('#OldGrazer-checkbox').prop('checked', true);
+} else {
+    $('#OldGrazer-textbox').attr({disabled:"disabled"});
+}
 $('#OldGrazer-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5233,11 +5288,15 @@ $('#GrazingFix-checkbox').change(function(){
     if(!!this.checked){
         $('#GrazingFix-textbox').removeAttr("disabled");
     } else {
-        $('#GrazingFix-textbox').attr({disabled:"disabled"})
+        $('#GrazingFix-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuGrazingFix = !!this.checked;
 });
-if(cobbler.MenuGrazingFix){$('#GrazingFix-checkbox').prop('checked', true);}else{ $('#GrazingFix-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuGrazingFix) {
+    $('#GrazingFix-checkbox').prop('checked', true);
+} else {
+    $('#GrazingFix-textbox').attr({disabled:"disabled"});
+}
 $('#GrazingFix-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5258,11 +5317,15 @@ $('#SwitchBlob-checkbox').change(function(){
     if(!!this.checked){
         $('#SwitchBlob-textbox').removeAttr("disabled");
     } else {
-        $('#SwitchBlob-textbox').attr({disabled:"disabled"})
+        $('#SwitchBlob-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuSwitchBlob= !!this.checked;
 });
-if(cobbler.MenuSwitchBlob){$('#SwitchBlob-checkbox').prop('checked', true);}else{ $('#SwitchBlob-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuSwitchBlob) {
+    $('#SwitchBlob-checkbox').prop('checked', true);
+} else {
+    $('#SwitchBlob-textbox').attr({disabled:"disabled"});
+}
 $('#SwitchBlob-textbox').on('input propertychange paste', function() {
     var newval = this.value;
     var TABKEY = 9;
@@ -5284,11 +5347,15 @@ $('#SuspendMouse-checkbox').change(function(){
     if(!!this.checked){
         $('#SuspendMouse-textbox').removeAttr("disabled");
     } else {
-        $('#SuspendMouse-textbox').attr({disabled:"disabled"})
+        $('#SuspendMouse-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuSuspendMouse = !!this.checked;
 });
-if(cobbler.MenuSuspendMouse){$('#SuspendMouse-checkbox').prop('checked', true);}else{ $('#SuspendMouse-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuSuspendMouse) {
+    $('#SuspendMouse-checkbox').prop('checked', true);
+} else {
+    $('#SuspendMouse-textbox').attr({disabled:"disabled"});
+}
 $('#SuspendMouse-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5308,11 +5375,15 @@ $('#RightClick-checkbox').change(function(){
     if(!!this.checked){
         $('#RightClick-textbox').removeAttr("disabled");
     } else {
-        $('#RightClick-textbox').attr({disabled:"disabled"})
+        $('#RightClick-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuRightClick = !!this.checked;
 });
-if(cobbler.MenuRightClick){$('#RightClick-checkbox').prop('checked', true);}else{ $('#RightClick-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuRightClick) {
+    $('#RightClick-checkbox').prop('checked', true);
+} else {
+    $('#RightClick-textbox').attr({disabled:"disabled"});
+}
 $('#RightClick-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5332,11 +5403,15 @@ $('#ZoomFactor-checkbox').change(function(){
     if(!!this.checked){
         $('#ZoomFactor-textbox').removeAttr("disabled");
     } else {
-        $('#ZoomFactor-textbox').attr({disabled:"disabled"})
+        $('#ZoomFactor-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuZoomFactor = !!this.checked;
 });
-if(cobbler.MenuZoomFactor){$('#ZoomFactor-checkbox').prop('checked', true);}else{ $('#ZoomFactor-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuZoomFactor) {
+    $('#ZoomFactor-checkbox').prop('checked', true);
+} else {
+    $('#ZoomFactor-textbox').attr({disabled:"disabled"});
+}
 $('#ZoomFactor-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5356,11 +5431,15 @@ $('#GrazingVisual-checkbox').change(function(){
     if(!!this.checked){
         $('#GrazingVisual-textbox').removeAttr("disabled");
     } else {
-        $('#GrazingVisual-textbox').attr({disabled:"disabled"})
+        $('#GrazingVisual-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuGrazingVisual = !!this.checked;
 });
-if(cobbler.MenuGrazingVisual){$('#GrazingVisual-checkbox').prop('checked', true);}else{ $('#GrazingVisual-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuGrazingVisual) {
+    $('#GrazingVisual-checkbox').prop('checked', true);
+} else {
+    $('#GrazingVisual-textbox').attr({disabled:"disabled"});
+}
 $('#GrazingVisual-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5380,11 +5459,15 @@ $('#GrazerReset-checkbox').change(function(){
     if(!!this.checked){
         $('#GrazerReset-textbox').removeAttr("disabled");
     } else {
-        $('#GrazerReset-textbox').attr({disabled:"disabled"})
+        $('#GrazerReset-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuGrazerReset = !!this.checked;
 });
-if(cobbler.MenuGrazerReset){$('#GrazerReset-checkbox').prop('checked', true);}else{ $('#GrazerReset-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuGrazerReset) {
+    $('#GrazerReset-checkbox').prop('checked', true);
+} else {
+    $('#GrazerReset-textbox').attr({disabled:"disabled"});
+}
 $('#GrazerReset-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5404,11 +5487,15 @@ $('#PointLock-checkbox').change(function(){
     if(!!this.checked){
         $('#PointLock-textbox').removeAttr("disabled");
     } else {
-        $('#PointLock-textbox').attr({disabled:"disabled"})
+        $('#PointLock-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuPointLock = !!this.checked;
 });
-if(cobbler.MenuPointLock){$('#PointLock-checkbox').prop('checked', true);}else{ $('#PointLock-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuPointLock) {
+    $('#PointLock-checkbox').prop('checked', true);
+} else {
+    $('#PointLock-textbox').attr({disabled:"disabled"});
+}
 $('#PointLock-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5428,11 +5515,15 @@ $('#ClickToSplit-checkbox').change(function(){
     if(!!this.checked){
         $('#ClickToSplit-textbox').removeAttr("disabled");
     } else {
-        $('#ClickToSplit-textbox').attr({disabled:"disabled"})
+        $('#ClickToSplit-textbox').attr({disabled:"disabled"});
     }
     cobbler.MenuClickToSplit = !!this.checked;
 });
-if(cobbler.MenuClickToSplit){$('#ClickToSplit-checkbox').prop('checked', true);}else{ $('#ClickToSplit-textbox').attr({disabled:"disabled"})}
+if(cobbler.MenuClickToSplit) {
+    $('#ClickToSplit-checkbox').prop('checked', true);
+} else {
+    $('#ClickToSplit-textbox').attr({disabled:"disabled"});
+}
 $('#ClickToSplit-textbox').on('input propertychange paste', function() {
     var newval = this.value.charAt(0);
     if(newval.toUpperCase() != newval.toLowerCase()) {
@@ -5450,7 +5541,7 @@ $("#rainbow-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right"
     "title": "Allow food pellets to be rainbow colored rather than purple. Combines well with Lite Brite Mode"});
 $("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "right",
     "title": "Leaves blob centers empty except for skins."});
-setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip()})}, 5000); // turn on all tooltips.
+setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip();});}, 5000); // turn on all tooltips.
 
 // Ugly ass hack to fix effects of official code loading before mod
 //$("#canvas").remove();
