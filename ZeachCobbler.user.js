@@ -8,8 +8,8 @@
 // @version      0.31.4
 // @description  Agario powerups
 // @author       DebugMonkey
-// @match        http://agar.io
-// @match        https://agar.io
+// @match        http://agar.io/*
+// @match        https://agar.io/*
 // @icon         https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon48.png
 // @icon64       https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon64.png
 // @icon128      https://raw.github.com/RealDebugMonkey/ZeachCobbler/master/icons/zeachcobbler_icon128.png
