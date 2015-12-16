@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.4
+// @version      0.31.5
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io/*
@@ -19,6 +19,7 @@
 //                   2 - V28 protocol fixes
 //                   3 - fixed the mouse click handler
 //                   4 - Chromium's JS lint found a lot of crap
+//                   5 - updated message
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
@@ -101,11 +102,11 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Click to split and bug fixes</h3><p>" +
-    "In this update was added ability to split by mouse click, which work also with Grazer. " +
-    "I also fixed some bugs, like the screen-freezing minimap one and fix semicolons in the code. " +
+var debugMonkeyReleaseMessage = "<h3>Even more bug fixes</h3><p>" +
+    "This update is brought to you by Smurfix and PepinCZ who have stepped up in my absence " +
+    "to provide bug fixes and support. Thank you guys and all those others who have submitted pull requests and bug reports. " +
     "Again, if you find some bug please report it! (You can do that visiting TamperMonkey's controll panel and then click the bug image right of Zeach Cobbler) <br>" +
-    "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>-PepinCZ, debugmonkey";
+    "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>debugmonkey";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
 //    return;
