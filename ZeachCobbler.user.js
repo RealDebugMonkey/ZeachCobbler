@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.5
+// @version      0.31.6
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io/*
@@ -20,6 +20,7 @@
 //                   3 - fixed the mouse click handler
 //                   4 - Chromium's JS lint found a lot of crap
 //                   5 - updated message
+//                   6 - quick hack to stop flickering
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
@@ -102,10 +103,10 @@
 // ==/UserScript==
 var _version_ = GM_info.script.version;
 
-var debugMonkeyReleaseMessage = "<h3>Even more bug fixes</h3><p>" +
-    "This update is brought to you by Smurfix and PepinCZ who have stepped up in my absence " +
-    "to provide bug fixes and support. Thank you guys and all those others who have submitted pull requests and bug reports. " +
-    "Again, if you find some bug please report it! (You can do that visiting TamperMonkey's controll panel and then click the bug image right of Zeach Cobbler) <br>" +
+var debugMonkeyReleaseMessage = "<h3>Quick Flicker issue fix</h3><p>" +
+    "Hey guys, Sorry to say I've lost interest in Agario a long time ago and am now addicted to SMITE (the MOBA).<br> " +
+    "I'll continue trying to keep this project going as time permits, but fixes may not be prompt.<br><br> " +
+    "This version fixes the recent issue with flickering. I know the minimap is still broken. will fix when I can.<br>" +
     "<img src='http://i.imgur.com/p4zv6vx.jpg'><br><br>debugmonkey";
 
 //if (window.top != window.self)  //-- Don't run on frames or iframes
@@ -116,8 +117,7 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js
 $.getScript("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js");
 
 unsafeWindow.connect2 = unsafeWindow.connect;
-jQuery("#canvas").remove();
-jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canvas>');
+
 
 (function(d, f) {
 
@@ -1954,7 +1954,7 @@ jQuery("#connecting").after('<canvas id="canvas" width="800" height="600"></canv
         wa = true;
         La();
         setInterval(La, 18E4);
-        F = xa = document.getElementById("canvas");
+        F = xa = document.getElementById("canvas2");
         g = F.getContext("2d");
         // /*old*/ F.onmousewheel = function (e) {zoomFactor = e.wheelDelta > 0 ? 10 : 11;}
         /*new*/ F.onmousewheel = function (e) {
@@ -5545,8 +5545,8 @@ $("#litebrite-checkbox").attr({"data-toggle": "tooltip", "data-placement": "righ
 setTimeout(function(){$(function () { $('[data-toggle="tooltip"]').tooltip();});}, 5000); // turn on all tooltips.
 
 // Ugly ass hack to fix effects of official code loading before mod
-//$("#canvas").remove();
-//$("body").prepend('<canvas id="canvas" width="800" height="600"></canvas>');
+jQuery("#canvas").after('<canvas id="canvas2" width="800" height="600"></canvas>');
+jQuery("#canvas").hide();
 
 
 
