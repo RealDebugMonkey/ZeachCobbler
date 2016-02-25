@@ -5,7 +5,7 @@
 // @downloadURL  http://bit.do/ZeachCobblerJS2
 // @contributer  See full list at https://github.com/RealDebugMonkey/ZeachCobbler#contributors-and-used-code
 // @supportURL   https://github.com/RealDebugMonkey/ZeachCobbler/issues
-// @version      0.31.6
+// @version      0.31.7
 // @description  Agario powerups
 // @author       DebugMonkey
 // @match        http://agar.io/*
@@ -21,6 +21,7 @@
 //                   4 - Chromium's JS lint found a lot of crap
 //                   5 - updated message
 //                   6 - quick hack to stop flickering
+//                   7 - Positioning of ZC overlay
 //                   0.30.0 - Added GitHub, Contrib and Zeach Cobbler skins
 //                     - Use " ' " before nick to use your GitHub avatar 
 //                   1 - Fixed minimap screen-freezing bug
@@ -4212,7 +4213,7 @@ unsafeWindow.showZCOverlay = function (){
     jQuery('#ZCOverlay').fadeIn();
     OnShowOverlay(false);
 };
-jQuery('body').append('<div id="ZCOverlay" class="bs-example-modal-lg" style="position:relative;z-index: 300;">'+
+jQuery('div#overlays').append('<div id="ZCOverlay" class="bs-example-modal-lg" style="position:relative;z-index: 300;">'+
 '<div class="modal-dialog modal-lg">'+
 '    <div class="modal-content">'+
 '    <div class="modal-header">'+
